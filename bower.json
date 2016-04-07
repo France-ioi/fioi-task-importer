@@ -1,0 +1,24 @@
+{
+  "name": "fioi-task-importer",
+  "homepage": "https://github.com/France-ioi/fioi-task-importer",
+  "authors": [
+    "France-ioi <info@france-ioi.org>"
+  ],
+  "description": "FIOI svn task importer",
+  "main": "",
+  "moduleType": [],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "^2.2.2",
+    "bootstrap": "^3.3.6",
+    "pem-platform": "France-ioi/pem-platform"
+  }
+}

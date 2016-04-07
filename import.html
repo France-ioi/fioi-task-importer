@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>LTI SVN task importer</title>
+    <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" type="text/css" rel="stylesheet">
+    <link href="local.css" type="text/css" rel="stylesheet">
+    <script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="bower_components/pem-platform/task-pr.js"></script>
+    <script type="text/javascript" src="svnimport.js"></script>
+  </head>
+  <body>
+    <div id="form_cont">
+        <form class="form-inline" role="form" id="svn_form">
+            <div class="form-group">
+                <label for="svnUrl">svn address:</label><br>
+                <input type="text" class="form-control" name="svnUrl" style="width:400px;" value="https://github.com/France-ioi/fioi-tasks-template/trunk/">
+            </div><br>
+            <div class="form-group">
+                <label for="svnSubdir">svn subdirectory:</label><br>
+                <input type="text" class="form-control" name="svnSubdir" style="width:200px;" value="/tasks/sample-task/">
+            </div><br>
+            <div class="form-group">
+                <label for="svnRev">svn revision (leave empty for HEAD):</label><br>
+                <input type="text" class="form-control" name="svnRev">
+            </div><br>
+            <div class="form-group">
+                <label for="svnUser">svn user:</label><br>
+                <input type="text" class="form-control" name="svnUser">
+            </div><br>
+            <div class="form-group">
+                <label for="svnPassword">svn password:</label><br>
+                <input type="password" class="form-control" name="svnPassword">
+            </div><br>
+        </form>
+        <button class="btn btn-default" onclick="saveSvn()">Import svn files</button>
+    </div>
+    <div id="state"></div>
+    <iframe style="width:10px;height:10px;" id="taskIframe" src="http://eroux.fr/task-import-test/tasks/sample-task/index.html"></iframe>
+    <button class="btn btn-default" onclick="getInfos()">getResources</button>
+  </body>
+</html>
