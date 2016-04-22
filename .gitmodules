@@ -1,0 +1,6 @@
+[submodule "files/_common/task-platform"]
+	path = files/_common/task-platform
+	url = https://github.com/France-ioi/TaskPlatform.git
+[submodule "files/_common/modules"]
+	path = files/_common/modules
+	url = https://github.com/France-ioi/bebras-modules.git
