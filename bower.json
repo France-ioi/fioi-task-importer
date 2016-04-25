@@ -19,6 +19,10 @@
   "dependencies": {
     "jquery": "^2.2.2",
     "bootstrap": "^3.3.6",
+    "jschannel": "https://github.com/yochannah/jschannel.git#f2bcb86",
     "pem-platform": "France-ioi/pem-platform"
+  },
+  "resolutions": {
+    "jschannel": "f2bcb86"
   }
 }
