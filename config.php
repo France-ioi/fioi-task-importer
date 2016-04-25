@@ -15,6 +15,9 @@ $config->db->password = 'castor';
 $config->db->user = 'castor';
 $config->db->logged = false;
 
+$config->defaultSvnUser = null;
+$config->defaultSvnPassword = null;
+
 $config->aws = (object) array();
 $config->aws->key = '';
 $config->aws->secret = '';

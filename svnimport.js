@@ -7,15 +7,32 @@ function setState(state, comment) {
 		$('#state').html('get task resources...');
 	} else if (state == 'saveresources') {
 		$('#state').html('save resources in db...');
-	} else if (state == 'saveresources') {
-		$('#state').html('import success!');
 	} else if (state == 'error') {
 		$('#state').html('error: '+comment);
+	} else if (state == 'deleting') {
+		$('#state').html('deleting svn temporary dir...');
+	} else if (state == 'success') {
+		$('#state').html('task was correctly imported!');
 	}
 }
 
-function getInfos() {
+function finishImport(ID) {
+	setState('deleting');
+	$.post('savesvn.php', {action: 'deletedirectory', ID: ID}, function(res) {
+		if (res.success) {
+			setState('success');	     				
+		} else {
+			setState('error', res.error);
+		}
+	}).fail(function() {
+		setState('error');
+    });
+}
+
+function getInfos(success) {
+	console.error('getInfos');
 	TaskProxyManager.getTaskProxy('taskIframe', function(task) {
+		console.error('got proxy');
 		window.task = task;
 		setState('getresources');
 		var platform = new Platform(task);
@@ -26,7 +43,7 @@ function getInfos() {
 		     		setState('saveresources');
 		     		$.post('savesvn.php', {action: 'saveResources', resources: resources, metadata: metadata}, function(res) {
 		     			if (res.success) {
-		     				setState('success');
+							success();		     				
 		     			} else {
 		     				setState('error', res.error);
 		     			}
@@ -54,8 +71,10 @@ function saveSvn() {
     	}
     	$('#taskIframe').attr('src',res.dir);
     	window.setTimeout(function() {
-    		getInfos();
-    	}, 0);
+    		getInfos(function() {
+    			finishImport(res.ID);
+    		});
+    	}, 2000);
     }, 'json').fail(function() {
     	setState('error');
     });

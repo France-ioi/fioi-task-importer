@@ -14,20 +14,25 @@ if (!isset($_POST) || !isset($_POST['action'])) {
 	die(json_encode(['success' => false, 'error' => 'missing action']));
 }
 
-function checkoutSvn($url, $user, $password, $subdir, $revision) {
+function checkoutSvn($url, $user, $password, $revision) {
 	global $config;
 	$dir = mt_rand(100000, mt_getrandmax());
 	svn_auth_set_parameter(SVN_AUTH_PARAM_DEFAULT_USERNAME,             $user);
 	svn_auth_set_parameter(SVN_AUTH_PARAM_DEFAULT_PASSWORD,             $password);
 	svn_auth_set_parameter(PHP_SVN_AUTH_PARAM_IGNORE_SSL_VERIFY_ERRORS, true); // <--- Important for certificate issues!
 	svn_auth_set_parameter(SVN_AUTH_PARAM_NON_INTERACTIVE,              true);
-	svn_auth_set_parameter(SVN_AUTH_PARAM_NO_AUTH_CACHE,                true); 
-	if ($revision) {
-		svn_checkout($url, __DIR__.'/checkouts/'.$dir, $revision);
-	} else {
-		svn_checkout($url, __DIR__.'/checkouts/'.$dir);
+	svn_auth_set_parameter(SVN_AUTH_PARAM_NO_AUTH_CACHE,                true);
+	$sucess = true;
+	try {
+		if ($revision) {
+			$success = svn_checkout($url, __DIR__.'/files/checkouts/'.$dir, $revision);
+		} else {
+			$success = svn_checkout($url, __DIR__.'/files/checkouts/'.$dir);
+		}
+	} catch (Exception $e) {
+		echo(json_encode(['success' => false, 'error' => $e->getMessage()]));
 	}
-	echo(json_encode(['success' => true, 'dir' => $config->baseUrl.'/checkouts/'.$dir.'/'.$subdir]));
+	echo(json_encode(['success' => $success, 'dir' => $config->baseUrl.'/files/checkouts/'.$dir, 'ID' => $dir]));
 }
 
 function saveLimits($taskId, $limits) {
@@ -143,7 +148,7 @@ function saveSourceCodes($taskId, $resources) {
 function saveSamples($taskId, $resources) {
 	global $db;
 	$insertQuery = 'insert into tm_tasks_tests (idTask, sGroupType, sName, sInput, sOutput) values (:idTask, :sGroupType, :sName, :sInput, :sOutput);';
-	$deleteQuery = 'delete from tm_tasks_tests where idTask = :idTask and sGroupType = :sGroupType and sName = :sGroupType;';
+	$deleteQuery = 'delete from tm_tasks_tests where idTask = :idTask and sGroupType = :sGroupType and sName = :sName;';
 	foreach ($resources['task'] as $i => $resource) {
 		if ($resource['type'] == 'sample' && isset($resource['name']) && $resource['name']) {
 			$stmt = $db->prepare($deleteQuery);
@@ -151,6 +156,9 @@ function saveSamples($taskId, $resources) {
 			$stmt = $db->prepare($insertQuery);
 			$stmt->execute(['idTask' => $taskId, 'sGroupType' => 'Example', 'sName' => $resource['name'], 'sInput' => $resource['inContent'], 'sOutput' => $resource['outContent']]);
 		}
+	}
+	if (!isset($resources['grader'])) {
+		return;
 	}
 	foreach ($resources['grader'] as $i => $resource) {
 		if ($resource['type'] == 'sample' && isset($resource['name']) && $resource['name']) {
@@ -183,16 +191,48 @@ function saveResources($metadata, $resources) {
 	echo(json_encode(['success' => true]));
 }
 
+// why is there no such thing in the php library?
+function deleteRecDirectory($dir) {
+	if (!$dir || $dir == '/') return;
+	$it = new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS);
+	$files = new RecursiveIteratorIterator($it,
+	             RecursiveIteratorIterator::CHILD_FIRST);
+	foreach($files as $file) {
+	    if ($file->isDir()){
+	        rmdir($file->getRealPath());
+	    } else {
+	        unlink($file->getRealPath());
+	    }
+	}
+	rmdir($dir);	
+}
+
+function deleteDirectory($ID) {
+	$ID = intval($ID);
+	if ($ID < 1) {
+		die(json_encode(['success' => false, 'error' => 'invalid ID format (must be number)']));
+	}
+	deleteRecDirectory(__DIR__.'/files/checkouts/'.$ID);
+	echo(json_encode(['success' => true]));
+}
+
 if ($_POST['action'] == 'checkoutSvn') {
 	if (!isset($_POST['svnUrl'])) {
 		die(json_encode(['success' => false, 'error' => 'missing svnUrl']));
 	}
-	checkoutSvn($_POST['svnUrl'], $_POST['svnUser'], $_POST['svnPassword'], $_POST['svnSubdir'], $_POST['svnRev']);
+	$user = $_POST['svnUser'] ? $_POST['svnUser'] : $config->defaultSvnUser;
+	$password = $_POST['svnPassword'] ? $_POST['svnPassword'] : $config->defaultSvnPassword;
+	checkoutSvn($_POST['svnUrl'], $user, $password, $_POST['svnRev']);
 } elseif ($_POST['action'] == 'saveResources') {
 	if (!isset($_POST['metadata']) || !isset($_POST['resources'])) {
 		die(json_encode(['success' => false, 'error' => 'missing metada or resources']));
 	}
 	saveResources($_POST['metadata'], $_POST['resources']);
+} elseif ($_POST['action'] == 'deletedirectory') {
+	if (!isset($_POST['ID'])) {
+		die(json_encode(['success' => false, 'error' => 'missing directory']));
+	}
+	deleteDirectory($_POST['ID']);
 } else {
 	echo(json_encode(['success' => false, 'error' => 'unknown action '.$_POST['action']]));	
 }
