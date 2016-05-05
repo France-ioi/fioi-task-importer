@@ -1,3 +1,8 @@
+<?php
+
+require_once 'config.php';
+
+?>
 <!DOCTYPE html>
 <html>
   <head>
@@ -12,11 +17,16 @@
     <script type="text/javascript" src="svnimport.js"></script>
   </head>
   <body>
+    <h1>Import de sujets</h1>
+    <p>Cette page vous permet d'importer un sujet créé sur le svn france-ioi dans la plateforme d'exercices. Une fois le sujet importé, cette page vous donnera les URL pour inclure l'exercice dans un environnement LTI ou la plateforme Algoréa.</p>
     <div id="form_cont">
         <form class="form-inline" role="form" id="svn_form">
             <div class="form-group">
                 <label for="svnUrl">svn address:</label><br>
-                <input type="text" class="form-control" name="svnUrl" style="width:400px;" value="svn://svn.france-ioi.org/tasks/v01/Examples/min3nombres/">
+                  <div class="input-group">
+                    <span class="input-group-addon" style="font-weight:bold;"><?= $config->svnBaseUrl; ?></span>
+                    <input type="text" style="width:300px;" class="form-control" id="svnUrl" name="svnUrl" value="Examples/min3nombres/">
+                  </div>
             </div><br>
             <div class="form-group">
                 <label for="svnRev">svn revision (leave empty for HEAD):</label><br>
@@ -24,7 +34,7 @@
             </div><br>
             <div class="form-group">
                 <label for="svnUser">svn user:</label><br>
-                <input type="text" class="form-control" name="svnUser" value="">
+                <input type="text" class="form-control" name="svnUser">
             </div><br>
             <div class="form-group">
                 <label for="svnPassword">svn password:</label><br>
@@ -34,7 +44,11 @@
         <button class="btn btn-default" onclick="saveSvn()">Import svn files</button>
     </div>
     <div id="state"></div>
-    <iframe style="width:10px;height:10px;" id="taskIframe" src=""></iframe>
+    <div id="result" style="display:none;">
+        <p><strong>Url pour LTI :</strong> <a href="" id="ltiUrl"></a></p>
+        <p><strong>Url pour la plateforme Algoréa :</strong> <a href="" id="normalUrl"></a></p>
+    </div>
+    <iframe style="width:1px;height:1px;" id="taskIframe" src=""></iframe>
     <!--<button class="btn btn-default" onclick="getInfos()">getResources</button> -->
   </body>
 </html>

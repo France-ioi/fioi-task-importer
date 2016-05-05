@@ -14,8 +14,31 @@ if (!isset($_POST) || !isset($_POST['action'])) {
 	die(json_encode(['success' => false, 'error' => 'missing action']));
 }
 
-function checkoutSvn($url, $user, $password, $revision) {
-	global $config;
+function getLastRevision($dir) {
+	$status = svn_status($dir, SVN_ALL);
+	$maxRev = 0;
+	foreach ($status as $i => $filestatus) {
+		if ($filestatus['cmt_rev'] > $maxRev) {
+			$maxRev = $filestatus['cmt_rev'];
+		}
+	}
+	return $maxRev;
+}
+
+function checkoutSvn($subdir, $user, $password, $revision) {
+	global $config, $db;
+	$subdir = trim($subdir);
+	$subdir = trim($subdir, '/');
+	$sTaskPath = '$ROOT_PATH/'.$subdir;
+	if ($revision) {
+		$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
+		$stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
+		$ID = $stmt->fetchColumn();
+		if ($ID) {
+			echo(json_encode(['success' => $success, 'ltiUrl' => $config->ltiUrl.$ID, 'normalUrl' => $config->ltiUrl.$ID]));
+			return;
+		}
+	}
 	$dir = mt_rand(100000, mt_getrandmax());
 	svn_auth_set_parameter(SVN_AUTH_PARAM_DEFAULT_USERNAME,             $user);
 	svn_auth_set_parameter(SVN_AUTH_PARAM_DEFAULT_PASSWORD,             $password);
@@ -23,16 +46,27 @@ function checkoutSvn($url, $user, $password, $revision) {
 	svn_auth_set_parameter(SVN_AUTH_PARAM_NON_INTERACTIVE,              true);
 	svn_auth_set_parameter(SVN_AUTH_PARAM_NO_AUTH_CACHE,                true);
 	$sucess = true;
+	$url = $config->svnBaseUrl.$subdir;
 	try {
+		svn_update(__DIR__.'/files/_common/');
 		if ($revision) {
 			$success = svn_checkout($url, __DIR__.'/files/checkouts/'.$dir, $revision);
 		} else {
 			$success = svn_checkout($url, __DIR__.'/files/checkouts/'.$dir);
+			$revision = getLastRevision(__DIR__.'/files/checkouts/'.$dir);
 		}
 	} catch (Exception $e) {
 		echo(json_encode(['success' => false, 'error' => $e->getMessage()]));
 	}
-	echo(json_encode(['success' => $success, 'dir' => $config->baseUrl.'/files/checkouts/'.$dir, 'ID' => $dir]));
+	$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
+	$stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
+	$ID = $stmt->fetchColumn();
+	if ($ID) {
+		deleteRecDirectory(__DIR__.'/files/checkouts/'.$dir);
+		echo(json_encode(['success' => $success, 'ltiUrl' => $config->ltiUrl.$ID, 'normalUrl' => $config->ltiUrl.$ID]));
+		return;
+	}
+	echo(json_encode(['success' => $success, 'url' => $config->baseUrl.'/files/checkouts/'.$dir.'/index.html', 'revision' => $revision, 'ID' => $dir]));
 }
 
 function saveLimits($taskId, $limits) {
@@ -48,20 +82,27 @@ function saveLimits($taskId, $limits) {
 	}
 }
 
-function saveTask($metadata) {
+function saveTask($metadata, $subdir, $revision) {
 	global $db;
+	$sTaskPath = '$ROOT_PATH/'.$subdir;
+	$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
+	$stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
+	$ID = $stmt->fetchColumn();
+	if ($ID) {
+		return [$ID, true];
+	}
 	$authors = (isset($metadata['authors']) && count($metadata['authors'])) ? join(',', $metadata['authors']) : '';
 	$sSupportedLangProg = (isset($metadata['supportedLanguages']) && count($metadata['supportedLanguages'])) ? join(',', $metadata['supportedLanguages']) : '*';
 	$bUserTests = isset($metadata['hasUserTests']) ? $metadata['hasUserTests'] : 0;
-	$stmt = $db->prepare('insert into tm_tasks (sTextId, sSupportedLangProg, sAuthor, bUserTests) values (:id, :langprog, :authors, :bUserTests) on duplicate key update sSupportedLangProg = values(sSupportedLangProg), sAuthor = values(sAuthor), bUserTests = values(bUserTests);');
-	$stmt->execute(['id' => $metadata['id'], 'langprog' => $sSupportedLangProg, 'authors' => $authors, 'bUserTests' => $bUserTests]);
-	$stmt = $db->prepare('select id from tm_tasks where sTextId = :id;');
-	$stmt->execute(['id' => $metadata['id']]);
+	$stmt = $db->prepare('insert into tm_tasks (sTextId, sSupportedLangProg, sAuthor, bUserTests, sTaskPath, sRevision) values (:id, :langprog, :authors, :bUserTests, :sTaskPath, :revision);');
+	$stmt->execute(['id' => $metadata['id'], 'langprog' => $sSupportedLangProg, 'authors' => $authors, 'bUserTests' => $bUserTests, 'sTaskPath' => $sTaskPath, 'revision' => $revision]);
+	$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
+	$stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
 	$taskId = $stmt->fetchColumn();
 	if (!$taskId) {
 		die(json_encode(['success' => false, 'impossible to find id for '.$metadata['id']]));
 	}
-	return $taskId;
+	return [$taskId, false];
 }
 
 function saveStrings($taskId, $resources, $metadata) {
@@ -170,25 +211,30 @@ function saveSamples($taskId, $resources) {
 	}
 }
 
-function saveResources($metadata, $resources) {
+function saveResources($metadata, $resources, $subdir, $revision) {
+	global $config;
+	$subdir = trim($subdir);
+	$subdir = trim($subdir, '/');
 	if (!isset($metadata['id']) || !isset($metadata['language'])) {
 		die(json_encode(['success' => false, 'error' => 'missing id or language in metadata']));
 	}
 	$textId = $metadata['id'];
 	// save task to get ID
-	$taskId = saveTask($metadata);
-	// limits
-	saveLimits($taskId, $metadata['limits']);
-	// strings
-	saveStrings($taskId, $resources, $metadata);
-	// hints
-	if (isset($resources['hints']) && count($resources['hints'])) {
-		saveHints($taskId, $resources['hints'], $metadata);
+	list($taskId, $alreadyImported) = saveTask($metadata, $subdir, $revision);
+	if (!$alreadyImported) {
+		// limits
+		saveLimits($taskId, $metadata['limits']);
+		// strings
+		saveStrings($taskId, $resources, $metadata);
+		// hints
+		if (isset($resources['hints']) && count($resources['hints'])) {
+			saveHints($taskId, $resources['hints'], $metadata);
+		}
+		// source code
+		saveSourceCodes($taskId, $resources);
+		saveSamples($taskId, $resources);
 	}
-	// source code
-	saveSourceCodes($taskId, $resources);
-	saveSamples($taskId, $resources);
-	echo(json_encode(['success' => true]));
+	echo(json_encode(['success' => true, 'normalUrl' => $config->normalUrl.$taskId, 'ltiUrl' => $config->ltiUrl.$taskId]));
 }
 
 // why is there no such thing in the php library?
@@ -216,6 +262,7 @@ function deleteDirectory($ID) {
 	echo(json_encode(['success' => true]));
 }
 
+
 if ($_POST['action'] == 'checkoutSvn') {
 	if (!isset($_POST['svnUrl'])) {
 		die(json_encode(['success' => false, 'error' => 'missing svnUrl']));
@@ -224,10 +271,10 @@ if ($_POST['action'] == 'checkoutSvn') {
 	$password = $_POST['svnPassword'] ? $_POST['svnPassword'] : $config->defaultSvnPassword;
 	checkoutSvn($_POST['svnUrl'], $user, $password, $_POST['svnRev']);
 } elseif ($_POST['action'] == 'saveResources') {
-	if (!isset($_POST['metadata']) || !isset($_POST['resources'])) {
-		die(json_encode(['success' => false, 'error' => 'missing metada or resources']));
+	if (!isset($_POST['metadata']) || !isset($_POST['resources']) || !isset($_POST['svnUrl']) || !isset($_POST['svnRev'])) {
+		die(json_encode(['success' => false, 'error' => 'missing metada, resources, svnUrl or svnRev']));
 	}
-	saveResources($_POST['metadata'], $_POST['resources']);
+	saveResources($_POST['metadata'], $_POST['resources'], $_POST['svnUrl'], $_POST['svnRev']);
 } elseif ($_POST['action'] == 'deletedirectory') {
 	if (!isset($_POST['ID'])) {
 		die(json_encode(['success' => false, 'error' => 'missing directory']));

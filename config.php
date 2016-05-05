@@ -18,6 +18,9 @@ $config->db->logged = false;
 $config->defaultSvnUser = null;
 $config->defaultSvnPassword = null;
 
+$config->normalUrl = 'https://tasks.algorea.org/?taskId=';
+$config->ltiUrl = 'https://lti.algorea.org/?taskUrl=https%3A%2F%2Ftasks.algorea.org%2Ftask.html%3FtaskId%3D';
+
 $config->aws = (object) array();
 $config->aws->key = '';
 $config->aws->secret = '';

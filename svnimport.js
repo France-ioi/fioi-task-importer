@@ -29,10 +29,16 @@ function finishImport(ID) {
     });
 }
 
-function getInfos(success) {
-	console.error('getInfos');
+function showUrls(normalUrl, ltiUrl) {
+	$('#ltiUrl').attr('href', ltiUrl);
+	$('#ltiUrl').html(ltiUrl);
+	$('#normalUrl').attr('href', normalUrl)
+	$('#normalUrl').html(normalUrl);
+	$('#result').show();
+}
+
+function getInfos(svnUrl, svnRev, success) {
 	TaskProxyManager.getTaskProxy('taskIframe', function(task) {
-		console.error('got proxy');
 		window.task = task;
 		setState('getresources');
 		var platform = new Platform(task);
@@ -41,8 +47,9 @@ function getInfos(success) {
 			task.getMetaData(function(metadata) {
 		     	task.getResources(function(resources) {
 		     		setState('saveresources');
-		     		$.post('savesvn.php', {action: 'saveResources', resources: resources, metadata: metadata}, function(res) {
+		     		$.post('savesvn.php', {action: 'saveResources', resources: resources, metadata: metadata, svnRev: svnRev, svnUrl: svnUrl}, function(res) {
 		     			if (res.success) {
+		     				showUrls(res.normalUrl, res.ltiUrl);
 							success();		     				
 		     			} else {
 		     				setState('error', res.error);
@@ -57,6 +64,7 @@ function getInfos(success) {
 }
 
 function saveSvn() {
+	$('#result').hide();
 	setState('savesvn');
     var values = $('#svn_form').serializeArray();
     var newValues = {};
@@ -69,9 +77,14 @@ function saveSvn() {
     		setState('error', res.error);
     		return;
     	}
-    	$('#taskIframe').attr('src',res.dir);
+    	if (res.ltiUrl) {
+    		showUrls(res.normalUrl, res.ltiUrl);
+    		return;
+    	}
+    	$('#taskIframe').attr('src',res.url);
+    	console.error(res.url);
     	window.setTimeout(function() {
-    		getInfos(function() {
+    		getInfos(newValues.svnUrl, res.revision, function() {
     			finishImport(res.ID);
     		});
     	}, 2000);
