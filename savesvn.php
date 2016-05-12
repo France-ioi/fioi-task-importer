@@ -58,6 +58,9 @@ function checkoutSvn($subdir, $user, $password, $revision) {
 	} catch (Exception $e) {
 		die(json_encode(['success' => false, 'error' => $e->getMessage()]));
 	}
+	if (!$success) {
+		die(json_encode(['success' => false, 'error' => 'impossible de faire un checkout de '.$url.' (répertoire inexistant ou indentifiants invalides).']));
+	}
 	if (!file_exists(__DIR__.'/files/checkouts/'.$dir.'/index.html')) {
 		die(json_encode(['success' => false, 'error' => 'le fichier index.html n\'existe pas !']));
 	}
