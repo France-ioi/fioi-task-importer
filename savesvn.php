@@ -1,8 +1,8 @@
 <?php
 
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
 ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+error_reporting(0);
 
 require_once 'vendor/autoload.php';
 require_once 'config.php';
@@ -56,7 +56,10 @@ function checkoutSvn($subdir, $user, $password, $revision) {
 			$revision = getLastRevision(__DIR__.'/files/checkouts/'.$dir);
 		}
 	} catch (Exception $e) {
-		echo(json_encode(['success' => false, 'error' => $e->getMessage()]));
+		die(json_encode(['success' => false, 'error' => $e->getMessage()]));
+	}
+	if (!file_exists(__DIR__.'/files/checkouts/'.$dir.'/index.html')) {
+		die(json_encode(['success' => false, 'error' => 'le fichier index.html n\'existe pas !']));
 	}
 	$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
 	$stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
