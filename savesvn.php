@@ -35,7 +35,7 @@ function checkoutSvn($subdir, $user, $password, $revision) {
 		$stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
 		$ID = $stmt->fetchColumn();
 		if ($ID) {
-			echo(json_encode(['success' => $success, 'ltiUrl' => $config->ltiUrl.$ID, 'normalUrl' => $config->ltiUrl.$ID]));
+			echo(json_encode(['success' => $success, 'ltiUrl' => $config->ltiUrl.$ID, 'normalUrl' => $config->normalUrl.$ID]));
 			return;
 		}
 	}
@@ -69,7 +69,7 @@ function checkoutSvn($subdir, $user, $password, $revision) {
 	$ID = $stmt->fetchColumn();
 	if ($ID) {
 		deleteRecDirectory(__DIR__.'/files/checkouts/'.$dir);
-		echo(json_encode(['success' => $success, 'ltiUrl' => $config->ltiUrl.$ID, 'normalUrl' => $config->ltiUrl.$ID]));
+		echo(json_encode(['success' => $success, 'ltiUrl' => $config->ltiUrl.$ID, 'normalUrl' => $config->normalUrl.$ID]));
 		return;
 	}
 	echo(json_encode(['success' => $success, 'url' => $config->baseUrl.'/files/checkouts/'.$dir.'/index.html', 'revision' => $revision, 'ID' => $dir]));
