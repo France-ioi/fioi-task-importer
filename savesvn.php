@@ -100,7 +100,7 @@ function saveTask($metadata, $subdir, $revision) {
 	$authors = (isset($metadata['authors']) && count($metadata['authors'])) ? join(',', $metadata['authors']) : '';
 	$sSupportedLangProg = (isset($metadata['supportedLanguages']) && count($metadata['supportedLanguages'])) ? join(',', $metadata['supportedLanguages']) : '*';
 	$bUserTests = isset($metadata['hasUserTests']) ? $metadata['hasUserTests'] : 0;
-	$stmt = $db->prepare('insert into tm_tasks (sTextId, sSupportedLangProg, sAuthor, bUserTests, sTaskPath, sRevision) values (:id, :langprog, :authors, :bUserTests, :sTaskPath, :revision);');
+	$stmt = $db->prepare('insert into tm_tasks (sTextId, sSupportedLangProg, sAuthor, bUserTests, sTaskPath, sRevision) values (:id, :langprog, :authors, :bUserTests, :sTaskPath, :revision) on duplicate key update sSupportedLangProg = values(sSupportedLangProg), sAuthor = values(sAuthor), bUserTests = values(bUserTests), sTaskPath = values(sTaskPath), sRevision = values(sRevision);');
 	$stmt->execute(['id' => $metadata['id'], 'langprog' => $sSupportedLangProg, 'authors' => $authors, 'bUserTests' => $bUserTests, 'sTaskPath' => $sTaskPath, 'revision' => $revision]);
 	$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
 	$stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
@@ -129,12 +129,18 @@ function saveStrings($taskId, $resources, $metadata) {
 			break;
 		}
 	}
-	$stmt = $db->prepare('insert into tm_tasks_strings (idTask, sLanguage, sTitle, sStatement, sSolution, sCss) values (:idTask, :sLanguage, :sTitle, :sStatement, :sSolution, :sCss) on duplicate key update sTitle = values(sTitle), sStatement = values(sStatement), sSolution = values(sSolution), sCss = values(sCss);');
-	$stmt->execute(['idTask' => $taskId, 'sLanguage' => $metadata['language'], 'sTitle' => $metadata['title'], 'sStatement' => $statement, 'sSolution' => $solution, 'sCss' => $css]);
+	$stmt = $db->prepare('insert into tm_tasks_strings (idTask, sLanguage, sTitle, sStatement, sSolution) values (:idTask, :sLanguage, :sTitle, :sStatement, :sSolution) on duplicate key update sTitle = values(sTitle), sStatement = values(sStatement), sSolution = values(sSolution);');
+	$stmt->execute(['idTask' => $taskId, 'sLanguage' => $metadata['language'], 'sTitle' => $metadata['title'], 'sStatement' => $statement, 'sSolution' => $solution]);
 }
 
 function saveHints($taskId, $hintsResources, $metadata) {
 	global $db;
+	$deleteQuery = 'delete from tm_hints_strings join tm_hints on tm_hints_strings.idHint = tm_hints.ID where tm_hints.idTask = :idTask;';
+	$stmt = $db->prepare($deleteQuery);
+	$stmt->execute(['idTask' => $taskId]);
+	$deleteQuery = 'delete from tm_hints where tm_hints.idTask = :idTask;';
+	$stmt = $db->prepare($deleteQuery);
+	$stmt->execute(['idTask' => $taskId]);
 	foreach ($hintsResources as $i => $resources) {
 		foreach ($resources as $j => $resource) {
 			if ($resource['type'] == 'html') {
