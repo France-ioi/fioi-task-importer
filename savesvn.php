@@ -100,8 +100,9 @@ function saveTask($metadata, $subdir, $revision) {
 	$authors = (isset($metadata['authors']) && count($metadata['authors'])) ? join(',', $metadata['authors']) : '';
 	$sSupportedLangProg = (isset($metadata['supportedLanguages']) && count($metadata['supportedLanguages'])) ? join(',', $metadata['supportedLanguages']) : '*';
 	$bUserTests = isset($metadata['hasUserTests']) ? $metadata['hasUserTests'] : 0;
-	$stmt = $db->prepare('insert into tm_tasks (sTextId, sSupportedLangProg, sAuthor, bUserTests, sTaskPath, sRevision) values (:id, :langprog, :authors, :bUserTests, :sTaskPath, :revision) on duplicate key update sSupportedLangProg = values(sSupportedLangProg), sAuthor = values(sAuthor), bUserTests = values(bUserTests), sTaskPath = values(sTaskPath), sRevision = values(sRevision);');
-	$stmt->execute(['id' => $metadata['id'], 'langprog' => $sSupportedLangProg, 'authors' => $authors, 'bUserTests' => $bUserTests, 'sTaskPath' => $sTaskPath, 'revision' => $revision]);
+	$sEvalResultOutputScript = isset($metadata['evalOutputScript']) ? $metadata['evalOutputScript'] : null;
+	$stmt = $db->prepare('insert into tm_tasks (sTextId, sSupportedLangProg, sAuthor, bUserTests, sTaskPath, sRevision, sEvalResultOutputScript) values (:id, :langprog, :authors, :bUserTests, :sTaskPath, :revision, :sEvalResultOutputScript) on duplicate key update sSupportedLangProg = values(sSupportedLangProg), sAuthor = values(sAuthor), bUserTests = values(bUserTests), sTaskPath = values(sTaskPath), sRevision = values(sRevision);');
+	$stmt->execute(['id' => $metadata['id'], 'langprog' => $sSupportedLangProg, 'authors' => $authors, 'bUserTests' => $bUserTests, 'sTaskPath' => $sTaskPath, 'revision' => $revision, 'sEvalResultOutputScript' => $sEvalResultOutputScript]);
 	$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
 	$stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
 	$taskId = $stmt->fetchColumn();
