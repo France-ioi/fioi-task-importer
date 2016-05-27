@@ -101,7 +101,7 @@ function saveTask($metadata, $subdir, $revision) {
 	$sSupportedLangProg = (isset($metadata['supportedLanguages']) && count($metadata['supportedLanguages'])) ? join(',', $metadata['supportedLanguages']) : '*';
 	$bUserTests = isset($metadata['hasUserTests']) ? $metadata['hasUserTests'] : 0;
 	$sEvalResultOutputScript = isset($metadata['evalOutputScript']) ? $metadata['evalOutputScript'] : null;
-	$stmt = $db->prepare('insert into tm_tasks (sTextId, sSupportedLangProg, sAuthor, bUserTests, sTaskPath, sRevision, sEvalResultOutputScript) values (:id, :langprog, :authors, :bUserTests, :sTaskPath, :revision, :sEvalResultOutputScript) on duplicate key update sSupportedLangProg = values(sSupportedLangProg), sAuthor = values(sAuthor), bUserTests = values(bUserTests), sTaskPath = values(sTaskPath), sRevision = values(sRevision);');
+	$stmt = $db->prepare('insert into tm_tasks (sTextId, sSupportedLangProg, sAuthor, bUserTests, sTaskPath, sRevision, sEvalResultOutputScript) values (:id, :langprog, :authors, :bUserTests, :sTaskPath, :revision, :sEvalResultOutputScript) on duplicate key update sSupportedLangProg = values(sSupportedLangProg), sAuthor = values(sAuthor), bUserTests = values(bUserTests), sTaskPath = values(sTaskPath), sRevision = values(sRevision), sEvalResultOutputScript = values(sEvalResultOutputScript);');
 	$stmt->execute(['id' => $metadata['id'], 'langprog' => $sSupportedLangProg, 'authors' => $authors, 'bUserTests' => $bUserTests, 'sTaskPath' => $sTaskPath, 'revision' => $revision, 'sEvalResultOutputScript' => $sEvalResultOutputScript]);
 	$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
 	$stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
@@ -136,7 +136,7 @@ function saveStrings($taskId, $resources, $metadata) {
 
 function saveHints($taskId, $hintsResources, $metadata) {
 	global $db;
-	$deleteQuery = 'delete from tm_hints_strings join tm_hints on tm_hints_strings.idHint = tm_hints.ID where tm_hints.idTask = :idTask;';
+	$deleteQuery = 'delete tm_hints_strings from tm_hints_strings join tm_hints on tm_hints_strings.idHint = tm_hints.ID where tm_hints.idTask = :idTask;';
 	$stmt = $db->prepare($deleteQuery);
 	$stmt->execute(['idTask' => $taskId]);
 	$deleteQuery = 'delete from tm_hints where tm_hints.idTask = :idTask;';
@@ -280,8 +280,8 @@ if ($_POST['action'] == 'checkoutSvn') {
 	if (!isset($_POST['svnUrl'])) {
 		die(json_encode(['success' => false, 'error' => 'missing svnUrl']));
 	}
-	$user = $_POST['svnUser'] ? $_POST['svnUser'] : $config->defaultSvnUser;
-	$password = $_POST['svnPassword'] ? $_POST['svnPassword'] : $config->defaultSvnPassword;
+	$user = $_POST['username'] ? $_POST['username'] : $config->defaultSvnUser;
+	$password = $_POST['password'] ? $_POST['password'] : $config->defaultSvnPassword;
 	checkoutSvn($_POST['svnUrl'], $user, $password, $_POST['svnRev']);
 } elseif ($_POST['action'] == 'saveResources') {
 	if (!isset($_POST['metadata']) || !isset($_POST['resources']) || !isset($_POST['svnUrl']) || !isset($_POST['svnRev'])) {

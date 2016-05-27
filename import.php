@@ -33,12 +33,12 @@ require_once 'config.php';
                 <input type="text" class="form-control" name="svnRev">
             </div><br>
             <div class="form-group">
-                <label for="svnUser">svn user:</label><br>
-                <input type="text" class="form-control" name="svnUser">
+                <label for="username">svn username:</label><br>
+                <input type="text" class="form-control" name="username">
             </div><br>
             <div class="form-group">
-                <label for="svnPassword">svn password:</label><br>
-                <input type="password" class="form-control" name="svnPassword">
+                <label for="password">svn password:</label><br>
+                <input type="password" class="form-control" name="password">
             </div><br>
         </form>
         <button class="btn btn-default" onclick="saveSvn()">Import svn files</button>
