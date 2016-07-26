@@ -35,11 +35,21 @@ function checkoutSvn($subdir, $user, $password, $revision) {
 		$stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
 		$ID = $stmt->fetchColumn();
 		if ($ID) {
-			echo(json_encode(['success' => $success, 'ltiUrl' => $config->ltiUrl.$ID, 'normalUrl' => $config->normalUrl.$ID]));
+			echo(json_encode(['success' => $success, 'ltiUrl' => $config->ltiUrl.$ID, 'normalUrl' => $config->normalUrl.$ID, 'reason' => 'revision already in db']));
 			return;
 		}
 	}
 	$dir = mt_rand(100000, mt_getrandmax());
+	$explPath = explode('/', $subdir);
+	// removing the first two:
+	array_shift($explPath);
+	array_shift($explPath);
+	if (count($explPath)) {
+		foreach($explPath as $rep) {
+			mkdir($dir);
+			$dir = $dir.'/'.$rep;
+		}
+	}
 	svn_auth_set_parameter(SVN_AUTH_PARAM_DEFAULT_USERNAME,             $user);
 	svn_auth_set_parameter(SVN_AUTH_PARAM_DEFAULT_PASSWORD,             $password);
 	svn_auth_set_parameter(PHP_SVN_AUTH_PARAM_IGNORE_SSL_VERIFY_ERRORS, true); // <--- Important for certificate issues!
@@ -68,8 +78,8 @@ function checkoutSvn($subdir, $user, $password, $revision) {
 	$stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
 	$ID = $stmt->fetchColumn();
 	if ($ID) {
-		deleteRecDirectory(__DIR__.'/files/checkouts/'.$dir);
-		echo(json_encode(['success' => $success, 'ltiUrl' => $config->ltiUrl.$ID, 'normalUrl' => $config->normalUrl.$ID]));
+		//deleteRecDirectory(__DIR__.'/files/checkouts/'.$dir);
+		echo(json_encode(['success' => $success, 'ltiUrl' => $config->ltiUrl.$ID, 'normalUrl' => $config->normalUrl.$ID, 'seenrevision' => $revision, 'dir' => $dir]));
 		return;
 	}
 	echo(json_encode(['success' => $success, 'url' => $config->baseUrl.'/files/checkouts/'.$dir.'/index.html', 'revision' => $revision, 'ID' => $dir]));
@@ -290,12 +300,14 @@ function deleteRecDirectory($dir) {
 	rmdir($dir);	
 }
 
-function deleteDirectory($ID) {
-	$ID = intval($ID);
+function deleteDirectory($path) {
+	$firstDir = explode('/', $path);
+	$firstDir = $firstDir[0];
+	$ID = intval($firstDir);
 	if ($ID < 1) {
 		die(json_encode(['success' => false, 'error' => 'invalid ID format (must be number)']));
 	}
-	deleteRecDirectory(__DIR__.'/files/checkouts/'.$ID);
+	//deleteRecDirectory(__DIR__.'/files/checkouts/'.$ID);
 	echo(json_encode(['success' => true]));
 }
 
