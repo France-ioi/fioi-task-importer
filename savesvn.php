@@ -88,7 +88,7 @@ function saveLimits($taskId, $limits) {
 	}
 }
 
-function saveTask($metadata, $subdir, $revision) {
+function saveTask($metadata, $subdir, $revision, $resources) {
 	global $db;
 	$sTaskPath = '$ROOT_PATH/'.$subdir;
 	$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
@@ -99,10 +99,17 @@ function saveTask($metadata, $subdir, $revision) {
 	}
 	$authors = (isset($metadata['authors']) && count($metadata['authors'])) ? join(',', $metadata['authors']) : '';
 	$sSupportedLangProg = (isset($metadata['supportedLanguages']) && count($metadata['supportedLanguages'])) ? join(',', $metadata['supportedLanguages']) : '*';
-	$bUserTests = isset($metadata['hasUserTests']) ? $metadata['hasUserTests'] : 0;
+	$bUserTests = isset($metadata['hasUserTests']) ? ($metadata['hasUserTests'] == 'true' ? 1 : 0) : 0;
 	$sEvalResultOutputScript = isset($metadata['evalOutputScript']) ? $metadata['evalOutputScript'] : null;
-	$stmt = $db->prepare('insert into tm_tasks (sTextId, sSupportedLangProg, sAuthor, bUserTests, sTaskPath, sRevision, sEvalResultOutputScript) values (:id, :langprog, :authors, :bUserTests, :sTaskPath, :revision, :sEvalResultOutputScript) on duplicate key update sSupportedLangProg = values(sSupportedLangProg), sAuthor = values(sAuthor), bUserTests = values(bUserTests), sTaskPath = values(sTaskPath), sRevision = values(sRevision), sEvalResultOutputScript = values(sEvalResultOutputScript);');
-	$stmt->execute(['id' => $metadata['id'], 'langprog' => $sSupportedLangProg, 'authors' => $authors, 'bUserTests' => $bUserTests, 'sTaskPath' => $sTaskPath, 'revision' => $revision, 'sEvalResultOutputScript' => $sEvalResultOutputScript]);
+	$sScriptAnimation = '';
+	foreach ($resources['task'] as $i => $resource) {
+		if ($resource['type'] == 'javascript' && $resource['id'] == 'animation' && isset($resource['content'])) {
+			$sScriptAnimation = $resource['content'];
+			break;
+		}
+	}
+	$stmt = $db->prepare('insert into tm_tasks (sTextId, sSupportedLangProg, sAuthor, bUserTests, sTaskPath, sRevision, sEvalResultOutputScript, sScriptAnimation) values (:id, :langprog, :authors, :bUserTests, :sTaskPath, :revision, :sEvalResultOutputScript, :sScriptAnimation) on duplicate key update sSupportedLangProg = values(sSupportedLangProg), sAuthor = values(sAuthor), bUserTests = values(bUserTests), sTaskPath = values(sTaskPath), sRevision = values(sRevision), sEvalResultOutputScript = values(sEvalResultOutputScript), sScriptAnimation = values(sSriptAnimation);');
+	$stmt->execute(['id' => $metadata['id'], 'langprog' => $sSupportedLangProg, 'authors' => $authors, 'bUserTests' => $bUserTests, 'sTaskPath' => $sTaskPath, 'revision' => $revision, 'sEvalResultOutputScript' => $sEvalResultOutputScript, 'sScriptAnimation' => $sScriptAnimation]);
 	$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
 	$stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
 	$taskId = $stmt->fetchColumn();
@@ -233,7 +240,7 @@ function saveResources($metadata, $resources, $subdir, $revision) {
 	}
 	$textId = $metadata['id'];
 	// save task to get ID
-	list($taskId, $alreadyImported) = saveTask($metadata, $subdir, $revision);
+	list($taskId, $alreadyImported) = saveTask($metadata, $subdir, $revision, $resources);
 	if (!$alreadyImported) {
 		// limits
 		saveLimits($taskId, $metadata['limits']);
