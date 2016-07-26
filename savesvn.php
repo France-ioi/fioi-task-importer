@@ -124,18 +124,30 @@ function saveStrings($taskId, $resources, $metadata) {
 	$statement = null;
 	$solution = null;
 	$css = null;
+	$imagesRes = [];
 	foreach ($resources['task'] as $i => $resource) {
 		if ($resource['type'] == 'html') {
 			$statement = $resource['content'];
 		} elseif ($resource['type'] == 'css' && isset($resource['content'])) {
 			$css = $resource['content'];
+		} else if ($resource['type'] == 'image' && isset($resource['content'])) {
+			$imagesRes[] = $resource;
 		}
 	}
+	foreach($imagesRes as $imageRes) {
+		$statement = str_replace ($imageRes['url'] , $imageRes['content'], $statement);
+	}
+	$imagesRes = [];
 	foreach ($resources['solution'] as $i => $resource) {
 		if ($resource['type'] == 'html') {
 			$solution = $resource['content'];
 			break;
+		} else if ($resource['type'] == 'image' && isset($resource['content'])) {
+			$imagesRes[] = $resource;
 		}
+	}
+	foreach($imagesRes as $imageRes) {
+		$solution = str_replace ($imageRes['url'] , $imageRes['content'], $solution);
 	}
 	$stmt = $db->prepare('insert into tm_tasks_strings (idTask, sLanguage, sTitle, sStatement, sSolution) values (:idTask, :sLanguage, :sTitle, :sStatement, :sSolution) on duplicate key update sTitle = values(sTitle), sStatement = values(sStatement), sSolution = values(sSolution);');
 	$stmt->execute(['idTask' => $taskId, 'sLanguage' => $metadata['language'], 'sTitle' => $metadata['title'], 'sStatement' => $statement, 'sSolution' => $solution]);
@@ -150,13 +162,18 @@ function saveHints($taskId, $hintsResources, $metadata) {
 	$stmt = $db->prepare($deleteQuery);
 	$stmt->execute(['idTask' => $taskId]);
 	foreach ($hintsResources as $i => $resources) {
+		$imagesRes = [];
 		foreach ($resources as $j => $resource) {
 			if ($resource['type'] == 'html') {
 				$hint = $resource['content'];
-				break;
+			} else if ($resource['type'] == 'image' && isset($resource['content'])) {
+				$imagesRes[] = $resource;
 			}
 		}
 		if ($hint) {
+			foreach($imagesRes as $imageRes) {
+				$hint = str_replace ($imageRes['url'] , $imageRes['content'], $hint);
+			}
 			$stmt = $db->prepare('insert ignore into tm_hints (idTask, iRank) values (:idTask, :iRank);');
 			$stmt->execute(['idTask' => $taskId, 'iRank' => $i+1]);
 			$stmt = $db->prepare('select id from tm_hints where idTask = :idTask and iRank = :iRank;');
