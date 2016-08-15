@@ -40,14 +40,20 @@ require_once 'config.php';
                 <label for="password">svn password:</label><br>
                 <input type="password" class="form-control" name="password">
             </div><br>
+            <div class="checkbox">
+                <label>
+                  <input type="checkbox" name="recursive"> Importer récursivement
+                </label>
+            </div><br>
         </form>
         <button class="btn btn-default" onclick="saveSvn()">Import svn files</button>
     </div>
-    <div id="state"></div>
+    <div><span id="curTask"></span><span id="state"></span></div>
     <div id="result" style="display:none;">
         <p><strong>Url pour LTI :</strong> <a href="" id="ltiUrl"></a></p>
         <p><strong>Url pour la plateforme Algoréa :</strong> <a href="" id="normalUrl"></a></p>
     </div>
+    <div id="recResults"></div>
     <iframe style="width:1px;height:1px;" id="taskIframe" src=""></iframe>
     <!--<button class="btn btn-default" onclick="getInfos()">getResources</button> -->
   </body>

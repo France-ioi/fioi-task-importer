@@ -25,7 +25,22 @@ function getLastRevision($dir) {
 	return $maxRev;
 }
 
-function checkoutSvn($subdir, $user, $password, $revision) {
+function listTaskDirs($dir) {
+    if (file_exists(__DIR__.'/files/checkouts/'.$dir.'/index.html')) {
+        return array($dir);
+    } else {
+        $taskDirs = array();
+        foreach(scandir(__DIR__.'/files/checkouts/'.$dir) as $elem) {
+            $elemPath = $dir.'/'.$elem;
+            if(is_dir(__DIR__.'/files/checkouts/'.$elemPath) && $elem != '.' && $elem != '..') {
+                $taskDirs = array_merge($taskDirs, listTaskDirs($elemPath));
+            }
+        }
+        return $taskDirs;
+    }
+}
+
+function checkoutSvn($subdir, $user, $password, $revision, $recursive) {
 	global $config, $db;
 	$subdir = trim($subdir);
 	$subdir = trim($subdir, '/');
@@ -46,7 +61,7 @@ function checkoutSvn($subdir, $user, $password, $revision) {
 	array_shift($explPath);
 	if (count($explPath)) {
 		foreach($explPath as $rep) {
-			mkdir($dir);
+			mkdir(__DIR__.'/files/checkouts/'.$dir);
 			$dir = $dir.'/'.$rep;
 		}
 	}
@@ -55,7 +70,7 @@ function checkoutSvn($subdir, $user, $password, $revision) {
 	svn_auth_set_parameter(PHP_SVN_AUTH_PARAM_IGNORE_SSL_VERIFY_ERRORS, true); // <--- Important for certificate issues!
 	svn_auth_set_parameter(SVN_AUTH_PARAM_NON_INTERACTIVE,              true);
 	svn_auth_set_parameter(SVN_AUTH_PARAM_NO_AUTH_CACHE,                true);
-	$sucess = true;
+	$success = true;
 	$url = $config->svnBaseUrl.$subdir;
 	try {
 		svn_update(__DIR__.'/files/_common/');
@@ -71,18 +86,33 @@ function checkoutSvn($subdir, $user, $password, $revision) {
 	if (!$success) {
 		die(json_encode(['success' => false, 'error' => 'impossible de faire un checkout de '.$url.' (répertoire inexistant ou indentifiants invalides).']));
 	}
-	if (!file_exists(__DIR__.'/files/checkouts/'.$dir.'/index.html')) {
-		die(json_encode(['success' => false, 'error' => 'le fichier index.html n\'existe pas !']));
-	}
-	$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
-	$stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
-	$ID = $stmt->fetchColumn();
-	if ($ID) {
-		//deleteRecDirectory(__DIR__.'/files/checkouts/'.$dir);
-		echo(json_encode(['success' => $success, 'ltiUrl' => $config->ltiUrl.$ID, 'normalUrl' => $config->normalUrl.$ID, 'seenrevision' => $revision, 'dir' => $dir]));
-		return;
-	}
-	echo(json_encode(['success' => $success, 'url' => $config->baseUrl.'/files/checkouts/'.$dir.'/index.html', 'revision' => $revision, 'ID' => $dir]));
+    if ($recursive) {
+        $taskDirs = listTaskDirs($dir);
+        $tasks = array();
+        foreach($taskDirs as $taskDir) {
+            $taskDirExpl = explode('/', $taskDir);
+            array_shift($taskDirExpl);
+            $tasks[] = [
+                'url' => $config->baseUrl.'/files/checkouts/'.$taskDir.'/index.html',
+                'ID' => $taskDir,
+                'svnUrl' => $subdir . '/' . implode('/', $taskDirExpl)
+                ];
+        }
+        echo(json_encode(['success' => $success, 'tasks' => $tasks, 'revision' => $revision]));
+    } else {
+    	if (!file_exists(__DIR__.'/files/checkouts/'.$dir.'/index.html')) {
+    		die(json_encode(['success' => false, 'error' => 'le fichier index.html n\'existe pas !']));
+    	}
+    	$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
+    	$stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
+    	$ID = $stmt->fetchColumn();
+    	if ($ID && false) { // XXX :: remove false
+    		//deleteRecDirectory(__DIR__.'/files/checkouts/'.$dir);
+    		echo(json_encode(['success' => $success, 'ltiUrl' => $config->ltiUrl.$ID, 'normalUrl' => $config->normalUrl.$ID, 'seenrevision' => $revision, 'dir' => $dir]));
+    		return;
+    	}
+    	echo(json_encode(['success' => $success, 'url' => $config->baseUrl.'/files/checkouts/'.$dir.'/index.html', 'revision' => $revision, 'ID' => $dir]));
+    }
 }
 
 function saveLimits($taskId, $limits) {
@@ -118,7 +148,7 @@ function saveTask($metadata, $subdir, $revision, $resources) {
 			break;
 		}
 	}
-	$stmt = $db->prepare('insert into tm_tasks (sTextId, sSupportedLangProg, sAuthor, bUserTests, sTaskPath, sRevision, sEvalResultOutputScript, sScriptAnimation) values (:id, :langprog, :authors, :bUserTests, :sTaskPath, :revision, :sEvalResultOutputScript, :sScriptAnimation) on duplicate key update sSupportedLangProg = values(sSupportedLangProg), sAuthor = values(sAuthor), bUserTests = values(bUserTests), sTaskPath = values(sTaskPath), sRevision = values(sRevision), sEvalResultOutputScript = values(sEvalResultOutputScript), sScriptAnimation = values(sSriptAnimation);');
+	$stmt = $db->prepare('insert into tm_tasks (sTextId, sSupportedLangProg, sAuthor, bUserTests, sTaskPath, sRevision, sEvalResultOutputScript, sScriptAnimation) values (:id, :langprog, :authors, :bUserTests, :sTaskPath, :revision, :sEvalResultOutputScript, :sScriptAnimation) on duplicate key update sSupportedLangProg = values(sSupportedLangProg), sAuthor = values(sAuthor), bUserTests = values(bUserTests), sTaskPath = values(sTaskPath), sRevision = values(sRevision), sEvalResultOutputScript = values(sEvalResultOutputScript), sScriptAnimation = values(sScriptAnimation);');
 	$stmt->execute(['id' => $metadata['id'], 'langprog' => $sSupportedLangProg, 'authors' => $authors, 'bUserTests' => $bUserTests, 'sTaskPath' => $sTaskPath, 'revision' => $revision, 'sEvalResultOutputScript' => $sEvalResultOutputScript, 'sScriptAnimation' => $sScriptAnimation]);
 	$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
 	$stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
@@ -318,7 +348,7 @@ if ($_POST['action'] == 'checkoutSvn') {
 	}
 	$user = $_POST['username'] ? $_POST['username'] : $config->defaultSvnUser;
 	$password = $_POST['password'] ? $_POST['password'] : $config->defaultSvnPassword;
-	checkoutSvn($_POST['svnUrl'], $user, $password, $_POST['svnRev']);
+	checkoutSvn($_POST['svnUrl'], $user, $password, $_POST['svnRev'], isset($_POST['recursive']));
 } elseif ($_POST['action'] == 'saveResources') {
 	if (!isset($_POST['metadata']) || !isset($_POST['resources']) || !isset($_POST['svnUrl']) || !isset($_POST['svnRev'])) {
 		die(json_encode(['success' => false, 'error' => 'missing metada, resources, svnUrl or svnRev']));
