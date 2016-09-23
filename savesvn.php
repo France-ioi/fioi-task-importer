@@ -304,9 +304,8 @@ function saveResources($metadata, $resources, $subdir, $revision) {
 		// strings
 		saveStrings($taskId, $resources, $metadata);
 		// hints
-		if (isset($resources['hints']) && count($resources['hints'])) {
-			saveHints($taskId, $resources['hints'], $metadata);
-		}
+		$hintsResources = isset($resources['hints']) ? $resources['hints'] : [];
+		saveHints($taskId, $hintsResources, $metadata);
 		// source code
 		saveSourceCodes($taskId, $resources);
 		saveSamples($taskId, $resources);
