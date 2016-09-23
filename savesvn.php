@@ -288,6 +288,26 @@ function saveSamples($taskId, $resources) {
 	}
 }
 
+function saveSubtasks($taskId, $metadata) {
+    // Save subtasks into the database from task metadata
+    // Subtasks must be described in the metadata as a
+    // list of objects representing subtasks, each subtask having a
+    // name, comments, and gradeMax (sum of gradeMax must be 100)
+    global $db;
+
+    if(!isset($metadata['subtasks'])) { return; }
+
+    $stmt = $db->prepare("DELETE FROM tm_tasks_subtasks where idTask = :idTask;");
+    $stmt->execute(['idTask' => $taskId]);
+
+    $iRank = 0;
+    foreach($metadata['subtasks'] as $subtask) {
+        $stmt = $db->prepare("INSERT INTO tm_tasks_subtasks (idTask, iRank, name, comments, iPointsMax) VALUES (:idTask, :iRank, :name, :comments, :iPointsMax);");
+        $stmt->execute(['idTask' => $taskId, 'iRank' => $iRank, 'name' => $subtask['name'], 'comments' => $subtask['comments'], 'iPointsMax' => $subtask['gradeMax']]);
+        $iRank += 1;
+    }
+}
+
 function saveResources($metadata, $resources, $subdir, $revision) {
 	global $config;
 	$subdir = trim($subdir);
@@ -309,6 +329,8 @@ function saveResources($metadata, $resources, $subdir, $revision) {
 		// source code
 		saveSourceCodes($taskId, $resources);
 		saveSamples($taskId, $resources);
+        // subtasks
+        saveSubtasks($taskId, $metadata);
 	}
 	echo(json_encode(['success' => true, 'normalUrl' => $config->normalUrl.$taskId, 'ltiUrl' => $config->ltiUrl.$taskId]));
 }
