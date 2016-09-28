@@ -117,6 +117,9 @@ function checkoutSvn($subdir, $user, $password, $revision, $recursive) {
 
 function saveLimits($taskId, $limits) {
 	global $db;
+	$deleteQuery = 'delete from tm_tasks_limits where tm_tasks_limits.idTask = :idTask;';
+	$stmt = $db->prepare($deleteQuery);
+	$stmt->execute(['idTask' => $taskId]);
 	if (!$limits || !count($limits)) {
 		return;
 	}
