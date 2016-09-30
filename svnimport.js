@@ -15,6 +15,8 @@ function setState(state, comment) {
 		$('#state').html('error: '+comment);
 	} else if (state == 'deleting') {
 		$('#state').html('deleting svn temporary dir...');
+	} else if (state == 'static') {
+		$('#state').html('static element was correctly imported!');
 	} else if (state == 'success') {
 		$('#state').html('task was correctly imported!');
 	}
@@ -33,11 +35,17 @@ function finishImport(ID, success, error) {
     });
 }
 
-function showUrls(normalUrl, ltiUrl) {
-	$('#ltiUrl').attr('href', ltiUrl);
-	$('#ltiUrl').html(ltiUrl);
+function showUrls(normalUrl, ltiUrl, tokenUrl) {
+	$('#ltiUrl').attr('href', ltiUrl)
+	    .html(ltiUrl);
 	$('#normalUrl').attr('href', normalUrl)
-	$('#normalUrl').html(normalUrl);
+	    .html(normalUrl);
+    if (tokenUrl) {
+        $('#tokenUrl').attr('href', tokenUrl);
+        $('#tokenUrlP').show();
+    } else {
+        $('#tokenUrlP').hide();
+    }
 	$('#result').show();
 }
 
@@ -53,7 +61,7 @@ function getInfos(svnUrl, svnRev, success, error) {
 		     		setState('saveresources');
 		     		$.post('savesvn.php', {action: 'saveResources', resources: resources, metadata: metadata, svnRev: svnRev, svnUrl: svnUrl}, function(res) {
 		     			if (res.success) {
-							success(res.normalUrl, res.ltiUrl);
+							success(res.normalUrl, res.ltiUrl, res.tokenUrl);
 		     			} else {
                             error(res.error);
 		     			}
@@ -68,6 +76,8 @@ function getInfos(svnUrl, svnRev, success, error) {
 
 function saveSvn() {
 	$('#result').hide();
+    $('#taskWarning').text('');
+    $('#taskWarning').hide();
 	$('#recResults').html('');
     $('#curTask').html('');
 	setState('savesvn');
@@ -82,19 +92,27 @@ function saveSvn() {
     		setState('error', res.error);
     		return;
     	}
-/*    	if (res.ltiUrl) {
-    		showUrls(res.normalUrl, res.ltiUrl);
+    	if (res.ltiUrl) {
+            setState('done');
+    		showUrls(res.normalUrl, res.ltiUrl, res.tokenUrl);
     		return;
-    	}*/
-        if (res.url) {
+    	}
+        if (res.isstatic) {
+            setState('static');
+            showUrls(res.normalUrl, res.ltiUrl, res.tokenUrl);
+        } else if (res.url) {
             $('#curTask').html(res.ID+': ');
             setState('load');
+            if (res.warnPaths) {
+                $("#taskWarning").text('Warning: possible error in _common paths.')
+                $("#taskWarning").show();
+            }
         	$('#taskIframe').attr('src',res.url);
         	console.error(res.url);
         	window.setTimeout(function() {
         		getInfos(newValues.svnUrl, res.revision,
-                    function(normalUrl, ltiUrl) {
-                        showUrls(normalUrl, ltiUrl);
+                    function(normalUrl, ltiUrl, tokenUrl) {
+                        showUrls(normalUrl, ltiUrl, tokenUrl);
                         finishImport(res.ID,
                             function () {setState('success')},
                             function (errormsg) {setState('error', errormsg)}
@@ -112,6 +130,11 @@ function saveSvn() {
 
 function copyResults(name, urls) {
     var newHtml = '<hr /><p>'+name+': '+$("#state").html()+'</p>';
+    var warning = $('#taskWarning').text();
+    if(warning != '') {
+        newHtml += '<p>'+warning+'</p>';
+        $('#taskWarning').text('');
+    }
     if(urls) {
         newHtml += $('#result').html();
         $('#result').hide();
@@ -127,14 +150,27 @@ function recImport(tasks, svnUrl, revision) {
         return;
     }
     var curTask = tasks.shift();
+
+    if (curTask.isstatic) {
+        setState('static');
+        showUrls(curTask.normalUrl, curTask.ltiUrl, curTask.tokenUrl);
+        copyResults(curTask.ID, true);
+        recImport(tasks, svnUrl, revision);
+        return;
+    }
+
     $('#curTask').html(curTask.ID+': ');
     setState('load');
+    if (curTask.warnPaths) {
+        $("#taskWarning").text('Warning: possible error in _common paths.');
+        $("#taskWarning").show();
+    }
     $('#taskIframe').attr('src',curTask.url);
     console.error(curTask.url);
     window.setTimeout(function() {
     	getInfos(curTask.svnUrl, revision,
-            function(normalUrl, ltiUrl) {
-                showUrls(normalUrl, ltiUrl);
+            function(normalUrl, ltiUrl, tokenUrl) {
+                showUrls(normalUrl, ltiUrl, tokenUrl);
                 finishImport(curTask.ID,
                     function() {
                         setState('success');

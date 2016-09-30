@@ -41,17 +41,20 @@ require_once 'config.php';
                 <input type="password" class="form-control" name="password">
             </div><br>
             <div class="checkbox">
-                <label>
-                  <input type="checkbox" name="recursive"> Importer récursivement
-                </label>
+                <input type="checkbox" name="recursive"> Importer récursivement
+            </div><br>
+            <div class="checkbox">
+                <input type="checkbox" name="noimport"> Ne pas réimporter, générer uniquement les liens vers la version en production
             </div><br>
         </form>
         <button class="btn btn-default" onclick="saveSvn()">Import svn files</button>
     </div>
     <div><span id="curTask"></span><span id="state"></span></div>
+    <div id="taskWarning" style="display: none;"></div>
     <div id="result" style="display:none;">
         <p><strong>Url pour LTI :</strong> <a href="" id="ltiUrl"></a></p>
         <p><strong>Url pour la plateforme Algoréa :</strong> <a href="" id="normalUrl"></a></p>
+        <p id="tokenUrlP" style="display: none;"><strong><a href="" id="tokenUrl">Tester la tâche</a></strong> (lien valide 2 jours maximum, ne pas mettre en production)</p>
     </div>
     <div id="recResults"></div>
     <iframe style="width:1px;height:1px;" id="taskIframe" src=""></iframe>

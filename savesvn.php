@@ -7,6 +7,7 @@ error_reporting(0);
 require_once 'vendor/autoload.php';
 require_once 'config.php';
 require_once 'shared/connect.php';
+require_once 'shared/TokenGenerator.php';
 
 header('Content-Type: application/json');
 
@@ -40,20 +41,45 @@ function listTaskDirs($dir) {
     }
 }
 
-function checkoutSvn($subdir, $user, $password, $revision, $recursive) {
+function checkStatic($path) {
+    $handle = fopen($path, 'r');
+    while(!feof($handle)) {
+        $line = fgets($handle);
+        if(strstr($line, 'PEMTaskMetaData')) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function warnPaths($path) {
+    $handle = fopen($path, 'r');
+    while(!feof($handle)) {
+        $line = fgets($handle);
+        if(preg_match('/= *[\'"]([^=]+)_common/', $line, $matches)) {
+            if (!is_dir(dirname($path) . '/' . $matches[1] . '/_common')) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noimport) {
 	global $config, $db;
+
+    if($recursive && $noimport) {
+        // not supported (yet)
+        echo(json_encode([
+            'success' => false,
+            'error' => 'Cannot use recursive mode when not importing. Uncheck one of the boxes.'
+            ]));
+        return;
+    }
+
 	$subdir = trim($subdir);
 	$subdir = trim($subdir, '/');
 	$sTaskPath = '$ROOT_PATH/'.$subdir;
-	if ($revision) {
-		$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
-		$stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
-		$ID = $stmt->fetchColumn();
-		if ($ID) {
-			echo(json_encode(['success' => $success, 'ltiUrl' => $config->ltiUrl.$ID, 'normalUrl' => $config->normalUrl.$ID, 'reason' => 'revision already in db']));
-			return;
-		}
-	}
 	$dir = mt_rand(100000, mt_getrandmax());
 	$explPath = explode('/', $subdir);
 	// removing the first two:
@@ -74,8 +100,9 @@ function checkoutSvn($subdir, $user, $password, $revision, $recursive) {
 	$url = $config->svnBaseUrl.$subdir;
 	try {
 		svn_update(__DIR__.'/files/_common/');
-		if ($revision) {
+		if ($userRevision) {
 			$success = svn_checkout($url, __DIR__.'/files/checkouts/'.$dir, $revision);
+            $revision = $userRevision;
 		} else {
 			$success = svn_checkout($url, __DIR__.'/files/checkouts/'.$dir);
 			$revision = getLastRevision(__DIR__.'/files/checkouts/'.$dir);
@@ -84,34 +111,99 @@ function checkoutSvn($subdir, $user, $password, $revision, $recursive) {
 		die(json_encode(['success' => false, 'error' => $e->getMessage()]));
 	}
 	if (!$success) {
-		die(json_encode(['success' => false, 'error' => 'impossible de faire un checkout de '.$url.' (répertoire inexistant ou indentifiants invalides).']));
+		die(json_encode(['success' => false, 'error' => 'impossible de faire un checkout de '.$url.' (répertoire inexistant ou identifiants invalides).']));
 	}
+
+	if ($userRevision || $noimport) {
+        if ($userRevision) {
+    		$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
+    		$stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
+        } else {
+    		$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath');
+    		$stmt->execute(['sTaskPath' => $sTaskPath]);
+        }
+		$ID = $stmt->fetchColumn();
+		if ($ID) {
+			echo(json_encode([
+                'success' => true,
+                'ltiUrl' => $config->ltiUrl.$ID,
+                'normalUrl' => $config->normalUrl.$ID,
+                'tokenUrl' => addToken($config->normalUrl.$ID),
+                'reason' => 'revision already in db'
+                ]));
+			return;
+		} elseif ($noimport) {
+            echo(json_encode([
+                'success' => false,
+                'error' => 'This task has not been imported yet.'
+                ]));
+            return;
+        }
+	}
+
     if ($recursive) {
         $taskDirs = listTaskDirs($dir);
         $tasks = array();
         foreach($taskDirs as $taskDir) {
             $taskDirExpl = explode('/', $taskDir);
             array_shift($taskDirExpl);
-            $tasks[] = [
-                'url' => $config->baseUrl.'/files/checkouts/'.$taskDir.'/index.html',
-                'ID' => $taskDir,
-                'svnUrl' => $subdir . '/' . implode('/', $taskDirExpl)
-                ];
+            if(checkStatic(__DIR__.'/files/checkouts/'.$taskDir.'/index.html')) {
+                $tasks[] = [
+                    'url' => $config->baseUrl.'/files/checkouts/'.$taskDir.'/index.html',
+                    'ID' => $taskDir,
+                    'svnUrl' => $subdir . '/' . implode('/', $taskDirExpl),
+                    'isstatic' => true,
+                    'normalUrl' => $config->baseUrl.'/files/checkouts/'.$taskDir.'/index.html',
+                    'ltiUrl' => $config->ltiUrl.'/files/checkouts/'.$taskDir.'/index.html',
+                    ];
+            } else {
+                $tasks[] = [
+                    'url' => $config->baseUrl.'/files/checkouts/'.$taskDir.'/index.html',
+                    'ID' => $taskDir,
+                    'svnUrl' => $subdir . '/' . implode('/', $taskDirExpl),
+                    'warnPaths' => warnPaths(__DIR__.'/files/checkouts/'.$taskDir.'/index.html'),
+                    ];
+            }
         }
         echo(json_encode(['success' => $success, 'tasks' => $tasks, 'revision' => $revision]));
     } else {
     	if (!file_exists(__DIR__.'/files/checkouts/'.$dir.'/index.html')) {
     		die(json_encode(['success' => false, 'error' => 'le fichier index.html n\'existe pas !']));
     	}
-    	$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
-    	$stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
-    	$ID = $stmt->fetchColumn();
-    	if ($ID && false) { // XXX :: remove false
-    		//deleteRecDirectory(__DIR__.'/files/checkouts/'.$dir);
-    		echo(json_encode(['success' => $success, 'ltiUrl' => $config->ltiUrl.$ID, 'normalUrl' => $config->normalUrl.$ID, 'seenrevision' => $revision, 'dir' => $dir]));
-    		return;
-    	}
-    	echo(json_encode(['success' => $success, 'url' => $config->baseUrl.'/files/checkouts/'.$dir.'/index.html', 'revision' => $revision, 'ID' => $dir]));
+        if(checkStatic(__DIR__.'/files/checkouts/'.$dir.'/index.html')) {
+        	echo(json_encode([
+                'success' => true,
+                'isstatic' => true,
+                'url' => $config->baseUrl.'/files/checkouts/'.$dir.'/index.html',
+                'normalUrl' => $config->baseUrl.'/files/checkouts/'.$dir.'/index.html',
+                'ltiUrl' => $config->baseUrl.'/files/checkouts/'.$dir.'/index.html',
+                'revision' => $revision,
+                'ID' => $dir
+                ]));
+        } else {
+        	$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
+        	$stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
+        	$ID = $stmt->fetchColumn();
+        	if ($ID && false) { // XXX :: remove false
+        		//deleteRecDirectory(__DIR__.'/files/checkouts/'.$dir);
+        		echo(json_encode([
+                    'success' => $success,
+                    'ltiUrl' => $config->ltiUrl.$ID,
+                    'normalUrl' => $config->normalUrl.$ID,
+                    'tokenUrl' => addToken($config->normalUrl.$ID),
+                    'seenrevision' => $revision,
+                    'dir' => $dir
+                    ]));
+        		return;
+        	}
+        	echo(json_encode([
+                'success' => $success,
+                'url' => $config->baseUrl.'/files/checkouts/'.$dir.'/index.html',
+                'revision' => $revision,
+                'warnPaths' => warnPaths(__DIR__.'/files/checkouts/'.$dir.'/index.html'),
+                'ID' => $dir
+                ]));
+        }
     }
 }
 
@@ -335,7 +427,12 @@ function saveResources($metadata, $resources, $subdir, $revision) {
         // subtasks
         saveSubtasks($taskId, $metadata);
 	}
-	echo(json_encode(['success' => true, 'normalUrl' => $config->normalUrl.$taskId, 'ltiUrl' => $config->ltiUrl.$taskId]));
+	echo(json_encode([
+        'success' => true,
+        'normalUrl' => $config->normalUrl.$taskId,
+        'tokenUrl' => addToken($config->normalUrl.$taskId),
+        'ltiUrl' => $config->ltiUrl.$taskId
+        ]));
 }
 
 // why is there no such thing in the php library?
@@ -365,6 +462,57 @@ function deleteDirectory($path) {
 	echo(json_encode(['success' => true]));
 }
 
+function unparse_url($parsed_url) {
+    $scheme   = isset($parsed_url['scheme']) ? $parsed_url['scheme'] . '://' : '';
+    $host     = isset($parsed_url['host']) ? $parsed_url['host'] : '';
+    $port     = isset($parsed_url['port']) ? ':' . $parsed_url['port'] : '';
+    $user     = isset($parsed_url['user']) ? $parsed_url['user'] : '';
+    $pass     = isset($parsed_url['pass']) ? ':' . $parsed_url['pass']  : '';
+    $pass     = ($user || $pass) ? "$pass@" : '';
+    $path     = isset($parsed_url['path']) ? $parsed_url['path'] : '';
+    $query    = isset($parsed_url['query']) ? '?' . $parsed_url['query'] : '';
+    $fragment = isset($parsed_url['fragment']) ? '#' . $parsed_url['fragment'] : '';
+    return "$scheme$user$pass$host$port$path$query$fragment";
+}
+
+function addToken($url, $token=null) {
+    if ($token == null) {
+        $token = generateToken($url);
+    }
+    $parsed_url = parse_url($url);
+    if (isset($parsed_url['query'])) {
+        parse_str($parsed_url['query'], $queryArgs);
+        $queryArgs['sToken'] = $token;
+        $parsed_url['query'] = http_build_query($queryArgs);
+    } else {
+        $parsed_url['query'] = 'sToken=' . $token;
+    }
+    return unparse_url($parsed_url);
+}
+
+function generateToken($url) {
+    global $config;
+
+    $tokenGenerator = new TokenGenerator($config->platform->private_key, $config->platform->name);
+    $params = array(
+      'bAccessSolutions' => true,
+      'bSubmissionPossible' => true,
+      'bHintsAllowed' => true,
+      'nbHintsGiven' => 0,
+      'bIsAdmin' => false,
+      'bReadAnswers' => true,
+      'idUser' => 0,
+      'idItemLocal' => 0,
+      'itemUrl' => $url,
+      'bHasSolvedTask' => false,
+      'bTestMode' => true,
+    );
+    $sToken = $tokenGenerator->encodeJWS($params);
+    return $sToken;
+}
+
+
+
 
 if ($_POST['action'] == 'checkoutSvn') {
 	if (!isset($_POST['svnUrl'])) {
@@ -372,7 +520,7 @@ if ($_POST['action'] == 'checkoutSvn') {
 	}
 	$user = $_POST['username'] ? $_POST['username'] : $config->defaultSvnUser;
 	$password = $_POST['password'] ? $_POST['password'] : $config->defaultSvnPassword;
-	checkoutSvn($_POST['svnUrl'], $user, $password, $_POST['svnRev'], isset($_POST['recursive']));
+	checkoutSvn($_POST['svnUrl'], $user, $password, $_POST['svnRev'], isset($_POST['recursive']), isset($_POST['noimport']));
 } elseif ($_POST['action'] == 'saveResources') {
 	if (!isset($_POST['metadata']) || !isset($_POST['resources']) || !isset($_POST['svnUrl']) || !isset($_POST['svnRev'])) {
 		die(json_encode(['success' => false, 'error' => 'missing metada, resources, svnUrl or svnRev']));
