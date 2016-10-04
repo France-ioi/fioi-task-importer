@@ -15,6 +15,10 @@ $config->db->password = 'castor';
 $config->db->user = 'castor';
 $config->db->logged = false;
 
+$config->platform = (object) array();
+$config->platform->name = "";
+$config->platform->private_key = "";
+
 $config->defaultSvnUser = null;
 $config->defaultSvnPassword = null;
 
