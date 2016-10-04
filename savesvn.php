@@ -153,8 +153,8 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
                     'ID' => $taskDir,
                     'svnUrl' => $subdir . '/' . implode('/', $taskDirExpl),
                     'isstatic' => true,
-                    'normalUrl' => $config->baseUrl.'/files/checkouts/'.$taskDir.'/index.html',
-                    'ltiUrl' => $config->ltiUrl.'/files/checkouts/'.$taskDir.'/index.html',
+                    'normalUrl' => $config->staticUrl.$taskDir.'/index.html',
+                    'ltiUrl' => $config->staticUrl.$taskDir.'/index.html',
                     ];
             } else {
                 $tasks[] = [
@@ -175,8 +175,8 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
                 'success' => true,
                 'isstatic' => true,
                 'url' => $config->baseUrl.'/files/checkouts/'.$dir.'/index.html',
-                'normalUrl' => $config->baseUrl.'/files/checkouts/'.$dir.'/index.html',
-                'ltiUrl' => $config->baseUrl.'/files/checkouts/'.$dir.'/index.html',
+                'normalUrl' => $config->staticUrl.$dir.'/index.html',
+                'ltiUrl' => $config->staticUrl.$dir.'/index.html',
                 'revision' => $revision,
                 'ID' => $dir
                 ]));
