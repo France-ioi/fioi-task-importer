@@ -49,7 +49,7 @@ function showUrls(normalUrl, ltiUrl, tokenUrl) {
 	$('#result').show();
 }
 
-function getInfos(svnUrl, svnRev, success, error) {
+function getInfos(svnUrl, svnRev, dirPath, success, error) {
 	TaskProxyManager.getTaskProxy('taskIframe', function(task) {
 		window.task = task;
 		setState('getresources');
@@ -59,7 +59,7 @@ function getInfos(svnUrl, svnRev, success, error) {
 			task.getMetaData(function(metadata) {
 		     	task.getResources(function(resources) {
 		     		setState('saveresources');
-		     		$.post('savesvn.php', {action: 'saveResources', resources: resources, metadata: metadata, svnRev: svnRev, svnUrl: svnUrl}, function(res) {
+		     		$.post('savesvn.php', {action: 'saveResources', resources: resources, metadata: metadata, svnRev: svnRev, svnUrl: svnUrl, dirPath: dirPath}, function(res) {
 		     			if (res.success) {
 							success(res.normalUrl, res.ltiUrl, res.tokenUrl);
 		     			} else {
@@ -110,7 +110,7 @@ function saveSvn() {
         	$('#taskIframe').attr('src',res.url);
         	console.error(res.url);
         	window.setTimeout(function() {
-        		getInfos(newValues.svnUrl, res.revision,
+        		getInfos(newValues.svnUrl, res.revision, res.dirPath,
                     function(normalUrl, ltiUrl, tokenUrl) {
                         showUrls(normalUrl, ltiUrl, tokenUrl);
                         finishImport(res.ID,
@@ -168,7 +168,7 @@ function recImport(tasks, svnUrl, revision) {
     $('#taskIframe').attr('src',curTask.url);
     console.error(curTask.url);
     window.setTimeout(function() {
-    	getInfos(curTask.svnUrl, revision,
+    	getInfos(curTask.svnUrl, revision, curTask.dirPath,
             function(normalUrl, ltiUrl, tokenUrl) {
                 showUrls(normalUrl, ltiUrl, tokenUrl);
                 finishImport(curTask.ID,

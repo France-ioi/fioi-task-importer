@@ -149,6 +149,7 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
             array_shift($taskDirExpl);
             if(checkStatic(__DIR__.'/files/checkouts/'.$taskDir.'/index.html')) {
                 $tasks[] = [
+                    'dirPath' => '/files/checkouts/'.$taskDir.'/',
                     'url' => $config->baseUrl.'/files/checkouts/'.$taskDir.'/index.html',
                     'ID' => $taskDir,
                     'svnUrl' => $subdir . '/' . implode('/', $taskDirExpl),
@@ -158,6 +159,7 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
                     ];
             } else {
                 $tasks[] = [
+                    'dirPath' => '/files/checkouts/'.$taskDir.'/',
                     'url' => $config->baseUrl.'/files/checkouts/'.$taskDir.'/index.html',
                     'ID' => $taskDir,
                     'svnUrl' => $subdir . '/' . implode('/', $taskDirExpl),
@@ -174,6 +176,7 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
         	echo(json_encode([
                 'success' => true,
                 'isstatic' => true,
+                'dirPath' => '/files/checkouts/'.$dir.'/',
                 'url' => $config->baseUrl.'/files/checkouts/'.$dir.'/index.html',
                 'normalUrl' => $config->staticUrl.$dir.'/index.html',
                 'ltiUrl' => $config->staticUrl.$dir.'/index.html',
@@ -198,6 +201,7 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
         	}
         	echo(json_encode([
                 'success' => $success,
+                'dirPath' => '/files/checkouts/'.$dir.'/',
                 'url' => $config->baseUrl.'/files/checkouts/'.$dir.'/index.html',
                 'revision' => $revision,
                 'warnPaths' => warnPaths(__DIR__.'/files/checkouts/'.$dir.'/index.html'),
@@ -254,8 +258,8 @@ function saveTask($metadata, $subdir, $revision, $resources) {
 	return [$taskId, false];
 }
 
-function saveStrings($taskId, $resources, $metadata) {
-	global $db;
+function saveStrings($taskId, $resources, $metadata, $dirPath) {
+	global $config, $db;
 	$statement = null;
 	$solution = null;
 	$css = null;
@@ -284,6 +288,25 @@ function saveStrings($taskId, $resources, $metadata) {
 	foreach($imagesRes as $imageRes) {
 		$solution = str_replace ($imageRes['url'] , $imageRes['content'], $solution);
 	}
+
+    // Save files
+    $files = array();
+    foreach($resources['files'] as $f) {
+      file_put_contents(__DIR__.'/log.log', json_encode($f)."\n", FILE_APPEND);
+      $files[] = $f['url'];
+    }
+    foreach((isset($metadata['otherFiles']) ? $metadata['otherFiles'] : []) as $f) {
+      file_put_contents(__DIR__.'/log.log', json_encode($f)."\n", FILE_APPEND);
+      $files[] = $f;
+    }
+    file_put_contents(__DIR__.'/log.log', json_encode($config)."\n", FILE_APPEND);
+    file_put_contents(__DIR__.'/log.log', json_encode($files)."\n", FILE_APPEND);
+    foreach($files as $f) {
+      file_put_contents(__DIR__.'/log.log', json_encode($f)."\n", FILE_APPEND);
+      file_put_contents(__DIR__.'/log.log', $config->baseUrl.$dirPath.$f."\n", FILE_APPEND);
+      $statement = str_replace($f, $config->baseUrl.$dirPath.$f, $statement);
+    }
+
 	$stmt = $db->prepare('insert into tm_tasks_strings (idTask, sLanguage, sTitle, sStatement, sSolution) values (:idTask, :sLanguage, :sTitle, :sStatement, :sSolution) on duplicate key update sTitle = values(sTitle), sStatement = values(sStatement), sSolution = values(sSolution);');
 	$stmt->execute(['idTask' => $taskId, 'sLanguage' => $metadata['language'], 'sTitle' => $metadata['title'], 'sStatement' => $statement, 'sSolution' => $solution]);
 }
@@ -403,7 +426,7 @@ function saveSubtasks($taskId, $metadata) {
     }
 }
 
-function saveResources($metadata, $resources, $subdir, $revision) {
+function saveResources($metadata, $resources, $subdir, $revision, $dirPath) {
 	global $config;
 	$subdir = trim($subdir);
 	$subdir = trim($subdir, '/');
@@ -417,7 +440,7 @@ function saveResources($metadata, $resources, $subdir, $revision) {
 		// limits
 		saveLimits($taskId, $metadata['limits']);
 		// strings
-		saveStrings($taskId, $resources, $metadata);
+		saveStrings($taskId, $resources, $metadata, $dirPath);
 		// hints
 		$hintsResources = isset($resources['hints']) ? $resources['hints'] : [];
 		saveHints($taskId, $hintsResources, $metadata);
@@ -525,7 +548,7 @@ if ($_POST['action'] == 'checkoutSvn') {
 	if (!isset($_POST['metadata']) || !isset($_POST['resources']) || !isset($_POST['svnUrl']) || !isset($_POST['svnRev'])) {
 		die(json_encode(['success' => false, 'error' => 'missing metada, resources, svnUrl or svnRev']));
 	}
-	saveResources($_POST['metadata'], $_POST['resources'], $_POST['svnUrl'], $_POST['svnRev']);
+	saveResources($_POST['metadata'], $_POST['resources'], $_POST['svnUrl'], $_POST['svnRev'], $_POST['dirPath']);
 } elseif ($_POST['action'] == 'deletedirectory') {
 	if (!isset($_POST['ID'])) {
 		die(json_encode(['success' => false, 'error' => 'missing directory']));
