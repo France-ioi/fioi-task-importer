@@ -460,7 +460,7 @@ function saveResources($metadata, $resources, $subdir, $revision, $dirPath) {
 
 // why is there no such thing in the php library?
 function deleteRecDirectory($dir) {
-	if (!$dir || $dir == '/') return;
+	if (!$dir || $dir[0] == '/') return;
 	$it = new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS);
 	$files = new RecursiveIteratorIterator($it,
 	             RecursiveIteratorIterator::CHILD_FIRST);
