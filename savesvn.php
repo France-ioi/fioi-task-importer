@@ -82,8 +82,7 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
 	$sTaskPath = '$ROOT_PATH/'.$subdir;
 	$dir = mt_rand(100000, mt_getrandmax());
 	$explPath = explode('/', $subdir);
-	// removing the first two:
-	array_shift($explPath);
+	// removing the first one
 	array_shift($explPath);
 	if (count($explPath)) {
 		foreach($explPath as $rep) {
@@ -99,7 +98,7 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
 	$success = true;
 	$url = $config->svnBaseUrl.$subdir;
 	try {
-		svn_update(__DIR__.'/files/_common/');
+		svn_update(__DIR__.'/files/checkouts/_common/');
 		if ($userRevision) {
 			$success = svn_checkout($url, __DIR__.'/files/checkouts/'.$dir, $revision);
             $revision = $userRevision;
