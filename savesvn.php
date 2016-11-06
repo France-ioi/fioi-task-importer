@@ -145,7 +145,9 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
         $tasks = array();
         foreach($taskDirs as $taskDir) {
             $taskDirExpl = explode('/', $taskDir);
-            array_shift($taskDirExpl);
+            foreach(explode('/', $subdir) as $d) {
+                if($d != '') { array_shift($taskDirExpl); }
+            }
             if(checkStatic(__DIR__.'/files/checkouts/'.$taskDir.'/index.html')) {
                 $tasks[] = [
                     'dirPath' => '/files/checkouts/'.$taskDir.'/',
