@@ -265,6 +265,7 @@ function saveStrings($taskId, $resources, $metadata, $dirPath) {
 	$solution = null;
 	$css = null;
 	$imagesRes = [];
+    $files = array();
 	foreach ($resources['task'] as $i => $resource) {
 		if ($resource['type'] == 'html') {
 			$statement = $resource['content'];
@@ -275,7 +276,9 @@ function saveStrings($taskId, $resources, $metadata, $dirPath) {
 		}
 	}
 	foreach($imagesRes as $imageRes) {
-		$statement = str_replace ($imageRes['url'] , $imageRes['content'], $statement);
+      if(!in_array($imageRes['url'], $files)) {
+        $files[] = $imageRes['url'];
+      }
 	}
 	$imagesRes = [];
 	foreach ($resources['solution'] as $i => $resource) {
@@ -287,24 +290,21 @@ function saveStrings($taskId, $resources, $metadata, $dirPath) {
 		}
 	}
 	foreach($imagesRes as $imageRes) {
-		$solution = str_replace ($imageRes['url'] , $imageRes['content'], $solution);
+		$solution = str_replace ($imageRes['url'] , $config->baseUrl.$dirPath.$imageRes['url'], $solution);
 	}
 
     // Save files
-    $files = array();
     foreach($resources['files'] as $f) {
-      file_put_contents(__DIR__.'/log.log', json_encode($f)."\n", FILE_APPEND);
-      $files[] = $f['url'];
+      if(!in_array($f['url'], $files)) {
+        $files[] = $f['url'];
+      }
     }
     foreach((isset($metadata['otherFiles']) ? $metadata['otherFiles'] : []) as $f) {
-      file_put_contents(__DIR__.'/log.log', json_encode($f)."\n", FILE_APPEND);
-      $files[] = $f;
+      if(!in_array($f, $files)) {
+        $files[] = $f;
+      }
     }
-    file_put_contents(__DIR__.'/log.log', json_encode($config)."\n", FILE_APPEND);
-    file_put_contents(__DIR__.'/log.log', json_encode($files)."\n", FILE_APPEND);
     foreach($files as $f) {
-      file_put_contents(__DIR__.'/log.log', json_encode($f)."\n", FILE_APPEND);
-      file_put_contents(__DIR__.'/log.log', $config->baseUrl.$dirPath.$f."\n", FILE_APPEND);
       $statement = str_replace($f, $config->baseUrl.$dirPath.$f, $statement);
     }
 
