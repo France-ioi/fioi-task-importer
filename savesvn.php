@@ -271,7 +271,7 @@ function saveStrings($taskId, $resources, $metadata, $dirPath) {
 			$statement = $resource['content'];
 		} elseif ($resource['type'] == 'css' && isset($resource['content'])) {
 			$css = $resource['content'];
-		} else if ($resource['type'] == 'image' && isset($resource['content'])) {
+		} else if ($resource['type'] == 'image' && isset($resource['url'])) {
 			$imagesRes[] = $resource;
 		}
 	}
@@ -285,7 +285,7 @@ function saveStrings($taskId, $resources, $metadata, $dirPath) {
 		if ($resource['type'] == 'html') {
 			$solution = $resource['content'];
 			break;
-		} else if ($resource['type'] == 'image' && isset($resource['content'])) {
+		} else if ($resource['type'] == 'image' && isset($resource['url'])) {
 			$imagesRes[] = $resource;
 		}
 	}
