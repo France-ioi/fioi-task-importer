@@ -150,7 +150,7 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
             }
             if(checkStatic(__DIR__.'/files/checkouts/'.$taskDir.'/index.html')) {
                 $tasks[] = [
-                    'dirPath' => '/files/checkouts/'.$taskDir.'/',
+                    'dirPath' => $taskDir,
                     'url' => $config->baseUrl.'/files/checkouts/'.$taskDir.'/index.html',
                     'ID' => $taskDir,
                     'svnUrl' => $subdir . '/' . implode('/', $taskDirExpl),
@@ -160,7 +160,7 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
                     ];
             } else {
                 $tasks[] = [
-                    'dirPath' => '/files/checkouts/'.$taskDir.'/',
+                    'dirPath' => $taskDir,
                     'url' => $config->baseUrl.'/files/checkouts/'.$taskDir.'/index.html',
                     'ID' => $taskDir,
                     'svnUrl' => $subdir . '/' . implode('/', $taskDirExpl),
@@ -177,7 +177,7 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
         	echo(json_encode([
                 'success' => true,
                 'isstatic' => true,
-                'dirPath' => '/files/checkouts/'.$dir.'/',
+                'dirPath' => $dir,
                 'url' => $config->baseUrl.'/files/checkouts/'.$dir.'/index.html',
                 'normalUrl' => $config->staticUrl.$dir.'/index.html',
                 'ltiUrl' => $config->staticUrl.$dir.'/index.html',
@@ -202,7 +202,7 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
         	}
         	echo(json_encode([
                 'success' => $success,
-                'dirPath' => '/files/checkouts/'.$dir.'/',
+                'dirPath' => $dir,
                 'url' => $config->baseUrl.'/files/checkouts/'.$dir.'/index.html',
                 'revision' => $revision,
                 'warnPaths' => warnPaths(__DIR__.'/files/checkouts/'.$dir.'/index.html'),
@@ -290,7 +290,7 @@ function saveStrings($taskId, $resources, $metadata, $dirPath) {
 		}
 	}
 	foreach($imagesRes as $imageRes) {
-		$solution = str_replace ($imageRes['url'] , $config->baseUrl.$dirPath.$imageRes['url'], $solution);
+		$solution = str_replace ($imageRes['url'] , $config->staticUrl.$dirPath.'/'.$imageRes['url'], $solution);
 	}
 
     // Save files
@@ -305,7 +305,7 @@ function saveStrings($taskId, $resources, $metadata, $dirPath) {
       }
     }
     foreach($files as $f) {
-      $statement = str_replace($f, $config->baseUrl.$dirPath.$f, $statement);
+      $statement = str_replace($f, $config->staticUrl.$dirPath.'/'.$f, $statement);
     }
 
 	$stmt = $db->prepare('insert into tm_tasks_strings (idTask, sLanguage, sTitle, sStatement, sSolution) values (:idTask, :sLanguage, :sTitle, :sStatement, :sSolution) on duplicate key update sTitle = values(sTitle), sStatement = values(sStatement), sSolution = values(sSolution);');
