@@ -149,14 +149,25 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
                 if($d != '') { array_shift($taskDirExpl); }
             }
             if(checkStatic(__DIR__.'/files/checkouts/'.$taskDir.'/index.html')) {
+                $originalDir = $subdir . '/' . implode('/', $taskDirExpl);
+                $targetDir = md5($originalDir).substr($taskDir, strpos($taskDir, '/'));
+                $targetFsDir = __DIR__.'/files/checkouts/'.$targetDir;
+                mkdir($targetFsDir, 0777, true);
+                deleteRecDirectory($targetFsDir);
+                rename(__DIR__.'/files/checkouts/'.$taskDir, $targetFsDir);
+                $targetDirExpl = explode('/', $taskDir);
+                foreach(explode('/', $subdir) as $d) {
+                    if($d != '') { array_shift($targetDirExpl); }
+                }
+
                 $tasks[] = [
-                    'dirPath' => $taskDir,
-                    'url' => $config->baseUrl.'/files/checkouts/'.$taskDir.'/index.html',
-                    'ID' => $taskDir,
-                    'svnUrl' => $subdir . '/' . implode('/', $taskDirExpl),
+                    'dirPath' => $targetDir,
+                    'url' => $config->baseUrl.'/files/checkouts/'.$targetDir.'/index.html',
+                    'ID' => $targetDir,
+                    'svnUrl' => $subdir . '/' . implode('/', $targetDirExpl),
                     'isstatic' => true,
-                    'normalUrl' => $config->staticUrl.$taskDir.'/index.html',
-                    'ltiUrl' => $config->staticUrl.$taskDir.'/index.html',
+                    'normalUrl' => $config->staticUrl.$targetDir.'/index.html',
+                    'ltiUrl' => $config->staticUrl.$targetDir.'/index.html',
                     ];
             } else {
                 $tasks[] = [
@@ -174,15 +185,21 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
     		die(json_encode(['success' => false, 'error' => 'le fichier index.html n\'existe pas !']));
     	}
         if(checkStatic(__DIR__.'/files/checkouts/'.$dir.'/index.html')) {
+            $targetDir = md5($subdir);
+            $targetFsDir = __DIR__.'/files/checkouts/'.$targetDir;
+            mkdir($targetFsDir, 0777, true);
+            deleteRecDirectory($targetFsDir);
+            rename(__DIR__.'/files/checkouts/'.$dir, $targetFsDir);
+
         	echo(json_encode([
                 'success' => true,
                 'isstatic' => true,
-                'dirPath' => $dir,
-                'url' => $config->baseUrl.'/files/checkouts/'.$dir.'/index.html',
-                'normalUrl' => $config->staticUrl.$dir.'/index.html',
-                'ltiUrl' => $config->staticUrl.$dir.'/index.html',
+                'dirPath' => $targetDir,
+                'url' => $config->baseUrl.'/files/checkouts/'.$targetDir.'/index.html',
+                'normalUrl' => $config->staticUrl.$targetDir.'/index.html',
+                'ltiUrl' => $config->staticUrl.$targetDir.'/index.html',
                 'revision' => $revision,
-                'ID' => $dir
+                'ID' => $targetDir
                 ]));
         } else {
         	$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
@@ -461,7 +478,7 @@ function saveResources($metadata, $resources, $subdir, $revision, $dirPath) {
 
 // why is there no such thing in the php library?
 function deleteRecDirectory($dir) {
-	if (!$dir || $dir[0] == '/') return;
+	if (!$dir || substr($dir, 0, strlen(__DIR__.'/files/checkouts')) != __DIR__.'/files/checkouts') return;
 	$it = new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS);
 	$files = new RecursiveIteratorIterator($it,
 	             RecursiveIteratorIterator::CHILD_FIRST);
