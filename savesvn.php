@@ -69,6 +69,7 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
 	global $config, $db;
 
     if($recursive && $noimport) {
+        // TODO :: adapt to recursive
         // not supported (yet)
         echo(json_encode([
             'success' => false,
@@ -77,34 +78,31 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
         return;
     }
 
-	$subdir = trim($subdir);
-	$subdir = trim($subdir, '/');
-	$sTaskPath = '$ROOT_PATH/'.$subdir;
-	$dir = mt_rand(100000, mt_getrandmax());
-	$explPath = explode('/', $subdir);
-	// removing the first one
-	array_shift($explPath);
-	if (count($explPath)) {
-		foreach($explPath as $rep) {
-			mkdir(__DIR__.'/files/checkouts/'.$dir);
-			$dir = $dir.'/'.$rep;
-		}
-	}
+	$baseSvnDir = trim($subdir);
+	$baseSvnDir = trim($baseSvnDir, '/');
+	$sTaskPath = '$ROOT_PATH/'.$svnDir; // TODO :: adapt to recursive
+
+	// Create target checkout directory
+	$baseSvnExpl = explode('/', $baseSvnDir);
+    $baseSvnFirst = array_shift($baseSvnExpl);
+	$baseTargetDir = mt_rand(100000, mt_getrandmax()) . '/' . implode('/', $baseSvnExpl);
+    mkdir($baseTargetDir, 0777, true);
+
 	svn_auth_set_parameter(SVN_AUTH_PARAM_DEFAULT_USERNAME,             $user);
 	svn_auth_set_parameter(SVN_AUTH_PARAM_DEFAULT_PASSWORD,             $password);
 	svn_auth_set_parameter(PHP_SVN_AUTH_PARAM_IGNORE_SSL_VERIFY_ERRORS, true); // <--- Important for certificate issues!
 	svn_auth_set_parameter(SVN_AUTH_PARAM_NON_INTERACTIVE,              true);
 	svn_auth_set_parameter(SVN_AUTH_PARAM_NO_AUTH_CACHE,                true);
 	$success = true;
-	$url = $config->svnBaseUrl.$subdir;
+	$url = $config->svnBaseUrl.$baseSvnDir;
 	try {
 		svn_update(__DIR__.'/files/checkouts/_common/');
 		if ($userRevision) {
-			$success = svn_checkout($url, __DIR__.'/files/checkouts/'.$dir, $revision);
+			$success = svn_checkout($url, __DIR__.'/files/checkouts/'.$baseTargetDir, $userRevision);
             $revision = $userRevision;
 		} else {
-			$success = svn_checkout($url, __DIR__.'/files/checkouts/'.$dir);
-			$revision = getLastRevision(__DIR__.'/files/checkouts/'.$dir);
+			$success = svn_checkout($url, __DIR__.'/files/checkouts/'.$baseTargetDir);
+			$revision = getLastRevision(__DIR__.'/files/checkouts/'.$baseTargetDir);
 		}
 	} catch (Exception $e) {
 		die(json_encode(['success' => false, 'error' => $e->getMessage()]));
@@ -114,6 +112,7 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
 	}
 
 	if ($userRevision || $noimport) {
+        // TODO :: adapt to recursive
         if ($userRevision) {
     		$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
     		$stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
@@ -140,68 +139,48 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
         }
 	}
 
+    $tasks = array();
     if ($recursive) {
-        $taskDirs = listTaskDirs($dir);
-        $tasks = array();
-        foreach($taskDirs as $taskDir) {
-            $taskDirExpl = explode('/', $taskDir);
-            foreach(explode('/', $subdir) as $d) {
-                if($d != '') { array_shift($taskDirExpl); }
-            }
-            if(checkStatic(__DIR__.'/files/checkouts/'.$taskDir.'/index.html')) {
-                $originalDir = $subdir . '/' . implode('/', $taskDirExpl);
-                $targetDir = md5($originalDir).substr($taskDir, strpos($taskDir, '/'));
-                $targetFsDir = __DIR__.'/files/checkouts/'.$targetDir;
-                mkdir($targetFsDir, 0777, true);
-                deleteRecDirectory($targetFsDir);
-                rename(__DIR__.'/files/checkouts/'.$taskDir, $targetFsDir);
-                $targetDirExpl = explode('/', $taskDir);
-                foreach(explode('/', $subdir) as $d) {
-                    if($d != '') { array_shift($targetDirExpl); }
-                }
-
-                $tasks[] = [
-                    'dirPath' => $targetDir,
-                    'url' => $config->baseUrl.'/files/checkouts/'.$targetDir.'/index.html',
-                    'ID' => $targetDir,
-                    'svnUrl' => $subdir . '/' . implode('/', $targetDirExpl),
-                    'isstatic' => true,
-                    'normalUrl' => $config->staticUrl.$targetDir.'/index.html',
-                    'ltiUrl' => $config->staticUrl.$targetDir.'/index.html',
-                    ];
-            } else {
-                $tasks[] = [
-                    'dirPath' => $taskDir,
-                    'url' => $config->baseUrl.'/files/checkouts/'.$taskDir.'/index.html',
-                    'ID' => $taskDir,
-                    'svnUrl' => $subdir . '/' . implode('/', $taskDirExpl),
-                    'warnPaths' => warnPaths(__DIR__.'/files/checkouts/'.$taskDir.'/index.html'),
-                    ];
-            }
-        }
-        echo(json_encode(['success' => $success, 'tasks' => $tasks, 'revision' => $revision]));
+        $taskDirs = listTaskDirs($baseTargetDir);
     } else {
-    	if (!file_exists(__DIR__.'/files/checkouts/'.$dir.'/index.html')) {
+    	if (!file_exists(__DIR__.'/files/checkouts/'.$baseTargetDir.'/index.html')) {
     		die(json_encode(['success' => false, 'error' => 'le fichier index.html n\'existe pas !']));
     	}
-        if(checkStatic(__DIR__.'/files/checkouts/'.$dir.'/index.html')) {
-            $targetDir = md5($subdir);
+        $taskDirs = array($baseTargetDir);
+    }
+    foreach($taskDirs as $taskDir) {
+        // Remove first component of the path
+        $taskDirCompl = implode('/', array_slice(explode('/', $taskDir), 1));
+
+        if(checkStatic(__DIR__.'/files/checkouts/'.$taskDir.'/index.html')) {
+            $taskSvnDir = $baseSvnFirst . '/' . $taskDirCompl;
+            $targetDir = md5($taskSvnDir). '/' . $taskDirCompl;
             $targetFsDir = __DIR__.'/files/checkouts/'.$targetDir;
             mkdir($targetFsDir, 0777, true);
             deleteRecDirectory($targetFsDir);
-            rename(__DIR__.'/files/checkouts/'.$dir, $targetFsDir);
+            rename(__DIR__.'/files/checkouts/'.$taskDir, $targetFsDir);
 
-        	echo(json_encode([
-                'success' => true,
-                'isstatic' => true,
+            $tasks[] = [
                 'dirPath' => $targetDir,
+                'ID' => $targetDir,
                 'url' => $config->baseUrl.'/files/checkouts/'.$targetDir.'/index.html',
+                'svnUrl' => $taskSvnDir,
+                'isstatic' => true,
                 'normalUrl' => $config->staticUrl.$targetDir.'/index.html',
                 'ltiUrl' => $config->staticUrl.$targetDir.'/index.html',
-                'revision' => $revision,
-                'ID' => $targetDir
-                ]));
+                ];
         } else {
+            $tasks[] = [
+                'dirPath' => $taskDir,
+                'ID' => $taskDir,
+                'url' => $config->baseUrl.'/files/checkouts/'.$taskDir.'/index.html',
+                'svnUrl' => $taskSvnDir,
+                'warnPaths' => warnPaths(__DIR__.'/files/checkouts/'.$taskDir.'/index.html'),
+                ];
+        }
+    }
+    echo(json_encode(['success' => $success, 'tasks' => $tasks, 'revision' => $revision]));
+/* TODO :: do something with that
         	$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
         	$stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
         	$ID = $stmt->fetchColumn();
@@ -216,17 +195,7 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
                     'dir' => $dir
                     ]));
         		return;
-        	}
-        	echo(json_encode([
-                'success' => $success,
-                'dirPath' => $dir,
-                'url' => $config->baseUrl.'/files/checkouts/'.$dir.'/index.html',
-                'revision' => $revision,
-                'warnPaths' => warnPaths(__DIR__.'/files/checkouts/'.$dir.'/index.html'),
-                'ID' => $dir
-                ]));
-        }
-    }
+        	}*/
 }
 
 function saveLimits($taskId, $limits) {

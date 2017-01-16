@@ -88,43 +88,14 @@ function saveSvn() {
     }
     newValues.action = 'checkoutSvn';
     $.post('savesvn.php', newValues, function(res) {
-    	if (!res.success) {
+        if (res.success && res.tasks) {
+            recImport(res.tasks, newValues.svnUrl, res.revision);
+        } else {
     		setState('error', res.error);
     		return;
     	}
-    	if (res.ltiUrl) {
-            setState('done');
-    		showUrls(res.normalUrl, res.ltiUrl, res.tokenUrl);
-    		return;
-    	}
-        if (res.isstatic) {
-            setState('static');
-            showUrls(res.normalUrl, res.ltiUrl, res.tokenUrl);
-        } else if (res.url) {
-            $('#curTask').html(res.ID+': ');
-            setState('load');
-            if (res.warnPaths) {
-                $("#taskWarning").text('Warning: possible error in _common paths.')
-                $("#taskWarning").show();
-            }
-        	$('#taskIframe').attr('src',res.url);
-        	console.error(res.url);
-        	window.setTimeout(function() {
-        		getInfos(newValues.svnUrl, res.revision, res.dirPath,
-                    function(normalUrl, ltiUrl, tokenUrl) {
-                        showUrls(normalUrl, ltiUrl, tokenUrl);
-                        finishImport(res.ID,
-                            function () {setState('success')},
-                            function (errormsg) {setState('error', errormsg)}
-                        );
-                    },
-        		    function (errormsg) {setState('error', errormsg)});
-        	}, 2000);
-        } else if (res.tasks) {
-            recImport(res.tasks, newValues.svnUrl, res.revision);
-        }
     }, 'json').fail(function() {
-    	setState('error');
+    	setState('error', 'server request failed');
     });
 };
 
@@ -157,6 +128,10 @@ function recImport(tasks, svnUrl, revision) {
         copyResults(curTask.ID, true);
         recImport(tasks, svnUrl, revision);
         return;
+    } else if (curTask.ltiUrl) {
+        setState('done');
+    	showUrls(curTask.normalUrl, curTask.ltiUrl, curTask.tokenUrl);
+    	return;
     }
 
     $('#curTask').html(curTask.ID+': ');
