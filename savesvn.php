@@ -80,12 +80,15 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
 
 	$baseSvnDir = trim($subdir);
 	$baseSvnDir = trim($baseSvnDir, '/');
-	$sTaskPath = '$ROOT_PATH/'.$svnDir; // TODO :: adapt to recursive
+	$sTaskPath = '$ROOT_PATH/'.$baseSvnDir; // TODO :: adapt to recursive
 
 	// Create target checkout directory
 	$baseSvnExpl = explode('/', $baseSvnDir);
     $baseSvnFirst = array_shift($baseSvnExpl);
-	$baseTargetDir = mt_rand(100000, mt_getrandmax()) . '/' . implode('/', $baseSvnExpl);
+	$baseTargetDir = mt_rand(100000, mt_getrandmax());
+    if(count($baseSvnExpl)) {
+        $baseTargetDir .= '/' . implode('/', $baseSvnExpl);
+    }
     mkdir($baseTargetDir, 0777, true);
 
 	svn_auth_set_parameter(SVN_AUTH_PARAM_DEFAULT_USERNAME,             $user);
