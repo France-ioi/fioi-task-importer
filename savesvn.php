@@ -154,9 +154,9 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
     foreach($taskDirs as $taskDir) {
         // Remove first component of the path
         $taskDirCompl = implode('/', array_slice(explode('/', $taskDir), 1));
+        $taskSvnDir = $baseSvnFirst . '/' . $taskDirCompl;
 
         if(checkStatic(__DIR__.'/files/checkouts/'.$taskDir.'/index.html')) {
-            $taskSvnDir = $baseSvnFirst . '/' . $taskDirCompl;
             $targetDir = md5($taskSvnDir). '/' . $taskDirCompl;
             $targetFsDir = __DIR__.'/files/checkouts/'.$targetDir;
             mkdir($targetFsDir, 0777, true);
