@@ -89,7 +89,7 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
     if(count($baseSvnExpl)) {
         $baseTargetDir .= '/' . implode('/', $baseSvnExpl);
     }
-    mkdir($baseTargetDir, 0777, true);
+    mkdir(__DIR__.'/files/checkouts/'.$baseTargetDir, 0777, true);
 
 	svn_auth_set_parameter(SVN_AUTH_PARAM_DEFAULT_USERNAME,             $user);
 	svn_auth_set_parameter(SVN_AUTH_PARAM_DEFAULT_PASSWORD,             $password);

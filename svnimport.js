@@ -1,6 +1,11 @@
-var svnImportTasks = [];
+// Time before aborting the import of one task
+var cfgImportTimeout = 20000;
+
+// ID of the task currently imported (avoid having a callback importing the wrong task)
+var currentID = null;
 
 function setState(state, comment) {
+    // Display current import status
 	if (state == 'normal') {
 		$('#state').html('');
 	} else if (state == 'savesvn') {
@@ -23,6 +28,7 @@ function setState(state, comment) {
 }
 
 function finishImport(ID, success, error) {
+    // Delete checkout folder after import
 	setState('deleting');
 	$.post('savesvn.php', {action: 'deletedirectory', ID: ID}, function(res) {
 		if (res.success) {
@@ -36,6 +42,7 @@ function finishImport(ID, success, error) {
 }
 
 function showUrls(normalUrl, ltiUrl, tokenUrl) {
+    // Display all URLs in respective places
 	$('#ltiUrl').attr('href', ltiUrl)
 	    .html(ltiUrl);
 	$('#normalUrl').attr('href', normalUrl)
@@ -50,31 +57,59 @@ function showUrls(normalUrl, ltiUrl, tokenUrl) {
 }
 
 function getInfos(svnUrl, svnRev, dirPath, success, error) {
+    // Import the informations from the task contained in the iframe
+    var thisID = Math.random() * 1000000000 + 0;
+    currentID = thisID + 0;
+
+    // Allow 20 seconds to import the task
+    var getInfosTimeout = window.setTimeout(function () {
+        if(thisID != currentID) { return; }
+        error('timeout while fetching resources');
+        currentID = null;
+    }, 20000);
+
+    var throwSuccess = function (n, l, t) {
+        window.clearTimeout(getInfosTimeout);
+        currentID = null;
+        success(n, l, t);
+    };
+    var throwError = function (errormsg) {
+        window.clearTimeout(getInfosTimeout);
+        currentID = null;
+        error(errormsg);
+    };
+
 	TaskProxyManager.getTaskProxy('taskIframe', function(task) {
+        if(thisID != currentID) { return; }
 		window.task = task;
 		setState('getresources');
 		var platform = new Platform(task);
 		TaskProxyManager.setPlatform(task, platform);
 		task.load({metadata:true, grader:true, solution:true, hints:true, editor:true, resources:true}, function() {
+            if(thisID != currentID) { return; }
 			task.getMetaData(function(metadata) {
+                if(thisID != currentID) { return; }
 		     	task.getResources(function(resources) {
+                    if(thisID != currentID) { return; }
 		     		setState('saveresources');
 		     		$.post('savesvn.php', {action: 'saveResources', resources: resources, metadata: metadata, svnRev: svnRev, svnUrl: svnUrl, dirPath: dirPath}, function(res) {
+                        if(thisID != currentID) { return; }
 		     			if (res.success) {
-							success(res.normalUrl, res.ltiUrl, res.tokenUrl);
+							throwSuccess(res.normalUrl, res.ltiUrl, res.tokenUrl);
 		     			} else {
-                            error(res.error);
+                            throwError(res.error);
 		     			}
 		     		}).fail(function() {
-				    	error('unable to load/save resources');
+				    	throwError('unable to load/save resources');
 				    });
-		     	}, error);
-            }, error);
-        }, error);
+		     	}, throwError);
+            }, throwError);
+        }, throwError);
   	}, true);
 }
 
 function saveSvn() {
+    // Start import
 	$('#result').hide();
     $('#taskWarning').text('');
     $('#taskWarning').hide();
@@ -100,6 +135,7 @@ function saveSvn() {
 };
 
 function copyResults(name, urls) {
+    // Copy results for a single import into the history of imports
     var newHtml = '<hr /><p>'+name+': '+$("#state").html()+'</p>';
     var warning = $('#taskWarning').text();
     if(warning != '') {
@@ -114,7 +150,8 @@ function copyResults(name, urls) {
     $('#recResults a').removeAttr('id');
 };
 
-function recImport(tasks, svnUrl, revision) {
+function recImport(tasks, revision) {
+    // Import recursively each task
     if (tasks.length == 0) {
         $('#curTask').html('');
         setState('normal');
@@ -126,7 +163,7 @@ function recImport(tasks, svnUrl, revision) {
         setState('static');
         showUrls(curTask.normalUrl, curTask.ltiUrl, curTask.tokenUrl);
         copyResults(curTask.ID, true);
-        recImport(tasks, svnUrl, revision);
+        recImport(tasks, revision);
         return;
     } else if (curTask.ltiUrl) {
         setState('done');
@@ -141,27 +178,26 @@ function recImport(tasks, svnUrl, revision) {
         $("#taskWarning").show();
     }
     $('#taskIframe').attr('src',curTask.url);
-    console.error(curTask.url);
     window.setTimeout(function() {
-    	getInfos(curTask.svnUrl, revision, curTask.dirPath,
+        getInfos(curTask.svnUrl, revision, curTask.dirPath,
             function(normalUrl, ltiUrl, tokenUrl) {
                 showUrls(normalUrl, ltiUrl, tokenUrl);
                 finishImport(curTask.ID,
                     function() {
                         setState('success');
                         copyResults(curTask.ID, true);
-                        recImport(tasks, svnUrl, revision);
+                        recImport(tasks, revision);
                     },
                     function(errormsg) {
                         setState('error', (errormsg ? errormsg : "couldn't clean up") + ' (<a href="' + curTask.url + '">index.html</a>)');
                         copyResults(curTask.ID, true);
-                        recImport(tasks, svnUrl, revision);
+                        recImport(tasks, revision);
                     });
             },
     	    function(errormsg) {
                 setState('error', (errormsg ? errormsg : "couldn't load/save resources") + ' (<a href="' + curTask.url + '">index.html</a>)');
                 copyResults(curTask.ID, false);
-                recImport(tasks, svnUrl, revision);
+                recImport(tasks, revision);
             });
     }, 2000);
 };
