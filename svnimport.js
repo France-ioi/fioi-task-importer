@@ -124,7 +124,7 @@ function saveSvn() {
     newValues.action = 'checkoutSvn';
     $.post('savesvn.php', newValues, function(res) {
         if (res.success && res.tasks) {
-            recImport(res.tasks, newValues.svnUrl, res.revision);
+            recImport(res.tasks, res.revision);
         } else {
     		setState('error', res.error);
     		return;
