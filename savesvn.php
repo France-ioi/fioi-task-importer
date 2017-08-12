@@ -228,6 +228,7 @@ function saveTask($metadata, $subdir, $revision, $resources) {
 	}
 	$authors = (isset($metadata['authors']) && count($metadata['authors'])) ? join(',', $metadata['authors']) : '';
 	$sSupportedLangProg = (isset($metadata['supportedLanguages']) && count($metadata['supportedLanguages'])) ? join(',', $metadata['supportedLanguages']) : '*';
+	$sEvalTags = (isset($metadata['evaluationTags']) && count($metadata['evaluationTags'])) ? join(',', $metadata['evaluationTags']) : '';
 	$bUserTests = isset($metadata['hasUserTests']) ? ($metadata['hasUserTests'] == 'true' ? 1 : 0) : 0;
 	$sEvalResultOutputScript = isset($metadata['evalOutputScript']) ? $metadata['evalOutputScript'] : null;
 	$sScriptAnimation = '';
@@ -237,8 +238,8 @@ function saveTask($metadata, $subdir, $revision, $resources) {
 			break;
 		}
 	}
-	$stmt = $db->prepare('insert into tm_tasks (sTextId, sSupportedLangProg, sAuthor, bUserTests, sTaskPath, sRevision, sEvalResultOutputScript, sScriptAnimation) values (:id, :langprog, :authors, :bUserTests, :sTaskPath, :revision, :sEvalResultOutputScript, :sScriptAnimation) on duplicate key update sSupportedLangProg = values(sSupportedLangProg), sAuthor = values(sAuthor), bUserTests = values(bUserTests), sTaskPath = values(sTaskPath), sRevision = values(sRevision), sEvalResultOutputScript = values(sEvalResultOutputScript), sScriptAnimation = values(sScriptAnimation);');
-	$stmt->execute(['id' => $metadata['id'], 'langprog' => $sSupportedLangProg, 'authors' => $authors, 'bUserTests' => $bUserTests, 'sTaskPath' => $sTaskPath, 'revision' => $revision, 'sEvalResultOutputScript' => $sEvalResultOutputScript, 'sScriptAnimation' => $sScriptAnimation]);
+	$stmt = $db->prepare('insert into tm_tasks (sTextId, sSupportedLangProg, sEvalTags, sAuthor, bUserTests, sTaskPath, sRevision, sEvalResultOutputScript, sScriptAnimation) values (:id, :langprog, :evaltags, :authors, :bUserTests, :sTaskPath, :revision, :sEvalResultOutputScript, :sScriptAnimation) on duplicate key update sSupportedLangProg = values(sSupportedLangProg), sAuthor = values(sAuthor), bUserTests = values(bUserTests), sTaskPath = values(sTaskPath), sRevision = values(sRevision), sEvalResultOutputScript = values(sEvalResultOutputScript), sScriptAnimation = values(sScriptAnimation);');
+	$stmt->execute(['id' => $metadata['id'], 'langprog' => $sSupportedLangProg, 'evaltags' => $sEvalTags, 'authors' => $authors, 'bUserTests' => $bUserTests, 'sTaskPath' => $sTaskPath, 'revision' => $revision, 'sEvalResultOutputScript' => $sEvalResultOutputScript, 'sScriptAnimation' => $sScriptAnimation]);
 	$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
 	$stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
 	$taskId = $stmt->fetchColumn();
