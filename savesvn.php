@@ -11,7 +11,9 @@ require_once 'shared/TokenGenerator.php';
 
 header('Content-Type: application/json');
 
-if (!isset($_POST) || !isset($_POST['action'])) {
+$request = json_decode(file_get_contents('php://input'), true);
+
+if (!isset($request) || !isset($request['action'])) {
 	die(json_encode(['success' => false, 'error' => 'missing action']));
 }
 
@@ -26,19 +28,27 @@ function getLastRevision($dir) {
 	return $maxRev;
 }
 
-function listTaskDirs($dir) {
-    if (file_exists(__DIR__.'/files/checkouts/'.$dir.'/index.html')) {
-        return array($dir);
-    } else {
-        $taskDirs = array();
-        foreach(scandir(__DIR__.'/files/checkouts/'.$dir) as $elem) {
-            $elemPath = $dir.'/'.$elem;
-            if(is_dir(__DIR__.'/files/checkouts/'.$elemPath) && $elem != '.' && $elem != '..') {
-                $taskDirs = array_merge($taskDirs, listTaskDirs($elemPath));
-            }
+function listTaskDirs($dir, $recursive) {
+    $filenames = scandir(__DIR__.'/files/checkouts/'.$dir.'/');
+    foreach($filenames as $filename) {
+        if(preg_match('/index.*\.html/', $filename) === 1 && file_exists(__DIR__.'/files/checkouts/'.$dir.'/'.$filename)) {
+            return array($dir);
         }
-        return $taskDirs;
     }
+
+    // No task file has been found
+    if(!$recursive) {
+        die(json_encode(['success' => false, 'error' => 'error_noindex']));
+    }
+
+    $taskDirs = array();
+    foreach(scandir(__DIR__.'/files/checkouts/'.$dir) as $elem) {
+        $elemPath = $dir.'/'.$elem;
+        if(is_dir(__DIR__.'/files/checkouts/'.$elemPath) && $elem != '.' && $elem != '..') {
+            $taskDirs = array_merge($taskDirs, listTaskDirs($elemPath, $filenames, $recursive));
+        }
+    }
+    return $taskDirs;
 }
 
 function checkStatic($path) {
@@ -65,6 +75,65 @@ function warnPaths($path) {
     return false;
 }
 
+function processDir($taskDir, $baseSvnFirst) {
+    global $config;
+
+    // Remove first component of the path
+    $taskDirCompl = implode('/', array_slice(explode('/', $taskDir), 1));
+    $taskSvnDir = $baseSvnFirst . '/' . $taskDirCompl;
+
+    $indexList = [];
+    $taskDirMoved = false;
+
+    $filenames = scandir(__DIR__.'/files/checkouts/'.$taskDir.'/');
+
+    foreach($filenames as $filename) {
+        if(preg_match('/index.*\.html/', $filename) !== 1) {
+            continue;
+        }
+        if(!file_exists(__DIR__.'/files/checkouts/'.$taskDir.'/'.$filename)) {
+            continue;
+        }
+        if(checkStatic(__DIR__.'/files/checkouts/'.$taskDir.'/'.$filename)) {
+            if(!$taskDirMoved) {
+                // Move task to a static location
+                $targetDir = md5($taskSvnDir). '/' . $taskDirCompl;
+                $targetFsDir = __DIR__.'/files/checkouts/'.$targetDir;
+                mkdir($targetFsDir, 0777, true);
+                deleteRecDirectory($targetFsDir);
+                rename(__DIR__.'/files/checkouts/'.$taskDir, $targetFsDir);
+                $taskDir = $targetDir;
+                $taskDirMoved = true;
+            }
+
+            $indexList[] = [
+                'filename' => $filename,
+                'isStatic' => true
+                ];
+        } else {
+            $indexList[] = [
+                'filename' => $filename,
+                'isStatic' => false,
+                'warnPaths' => warnPaths(__DIR__.'/files/checkouts/'.$taskDir.'/'.$filename)
+                ];
+        }
+    }
+    $taskData = [
+        'dirPath' => $taskDir,
+        'ID' => $taskDir,
+        'svnUrl' => $taskSvnDir,
+        'baseUrl' => $config->baseUrl.'/files/checkouts/'.$taskDir.'/',
+        'staticUrl' => $config->staticUrl.$taskDir.'/',
+        'files' => $indexList
+        ];
+
+    if(file_exists(__DIR__.'/files/checkouts/'.$taskDir.'/ref_lang.txt')) {
+        $taskData['refLang'] = trim(file_get_contents(__DIR__.'/files/checkouts/'.$taskDir.'/ref_lang.txt'));
+    }
+
+    return $taskData;
+}
+
 function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noimport) {
 	global $config, $db;
 
@@ -73,7 +142,7 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
         // not supported (yet)
         echo(json_encode([
             'success' => false,
-            'error' => 'Cannot use recursive mode when not importing. Uncheck one of the boxes.'
+            'error' => 'error_recno_unsupported'
             ]));
         return;
     }
@@ -111,7 +180,7 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
 		die(json_encode(['success' => false, 'error' => $e->getMessage()]));
 	}
 	if (!$success) {
-		die(json_encode(['success' => false, 'error' => 'impossible de faire un checkout de '.$url.' (répertoire inexistant ou identifiants invalides).']));
+		die(json_encode(['success' => false, 'error' => 'error_checkout']));
 	}
 
 	if ($userRevision || $noimport) {
@@ -143,46 +212,15 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
 	}
 
     $tasks = array();
-    if ($recursive) {
-        $taskDirs = listTaskDirs($baseTargetDir);
-    } else {
-    	if (!file_exists(__DIR__.'/files/checkouts/'.$baseTargetDir.'/index.html')) {
-    		die(json_encode(['success' => false, 'error' => 'le fichier index.html n\'existe pas !']));
-    	}
-        $taskDirs = array($baseTargetDir);
-    }
+    $taskDirs = listTaskDirs($baseTargetDir, $recursive);
     foreach($taskDirs as $taskDir) {
-        // Remove first component of the path
-        $taskDirCompl = implode('/', array_slice(explode('/', $taskDir), 1));
-        $taskSvnDir = $baseSvnFirst . '/' . $taskDirCompl;
-
-        if(checkStatic(__DIR__.'/files/checkouts/'.$taskDir.'/index.html')) {
-            $targetDir = md5($taskSvnDir). '/' . $taskDirCompl;
-            $targetFsDir = __DIR__.'/files/checkouts/'.$targetDir;
-            mkdir($targetFsDir, 0777, true);
-            deleteRecDirectory($targetFsDir);
-            rename(__DIR__.'/files/checkouts/'.$taskDir, $targetFsDir);
-
-            $tasks[] = [
-                'dirPath' => $targetDir,
-                'ID' => $targetDir,
-                'url' => $config->baseUrl.'/files/checkouts/'.$targetDir.'/index.html',
-                'svnUrl' => $taskSvnDir,
-                'isstatic' => true,
-                'normalUrl' => $config->staticUrl.$targetDir.'/index.html',
-                'ltiUrl' => $config->staticUrl.$targetDir.'/index.html',
-                ];
-        } else {
-            $tasks[] = [
-                'dirPath' => $taskDir,
-                'ID' => $taskDir,
-                'url' => $config->baseUrl.'/files/checkouts/'.$taskDir.'/index.html',
-                'svnUrl' => $taskSvnDir,
-                'warnPaths' => warnPaths(__DIR__.'/files/checkouts/'.$taskDir.'/index.html'),
-                ];
+        $newTaskData = processDir($taskDir, $baseSvnFirst);
+        if(count($newTaskData['files']) > 0) {
+            $tasks[] = $newTaskData;
         }
     }
     echo(json_encode(['success' => $success, 'tasks' => $tasks, 'revision' => $revision]));
+
 /* TODO :: do something with that
         	$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
         	$stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
@@ -303,12 +341,6 @@ function saveStrings($taskId, $resources, $metadata, $dirPath) {
 
 function saveHints($taskId, $hintsResources, $metadata) {
 	global $db;
-	$deleteQuery = 'delete tm_hints_strings from tm_hints_strings join tm_hints on tm_hints_strings.idHint = tm_hints.ID where tm_hints.idTask = :idTask;';
-	$stmt = $db->prepare($deleteQuery);
-	$stmt->execute(['idTask' => $taskId]);
-	$deleteQuery = 'delete from tm_hints where tm_hints.idTask = :idTask;';
-	$stmt = $db->prepare($deleteQuery);
-	$stmt->execute(['idTask' => $taskId]);
 	foreach ($hintsResources as $i => $resources) {
 		$imagesRes = [];
 		foreach ($resources as $j => $resource) {
@@ -416,10 +448,14 @@ function saveSubtasks($taskId, $metadata) {
     }
 }
 
-function saveResources($metadata, $resources, $subdir, $revision, $dirPath) {
-	global $config;
+function saveResources($data, $subdir, $revision, $dirPath) {
+	global $config, $db;
 	$subdir = trim($subdir);
 	$subdir = trim($subdir, '/');
+
+    $metadata = $data[0]['metadata'];
+    $resources = $data[0]['resources'];
+
 	if (!isset($metadata['id']) || !isset($metadata['language'])) {
 		die(json_encode(['success' => false, 'error' => 'missing id or language in metadata']));
 	}
@@ -429,19 +465,34 @@ function saveResources($metadata, $resources, $subdir, $revision, $dirPath) {
 	if (!$alreadyImported) {
 		// limits
 		saveLimits($taskId, $metadata['limits']);
-		// strings
-		saveStrings($taskId, $resources, $metadata, $dirPath);
-		// hints
-		$hintsResources = isset($resources['hints']) ? $resources['hints'] : [];
-		saveHints($taskId, $hintsResources, $metadata);
 		// source code
 		saveSourceCodes($taskId, $resources);
 		saveSamples($taskId, $resources);
         // subtasks
         saveSubtasks($taskId, $metadata);
+
+        // delete hints
+    	$deleteQuery = 'delete tm_hints_strings from tm_hints_strings join tm_hints on tm_hints_strings.idHint = tm_hints.ID where tm_hints.idTask = :idTask;';
+    	$stmt = $db->prepare($deleteQuery);
+    	$stmt->execute(['idTask' => $taskId]);
+    	$deleteQuery = 'delete from tm_hints where tm_hints.idTask = :idTask';
+    	$stmt = $db->prepare($deleteQuery);
+    	$stmt->execute(['idTask' => $taskId]);
+
+        foreach($data as $langData) {
+            // lang-specific data
+            $metadata = $langData['metadata'];
+            $resources = $langData['resources'];
+    		// strings
+    		saveStrings($taskId, $resources, $metadata, $dirPath);
+    		// hints
+    		$hintsResources = isset($resources['hints']) ? $resources['hints'] : [];
+    		saveHints($taskId, $hintsResources, $metadata);
+        }
 	}
 	echo(json_encode([
         'success' => true,
+        'ID' => $taskId,
         'normalUrl' => $config->normalUrl.$taskId,
         'tokenUrl' => addToken($config->normalUrl.$taskId),
         'ltiUrl' => $config->ltiUrl.$taskId
@@ -469,7 +520,7 @@ function deleteDirectory($path) {
 	$firstDir = $firstDir[0];
 	$ID = intval($firstDir);
 	if ($ID < 1) {
-		die(json_encode(['success' => false, 'error' => 'invalid ID format (must be number)']));
+		die(json_encode(['success' => false, 'error' => 'error_request']));
 	}
 	//deleteRecDirectory(__DIR__.'/files/checkouts/'.$ID);
 	echo(json_encode(['success' => true]));
@@ -527,23 +578,23 @@ function generateToken($url) {
 
 
 
-if ($_POST['action'] == 'checkoutSvn') {
-	if (!isset($_POST['svnUrl'])) {
-		die(json_encode(['success' => false, 'error' => 'missing svnUrl']));
+if ($request['action'] == 'checkoutSvn') {
+	if (!isset($request['svnUrl'])) {
+		die(json_encode(['success' => false, 'error' => 'error_request']));
 	}
-	$user = $_POST['username'] ? $_POST['username'] : $config->defaultSvnUser;
-	$password = $_POST['password'] ? $_POST['password'] : $config->defaultSvnPassword;
-	checkoutSvn($_POST['svnUrl'], $user, $password, $_POST['svnRev'], isset($_POST['recursive']), isset($_POST['noimport']));
-} elseif ($_POST['action'] == 'saveResources') {
-	if (!isset($_POST['metadata']) || !isset($_POST['resources']) || !isset($_POST['svnUrl']) || !isset($_POST['svnRev'])) {
-		die(json_encode(['success' => false, 'error' => 'missing metada, resources, svnUrl or svnRev']));
+	$user = $request['username'] ? $request['username'] : $config->defaultSvnUser;
+	$password = $request['password'] ? $request['password'] : $config->defaultSvnPassword;
+	checkoutSvn($request['svnUrl'], $user, $password, $request['svnRev'], isset($request['recursive']), isset($request['noimport']));
+} elseif ($request['action'] == 'saveResources') {
+	if (!isset($request['data']) || !isset($request['svnUrl']) || !isset($request['svnRev'])) {
+		die(json_encode(['success' => false, 'error' => 'error_request']));
 	}
-	saveResources($_POST['metadata'], $_POST['resources'], $_POST['svnUrl'], $_POST['svnRev'], $_POST['dirPath']);
-} elseif ($_POST['action'] == 'deletedirectory') {
-	if (!isset($_POST['ID'])) {
-		die(json_encode(['success' => false, 'error' => 'missing directory']));
+	saveResources($request['data'], $request['svnUrl'], $request['svnRev'], $request['dirPath']);
+} elseif ($request['action'] == 'deletedirectory') {
+	if (!isset($request['ID'])) {
+		die(json_encode(['success' => false, 'error' => 'error_request']));
 	}
-	deleteDirectory($_POST['ID']);
+	deleteDirectory($request['ID']);
 } else {
-	echo(json_encode(['success' => false, 'error' => 'unknown action '.$_POST['action']]));	
+	echo(json_encode(['success' => false, 'error' => 'error_action']));	
 }

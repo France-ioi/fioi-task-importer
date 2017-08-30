@@ -7,6 +7,8 @@ global $config;
 $config = (object) array();
 
 $config->baseUrl = '';
+$config->svnBaseUrl = '';
+$config->svnExampleUrl = '';
 
 $config->db = (object) array();
 $config->db->host = 'localhost';

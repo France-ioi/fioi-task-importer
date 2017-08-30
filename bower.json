@@ -20,7 +20,10 @@
     "jquery": "^2.2.2",
     "bootstrap": "^3.3.6",
     "jschannel": "https://github.com/yochannah/jschannel.git#f2bcb86",
-    "pem-platform": "France-ioi/pem-platform"
+    "pem-platform": "France-ioi/pem-platform",
+    "angular": "^1.6.6",
+    "ng-i18next": "^1.0.4",
+    "i18next-xhr-backend": "^1.4.2"
   },
   "resolutions": {
     "jschannel": "f2bcb86"
