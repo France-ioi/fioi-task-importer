@@ -76,8 +76,11 @@ require_once 'config.php';
         </div>
         <div class="panel-body">
           <p ng-if="log.ltiUrl"><b ng-i18next="task_ltiurl"></b>: <a href="{{ log.ltiUrl }}" target="_blank">{{ log.ltiUrl }}</a></p>
+          <ul ng-if="log.foundLangs.length > 1">
+            <li ng-repeat="taskLang in log.foundLangs"><span ng-i18next="task_ltiurl_lang"></span> {{ taskLang }} : <a href="{{ log.ltiUrl }}&sLanguage={{ taskLang }}" target="_blank">{{ log.ltiUrl }}&sLanguage={{ taskLang }}</a></li>
+          </ul>
           <p ng-if="log.normalUrl"><b ng-i18next="task_normalurl"></b>: <a href="{{ log.normalUrl }}" target="_blank">{{ log.normalUrl }}</a></p>
-          <div ng-if="log.tokenUrl && log.foundLangs.length <= 1 1">
+          <div ng-if="log.tokenUrl && log.foundLangs.length <= 1">
             <p><a class="btn btn-default" href="{{ log.tokenUrl }}" target="_blank" ng-i18next="task_test"></a> <i ng-i18next="task_test_description"></i></p>
           </div>
           <div ng-if="log.tokenUrl && log.foundLangs.length > 1">

@@ -27,6 +27,7 @@
     "task_save_error": "Error while saving resources from this task.",
     "task_cancelled": "Task import cancelled.",
     "task_ltiurl": "URL for LTI",
+    "task_ltiurl_lang": "URL for LTI in language",
     "task_normalurl": "URL for Algorea platform",
     "task_test": "Test task",
     "task_test_lang": "Test task in language",
