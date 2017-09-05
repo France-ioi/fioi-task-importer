@@ -1,4 +1,54 @@
 {
     "language": "Langue",
-    "page_description": "Cette page vous permet d'importer un sujet créé sur le svn france-ioi dans la plateforme d'exercices. Une fois le sujet importé, cette page vous donnera les URL pour inclure l'exercice dans un environnement LTI ou la plateforme Algoréa."
+    "status": "Statut",
+
+    "page_title": "Import de tâches SVN",
+    "page_maintitle": "Import de tâches",
+    "page_description": "Cette page vous permet d'importer un sujet créé sur le svn france-ioi dans la plateforme d'exercices. Une fois le sujet importé, cette page vous donnera les URL pour inclure l'exercice dans un environnement LTI ou la plateforme Algoréa.",
+
+    "label_svnurl": "Chemin dans le dépôt SVN :",
+    "label_svnrev": "Révision SVN à importer (laisser vide pour HEAD) :",
+    "label_username": "Utilisateur SVN :",
+    "label_password": "Mot de passe SVN :",
+    "label_recimport": "Importer les tâches récursivement",
+    "label_noimport": "Ne pas réimporter les tâches, générer seulement des liens vers la version actuellement en production",
+    "label_submit": "Importer les fichiers SVN",
+
+    "checkout_inprogress": "Récupération depuis le SVN en cours...",
+    "checkout_import": "Import des tâches...",
+    "checkout_error": "Erreur lors du checkout SVN :",
+    "checkout_request_failed": "Erreur lors de l'appel au serveur d'import.",
+    "checkout_finished": "Import terminé !",
+
+    "task_loading": "Tâche en cours de chargement...",
+    "task_import_error": "Tâche importée (aucune ressource à envoyer).",
+    "task_sending": "Sauvegarde des ressources dans la base de données...",
+    "task_success": "Tâche importée.",
+    "task_save_error": "Erreur lors de la sauvegarde des ressources de cette tâche.",
+    "task_cancelled": "Import annulé.",
+    "task_ltiurl": "URL pour LTI",
+    "task_ltiurl_lang": "URL pour LTI dans la langue",
+    "task_normalurl": "URL pour la plateforme Algoréa",
+    "task_test": "Tester la tâche",
+    "task_test_lang": "Tester la tâche dans la langue",
+    "task_test_description": "(lien valide seulement pour 24 heures, ne pas utiliser en production !)",
+    "task_langs": "Langues détectées pour cette tâche",
+    "task_doublelang": "Avertissement : certaines langues sont présentes dans plusieurs fichiers de cette tâche.",
+
+    "file_static": "Ficheir statique sauvegardé.",
+    "file_loading": "Chargement du fichier...",
+    "file_timeout": "Limite de temps pour charger les ressources dépassée.",
+    "file_resources": "Tâche chargée, récupération des ressources...",
+    "file_done": "Import de ce fichier effectué.",
+    "file_cancelled": "Import annulé.",
+
+    "display_tasks_left": "tâche(s) dans la file d'attente",
+    "display_static": "Fichier statique importé à",
+    "display_warnpaths": "Avertissement : erreur possible dans les chemins d'accès à _common.",
+
+    "error_noindex": "Erreur : aucun fichier index.html trouvé !",
+    "error_recno_unsupported": "Erreur : impossible d'utiliser le mode récursif sans réimporter les tâches. Veuillez décocher une des options.",
+    "error_checkout": "Erreur : checkout impossible (dossier inexistant ou identifiants invalides).",
+    "error_request": "Erreur : la requête envoyée par votre navigateur est invalide. Veuillez rafraîchir la page et essayer de nouveau.",
+    "error_action": "Erreur : l'action demandée par votre navigateur est invalide. Veuillez rafraîchir la page et essayer de nouveau."
 }
