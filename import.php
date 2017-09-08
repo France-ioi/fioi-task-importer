@@ -94,7 +94,7 @@ require_once 'config.php';
           <hr />
           <div ng-repeat="file in log.files">
             <p><code>{{ file.name }}</code>: <span ng-i18next="{{ file.state }}"></span></p>
-            <p ng-if="file.isStatic"><span ng-i18next="display_static"></span> <a href="{{ file.url }}">{{ file.url }}</a>.</p>
+            <p ng-if="file.isStatic"><span ng-i18next="display_static"></span> <a href="{{ file.url }}">{{ file.url }}</a></p>
             <p ng-if="file.warnPaths" ng-i18next="display_warnpaths"></p>
           </div>
         </div>
