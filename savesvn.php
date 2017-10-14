@@ -31,7 +31,7 @@ function getLastRevision($dir) {
 function listTaskDirs($dir, $recursive) {
     $filenames = scandir(__DIR__.'/files/checkouts/'.$dir.'/');
     foreach($filenames as $filename) {
-        if(preg_match('/index.*\.html/', $filename) === 1 && file_exists(__DIR__.'/files/checkouts/'.$dir.'/'.$filename)) {
+        if(preg_match('/^index.*\.html/', $filename) === 1 && file_exists(__DIR__.'/files/checkouts/'.$dir.'/'.$filename)) {
             return array($dir);
         }
     }
@@ -374,7 +374,7 @@ function saveAnswer($taskId, $answer) {
 	$insertQuery = 'insert into tm_source_codes (idTask, sDate, sParams, sName, sSource, bEditable, sType) values (:idTask, NOW(), :sParams, :sName, :sSource, 0, :sType);';
 	$resourceName = $answer['name'];
 	if (!$resourceName) {
-		die(json_encode(['sucess' => false, 'error' => 'missing name field in answer resource']));
+		die(json_encode(['success' => false, 'error' => 'missing name field in answer resource']));
 	}
 	$stmt = $db->prepare($deleteQuery);
 	$stmt->execute(['idTask' => $taskId, 'sName' => $resourceName, 'sType' => 'Task']);
