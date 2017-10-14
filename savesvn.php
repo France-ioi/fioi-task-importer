@@ -182,6 +182,21 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
 		die(json_encode(['success' => false, 'error' => 'error_checkout']));
 	}
 
+    // Get _local_common
+    $localCommonSvn = $baseSvnFirst.'/_local_common';
+    $localCommonDir = __DIR__.'/files/checkouts/local/'.$baseSvnFirst;
+    $localCommonExists = is_dir($localCommonDir);
+    $localCommonTargetDir = $localCommonExists ? $localCommonDir . '_new' : $localCommonDir;
+    mkdir($localCommonTargetDir, 0777, true);
+    try {
+        svn_checkout($config->svnBaseUrl.$baseSvnFirst, $localCommonTargetDir);
+        if($localCommonExists) {
+            deleteRecDirectory($localCommonDir);
+            rename($localCommonTargetDir, $localCommonDir);
+        }
+        $localCommonExists = true;
+    } catch(Exception $e) {}
+
 	if($noimport) {
         // TODO :: adapt to recursive
 	    $sTaskPath = '$ROOT_PATH/'.$baseSvnDir;
@@ -219,7 +234,7 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
             $tasks[] = $newTaskData;
         }
     }
-    echo(json_encode(['success' => $success, 'tasks' => $tasks, 'revision' => $revision]));
+    echo(json_encode(['success' => $success, 'tasks' => $tasks, 'revision' => $revision, 'localCommon' => $localCommonExists]));
 
 /* TODO :: do something with that
         	$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
@@ -294,6 +309,11 @@ function saveStrings($taskId, $resources, $metadata, $dirPath) {
 	$css = null;
 	$imagesRes = [];
     $files = array();
+
+    $baseSvnFirst = explode('/', $dirPath)[0];
+    $localCommonDir = __DIR__.'/files/checkouts/local/'.$baseSvnFirst;
+    $localCommonExists = is_dir($localCommonDir);
+
 	foreach ($resources['task'] as $i => $resource) {
 		if ($resource['type'] == 'html') {
 			$statement = $resource['content'];
@@ -333,6 +353,11 @@ function saveStrings($taskId, $resources, $metadata, $dirPath) {
     }
     foreach($files as $f) {
       $statement = str_replace($f, $config->staticUrl.$dirPath.'/'.$f, $statement);
+    }
+
+    if($localCommonExists) {
+        $solution = str_replace('_local_common', '../local/'.$baseSvnFirst, $solution);
+        $statement = str_replace('_local_common', '../local/'.$baseSvnFirst, $statement);
     }
 
 	$stmt = $db->prepare('insert into tm_tasks_strings (idTask, sLanguage, sTitle, sStatement, sSolution) values (:idTask, :sLanguage, :sTitle, :sStatement, :sSolution) on duplicate key update sTitle = values(sTitle), sStatement = values(sStatement), sSolution = values(sSolution);');
