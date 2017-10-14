@@ -149,7 +149,6 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
 
 	$baseSvnDir = trim($subdir);
 	$baseSvnDir = trim($baseSvnDir, '/');
-	$sTaskPath = '$ROOT_PATH/'.$baseSvnDir; // TODO :: adapt to recursive
 
 	// Create target checkout directory
 	$baseSvnExpl = explode('/', $baseSvnDir);
@@ -183,29 +182,30 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
 		die(json_encode(['success' => false, 'error' => 'error_checkout']));
 	}
 
-	if ($userRevision || $noimport) {
+	if($noimport) {
         // TODO :: adapt to recursive
-        if ($userRevision) {
-    		$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
-    		$stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
-        } else {
-    		$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath');
-    		$stmt->execute(['sTaskPath' => $sTaskPath]);
-        }
-		$ID = $stmt->fetchColumn();
-		if ($ID) {
+	    $sTaskPath = '$ROOT_PATH/'.$baseSvnDir;
+    	$stmt = $db->prepare('select ID, sRevision from tm_tasks where sTaskPath = :sTaskPath');
+    	$stmt->execute(['sTaskPath' => $sTaskPath]);
+		$taskInfo = $stmt->fetch();
+		if ($taskInfo) {
+            $tasks = [[
+                'imported' => true,
+                'svnUrl' => $baseSvnDir,
+                'ltiUrl' => $config->ltiUrl.$taskInfo['ID'],
+                'normalUrl' => $config->normalUrl.$taskInfo['ID'],
+                'tokenUrl' => addToken($config->normalUrl.$taskInfo['ID']),
+                ]];
 			echo(json_encode([
                 'success' => true,
-                'ltiUrl' => $config->ltiUrl.$ID,
-                'normalUrl' => $config->normalUrl.$ID,
-                'tokenUrl' => addToken($config->normalUrl.$ID),
-                'reason' => 'revision already in db'
+                'revision' => $taskInfo['sRevision'],
+                'tasks' => $tasks
                 ]));
 			return;
 		} elseif ($noimport) {
             echo(json_encode([
                 'success' => false,
-                'error' => 'This task has not been imported yet.'
+                'error' => 'error_notyetimported'
                 ]));
             return;
         }

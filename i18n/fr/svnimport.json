@@ -26,6 +26,8 @@
     "task_success": "Tâche importée.",
     "task_save_error": "Erreur lors de la sauvegarde des ressources de cette tâche.",
     "task_cancelled": "Import annulé.",
+    "task_noimport": "Liens vers la tâche récupérés.",
+
     "task_ltiurl": "URL pour LTI",
     "task_ltiurl_lang": "URL pour LTI dans la langue",
     "task_normalurl": "URL pour la plateforme Algoréa",
@@ -50,5 +52,6 @@
     "error_recno_unsupported": "Erreur : impossible d'utiliser le mode récursif sans réimporter les tâches. Veuillez décocher une des options.",
     "error_checkout": "Erreur : checkout impossible (dossier inexistant ou identifiants invalides).",
     "error_request": "Erreur : la requête envoyée par votre navigateur est invalide. Veuillez rafraîchir la page et essayer de nouveau.",
-    "error_action": "Erreur : l'action demandée par votre navigateur est invalide. Veuillez rafraîchir la page et essayer de nouveau."
+    "error_action": "Erreur : l'action demandée par votre navigateur est invalide. Veuillez rafraîchir la page et essayer de nouveau.",
+    "error_notyetimported": "Erreur : La tâche n'a pas encore été importée. Veuillez décocher l'option \"Ne pas réimporter\"."
 }

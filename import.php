@@ -91,7 +91,7 @@ require_once 'config.php';
           <p><span ng-i18next="status"></span>: <span ng-i18next="{{ log.state }}"></span></p>
           <p ng-if="log.doubleLang" ng-i18next="task_doublelang"></p>
           <p ng-if="log.foundLangsStr"><span ng-i18next="task_langs"></span> : {{ log.foundLangsStr }}.</p>
-          <hr />
+          <hr ng-if="log.files" />
           <div ng-repeat="file in log.files">
             <p><code>{{ file.name }}</code>: <span ng-i18next="{{ file.state }}"></span></p>
             <p ng-if="file.isStatic"><span ng-i18next="display_static"></span> <a href="{{ file.url }}">{{ file.url }}</a></p>

@@ -84,6 +84,20 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
             return;
         }
         $scope.curTask = curTask;
+        if(curTask.imported) {
+            $scope.logList.unshift({
+                url: curTask.svnUrl,
+                svnRev: $scope.curRev,
+                state: 'task_noimport',
+                active: true,
+                normalUrl: curTask.normalUrl,
+                ltiUrl: curTask.ltiUrl,
+                tokenUrl: curTask.tokenUrl,
+                foundLangs: []
+                });
+            $scope.recImport();
+            return;
+        }
         $scope.curData = [];
         $scope.logList.unshift({
             url: curTask.svnUrl,
