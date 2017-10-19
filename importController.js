@@ -23,6 +23,8 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
     $scope.lang = $i18next.options.lng;
     $scope.checkoutState = '';
     $scope.logList = [];
+    $scope.hideOldLogs = true;
+    $scope.nbOldLogs = 0;
 
     $scope.tasksRemaining = [];
     $scope.curRev = null;
@@ -34,6 +36,10 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
 
     $scope.changeLang = function() {
         $i18next.changeLanguage($scope.lang);
+    };
+
+    $scope.toggleOldLogs = function() {
+        $scope.hideOldLogs = !$scope.hideOldLogs;
     };
 
     $scope.checkoutSvn = function() {
@@ -50,8 +56,10 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
         }
 
         // Unhighlight old tasks
+        $scope.nbOldLogs = 0;
         for(var i=0; i < $scope.logList.length; i++) {
             $scope.logList[i].active = false;
+            $scope.nbOldLogs += 1;
         }
 
         var values = $('#svn_form').serializeArray();

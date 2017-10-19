@@ -37,7 +37,7 @@
     "task_langs": "Langues détectées pour cette tâche",
     "task_doublelang": "Avertissement : certaines langues sont présentes dans plusieurs fichiers de cette tâche.",
 
-    "file_static": "Ficheir statique sauvegardé.",
+    "file_static": "Fichier statique sauvegardé.",
     "file_loading": "Chargement du fichier...",
     "file_timeout": "Limite de temps pour charger les ressources dépassée.",
     "file_resources": "Tâche chargée, récupération des ressources...",
@@ -47,6 +47,8 @@
     "display_tasks_left": "tâche(s) dans la file d'attente",
     "display_static": "Fichier statique importé à",
     "display_warnpaths": "Avertissement : erreur possible dans les chemins d'accès à _common.",
+    "display_nboldlogs": "anciens imports",
+    "display_hideoldlogs": "Cacher les anciens imports",
 
     "error_noindex": "Erreur : aucun fichier index.html trouvé !",
     "error_recno_unsupported": "Erreur : impossible d'utiliser le mode récursif sans réimporter les tâches. Veuillez décocher une des options.",

@@ -47,6 +47,8 @@
     "display_tasks_left": "tasks remaining after",
     "display_static": "Static file imported at",
     "display_warnpaths": "Warning: possible error in _common paths.",
+    "display_nboldlogs": "older imports",
+    "display_hideoldlogs": "Hide older imports",
 
     "error_noindex": "Error: no index.html file found!",
     "error_recno_unsupported": "Error: cannot use recursive mode while not importing. Please uncheck one of the boxes.",

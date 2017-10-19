@@ -70,7 +70,7 @@ require_once 'config.php';
       </span>
     </div>
     <div ng-repeat="log in logList">
-      <div class="panel" ng-class="{'panel-primary': log.active, 'panel-info': !log.active}">
+      <div class="panel" ng-class="{'panel-primary': log.active, 'panel-default': !log.active, 'hidden': !log.active && hideOldLogs}">
         <div class="panel-heading">
           <h3 class="panel-title">{{ log.url }} <small>(rev {{ log.svnRev }})</small></h3>
         </div>
@@ -99,6 +99,10 @@ require_once 'config.php';
           </div>
         </div>
       </div>
+    </div>
+    <div ng-if="nbOldLogs">
+      <button ng-if="hideOldLogs" class="btn btn-primary" ng-click="toggleOldLogs();" style="width: 100%;">{{ nbOldLogs }} <span ng-i18next="display_nboldlogs"></span> <span class="glyphicon glyphicon-chevron-down"></span></button>
+      <button ng-if="!hideOldLogs" class="btn btn-primary" ng-click="toggleOldLogs();" style="width: 100%;"><span ng-i18next="display_hideoldlogs"></span> <span class="glyphicon glyphicon-chevron-up"></span></button>
     </div>
 
     <iframe style="width:1px; height:1px;" id="taskIframe" src="{{ curTaskUrl }}"></iframe>
