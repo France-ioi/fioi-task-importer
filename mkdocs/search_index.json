@@ -1,0 +1,39 @@
+{
+    "docs": [
+        {
+            "location": "/", 
+            "text": "FIOI-Task-Importer\n\n\nThis tool allows to import both static tasks and \nTaskPlatform\n + \ntaskgrader\n tasks. \nThis documentation is in progress.\n\n\n\n\nRepository structure", 
+            "title": "Home"
+        }, 
+        {
+            "location": "/#fioi-task-importer", 
+            "text": "This tool allows to import both static tasks and  TaskPlatform  +  taskgrader  tasks.  This documentation is in progress.   Repository structure", 
+            "title": "FIOI-Task-Importer"
+        }, 
+        {
+            "location": "/repository/", 
+            "text": "Repository structure\n\n\nSvnimport expects a certain structure in the repository in order to function properly.\n\n\n\n\n[root]\n\n\n_common: files common for the whole repository; updated on each task import\n\n\nOrganizationX: files for the organization X\n\n\n_local_common: files common for the organization X; updated on each import of a task from this folder\n\n\ntask1\n\n\nindex.html\n\n\n\n\n\n\nsubfolder\n\n\ntask2\n\n\nindex.html\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nOrganizationY\n\n\n\n\n\n\n\n\nNote that no task may be put in the root folder of the repository (the one containing \n_common\n), as svnimport won't work.\n\n\nShared resources\n\n\nYou can share resources between various tasks of your organization by creating a folder \n_local_common\n in your organization folder.\n\n\nUse in static tasks\n\n\nImport the file by specifying the URL, going back to the [root] of the repository. For instance, if your \nindex.html\n is in \n[root]/OrganizationX/task1/index.html\n, you can add a javascript file with:\n\n\nscript src=\n../../OrganizationX/_local_common/script.js\n/script\n\n\n\n\n\nUse in taskgrader tasks\n\n\nIf you need to specify a path to the \n_local_common\n folder, specify it going from the \nROOT_PATH\n of the repository, instead of the \nTASK_PATH\n, as such: \n$ROOT_PATH/OrganizationX/_local_common/lib.h\n.", 
+            "title": "Repository structure"
+        }, 
+        {
+            "location": "/repository/#repository-structure", 
+            "text": "Svnimport expects a certain structure in the repository in order to function properly.   [root]  _common: files common for the whole repository; updated on each task import  OrganizationX: files for the organization X  _local_common: files common for the organization X; updated on each import of a task from this folder  task1  index.html    subfolder  task2  index.html        OrganizationY     Note that no task may be put in the root folder of the repository (the one containing  _common ), as svnimport won't work.", 
+            "title": "Repository structure"
+        }, 
+        {
+            "location": "/repository/#shared-resources", 
+            "text": "You can share resources between various tasks of your organization by creating a folder  _local_common  in your organization folder.", 
+            "title": "Shared resources"
+        }, 
+        {
+            "location": "/repository/#use-in-static-tasks", 
+            "text": "Import the file by specifying the URL, going back to the [root] of the repository. For instance, if your  index.html  is in  [root]/OrganizationX/task1/index.html , you can add a javascript file with:  script src= ../../OrganizationX/_local_common/script.js /script", 
+            "title": "Use in static tasks"
+        }, 
+        {
+            "location": "/repository/#use-in-taskgrader-tasks", 
+            "text": "If you need to specify a path to the  _local_common  folder, specify it going from the  ROOT_PATH  of the repository, instead of the  TASK_PATH , as such:  $ROOT_PATH/OrganizationX/_local_common/lib.h .", 
+            "title": "Use in taskgrader tasks"
+        }
+    ]
+}
