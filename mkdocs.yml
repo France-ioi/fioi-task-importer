@@ -1,0 +1,7 @@
+site_name: FIOI-Task-Importer
+pages:
+- "Home": index.md
+- "Repository structure": repository.md
+repo_url: https://github.com/France-ioi/fioi-task-importer/
+site_description: Documentation for the task importer
+site_author: France-IOI
