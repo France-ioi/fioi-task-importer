@@ -1,5 +1,7 @@
 # fioi-task-importer
 
+**Read the documentation online on [GitHub pages](http://france-ioi.github.io/fioi-task-importer)**, or alternatively in the `docs/` folder.
+
 This repository provides a small tool to import a svn task into a database, through the following steps:
 
 - user provides a svn url (with revision) and his credentials in an html form
