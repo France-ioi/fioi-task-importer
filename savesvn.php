@@ -496,13 +496,15 @@ function saveResources($data, $subdir, $revision, $dirPath) {
         // subtasks
         saveSubtasks($taskId, $metadata);
 
-        // delete hints
-    	$deleteQuery = 'delete tm_hints_strings from tm_hints_strings join tm_hints on tm_hints_strings.idHint = tm_hints.ID where tm_hints.idTask = :idTask;';
-    	$stmt = $db->prepare($deleteQuery);
-    	$stmt->execute(['idTask' => $taskId]);
-    	$deleteQuery = 'delete from tm_hints where tm_hints.idTask = :idTask';
-    	$stmt = $db->prepare($deleteQuery);
-    	$stmt->execute(['idTask' => $taskId]);
+        // Delete former lang-specific data (strings and hints)
+        $stmt = $db->prepare('delete from tm_tasks_strings where idTask = :idTask;');
+        $stmt->execute(['idTask' => $taskId]);
+        $deleteQuery = 'delete tm_hints_strings from tm_hints_strings join tm_hints on tm_hints_strings.idHint = tm_hints.ID where tm_hints.idTask = :idTask;';
+        $stmt = $db->prepare($deleteQuery);
+        $stmt->execute(['idTask' => $taskId]);
+        $deleteQuery = 'delete from tm_hints where tm_hints.idTask = :idTask';
+        $stmt = $db->prepare($deleteQuery);
+        $stmt->execute(['idTask' => $taskId]);
 
         foreach($data as $langData) {
             // lang-specific data
