@@ -189,7 +189,7 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
     $localCommonTargetDir = $localCommonExists ? $localCommonDir . '_new' : $localCommonDir;
     mkdir($localCommonTargetDir, 0777, true);
     try {
-        svn_checkout($config->svnBaseUrl.$baseSvnFirst, $localCommonTargetDir);
+        svn_checkout($config->svnBaseUrl.$localCommonSvn, $localCommonTargetDir);
         if($localCommonExists) {
             deleteRecDirectory($localCommonDir);
             rename($localCommonTargetDir, $localCommonDir);
