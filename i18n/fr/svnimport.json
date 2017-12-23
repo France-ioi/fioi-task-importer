@@ -6,6 +6,9 @@
     "page_maintitle": "Import de tâches",
     "page_description": "Cette page vous permet d'importer un sujet créé sur le svn france-ioi dans la plateforme d'exercices. Une fois le sujet importé, cette page vous donnera les URL pour inclure l'exercice dans un environnement LTI ou la plateforme Algoréa.",
 
+    "panel_svn": "Informations SVN",
+    "panel_options": "Options",
+
     "label_svnurl": "Chemin dans le dépôt SVN :",
     "label_svnrev": "Révision SVN à importer (laisser vide pour HEAD) :",
     "label_username": "Utilisateur SVN :",
@@ -13,6 +16,11 @@
     "label_recimport": "Importer les tâches récursivement",
     "label_noimport": "Ne pas réimporter les tâches, générer seulement des liens vers la version actuellement en production",
     "label_submit": "Importer les fichiers SVN",
+    "label_locale_en": "Locale anglaise :",
+    "label_theme_lti": "Thème d'affichage LTI :",
+
+    "locale_gb": "Royaume-Uni",
+    "locale_us": "États-Unis",
 
     "checkout_inprogress": "Récupération depuis le SVN en cours...",
     "checkout_import": "Import des tâches...",

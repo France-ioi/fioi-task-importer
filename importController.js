@@ -26,6 +26,9 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
     $scope.hideOldLogs = true;
     $scope.nbOldLogs = 0;
 
+    $scope.localeEn = 'default';
+    $scope.theme = 'none';
+
     $scope.tasksRemaining = [];
     $scope.curRev = null;
     $scope.curTaskUrl = '';
@@ -40,6 +43,27 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
 
     $scope.toggleOldLogs = function() {
         $scope.hideOldLogs = !$scope.hideOldLogs;
+    };
+
+    $scope.makeUrl = function(url, lang, lti) {
+        var args = [];
+        if(lang == 'en' && $scope.localeEn != 'default') {
+            args.push('sLocale=' + lang + '_' + $scope.localeEn);
+        } else if(lang) {
+            args.push('sLocale=' + lang);
+        }
+        if(lti && $scope.theme != 'none') {
+            args.push('theme=' + $scope.theme);
+        }
+        if(args.length) {
+            if(url.indexOf('?') == -1) {
+                url += '?';
+            } else {
+                url += '&';
+            }
+            url += args.join('&');
+        }
+        return url;
     };
 
     $scope.checkoutSvn = function() {

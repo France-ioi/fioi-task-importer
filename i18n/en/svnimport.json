@@ -6,6 +6,9 @@
     "page_maintitle": "Task import",
     "page_description": "This page allows you to import a task saved on the France-IOI SVN platform into the task platform. Once the task is imported, this page will give you the URLs to include the task in a LTI environment or the Algorea platform.",
 
+    "panel_svn": "SVN information",
+    "panel_options": "Options",
+
     "label_svnurl": "Path in SVN repository:",
     "label_svnrev": "SVN revision to import (leave empty for HEAD):",
     "label_username": "SVN username:",
@@ -13,6 +16,11 @@
     "label_recimport": "Import tasks recursively",
     "label_noimport": "Do not reimport tasks, only generate links to current version in production",
     "label_submit": "Import SVN files",
+    "label_locale_en": "English locale:",
+    "label_theme_lti": "LTI display theme:",
+
+    "locale_gb": "United Kingdom",
+    "locale_us": "United States",
 
     "checkout_inprogress": "Checkout in progress...",
     "checkout_import": "Importing tasks...",
