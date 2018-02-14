@@ -7,17 +7,23 @@
     "page_description": "Cette page vous permet d'importer un sujet créé sur le svn france-ioi dans la plateforme d'exercices. Une fois le sujet importé, cette page vous donnera les URL pour inclure l'exercice dans un environnement LTI ou la plateforme Algoréa.",
 
     "panel_svn": "Informations SVN",
+    "panel_svn_frame": "Informations pour l'import SVN",
     "panel_options": "Options",
 
     "label_svnurl": "Chemin dans le dépôt SVN :",
     "label_svnrev": "Révision SVN à importer (laisser vide pour HEAD) :",
     "label_username": "Utilisateur SVN :",
     "label_password": "Mot de passe SVN :",
+    "label_remember": "Se souvenir de moi",
     "label_recimport": "Importer les tâches récursivement",
+    "label_recimport_short": "Import récursif",
     "label_noimport": "Ne pas réimporter les tâches, générer seulement des liens vers la version actuellement en production",
+    "label_noimport_short": "Aucun réimport",
     "label_submit": "Importer les fichiers SVN",
     "label_locale_en": "Locale anglaise :",
     "label_theme_lti": "Thème d'affichage LTI :",
+    "label_display_full": "Afficher l'interface complète",
+    "label_save_default": "Sauvegarder comme options par défaut",
 
     "locale_gb": "Royaume-Uni",
     "locale_us": "États-Unis",

@@ -16,18 +16,50 @@ window.i18next.on('initialized', function (options) {
   window.i18nextOptions = options;
 });
 
+// from http://stackoverflow.com/questions/979975/
+var QueryString = function () {
+  // This function is anonymous, is executed immediately and
+  // the return value is assigned to QueryString!
+  var query_string = {};
+  var query = window.location.search.substring(1);
+  var vars = query.split("&");
+  for (var i=0;i<vars.length;i++) {
+    var pair = vars[i].split("=");
+        // If first entry with this name
+    if (typeof query_string[pair[0]] === "undefined") {
+      query_string[pair[0]] = decodeURIComponent(pair[1]);
+        // If second entry with this name
+    } else if (typeof query_string[pair[0]] === "string") {
+      var arr = [ query_string[pair[0]],decodeURIComponent(pair[1]) ];
+      query_string[pair[0]] = arr;
+        // If third or later entry with this name
+    } else {
+      query_string[pair[0]].push(decodeURIComponent(pair[1]));
+    }
+  }
+  return query_string;
+}();
+
 
 var app = angular.module('svnImport', ['jm.i18next']);
 
 app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', function($scope, $http, $timeout, $i18next) {
-    $scope.lang = $i18next.options.lng;
+    $scope.template = 'templates/full.html';
+
+    $scope.options = {lang: $i18next.options.lng};
+    $scope.defaultParams = null;
     $scope.checkoutState = '';
     $scope.logList = [];
     $scope.hideOldLogs = true;
     $scope.nbOldLogs = 0;
+    $scope.showLogin = true;
 
-    $scope.localeEn = 'default';
-    $scope.theme = 'none';
+    $scope.svnBaseUrl = config.svnBaseUrl;
+    $scope.params = {
+        svnUrl: config.svnExampleUrl,
+        localeEn: 'default',
+        theme: 'none'
+        };
 
     $scope.tasksRemaining = [];
     $scope.curRev = null;
@@ -38,22 +70,46 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
     $scope.curData = [];
 
     $scope.changeLang = function() {
-        $i18next.changeLanguage($scope.lang);
+        $i18next.changeLanguage($scope.options.lang);
+        localStorage.setItem('lang', $scope.options.lang);
     };
 
     $scope.toggleOldLogs = function() {
         $scope.hideOldLogs = !$scope.hideOldLogs;
     };
 
+    $scope.saveParams = function() {
+        $scope.defaultParams = {
+            recursive: !!$scope.params.recursive,
+            noimport: !!$scope.params.noimport,
+            localeEn: $scope.params.localeEn,
+            theme: $scope.params.theme
+            };
+        localStorage.setItem('defaultParams', JSON.stringify($scope.defaultParams));
+    };
+
+    $scope.getParamsDisabled = function() {
+        if(!$scope.defaultParams) { return false; }
+        var same = true;
+        for(var opt in $scope.defaultParams) {
+            if(typeof($scope.defaultParams[opt]) == 'boolean') {
+                same = same && (!$scope.defaultParams[opt] == !$scope.params[opt]);
+            } else {
+                same = same && ($scope.defaultParams[opt] == $scope.params[opt]);
+            }
+        }
+        return same;
+    };
+
     $scope.makeUrl = function(url, lang, lti) {
         var args = [];
-        if(lang == 'en' && $scope.localeEn != 'default') {
-            args.push('sLocale=' + lang + '_' + $scope.localeEn);
+        if(lang == 'en' && $scope.params.localeEn != 'default') {
+            args.push('sLocale=' + lang + '_' + $scope.params.localeEn);
         } else if(lang) {
             args.push('sLocale=' + lang);
         }
-        if(lti && $scope.theme != 'none') {
-            args.push('theme=' + $scope.theme);
+        if(lti && $scope.params.theme != 'none') {
+            args.push('theme=' + $scope.params.theme);
         }
         if(args.length) {
             if(url.indexOf('?') == -1) {
@@ -72,6 +128,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
         $scope.checkoutMsg = '';
         $scope.tasksRemaining = [];
         $scope.curTaskUrl = '';
+        $scope.showLogin = false;
 
         if($scope.curID) {
             $scope.logList[0].state = 'task_cancelled';
@@ -86,15 +143,16 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
             $scope.nbOldLogs += 1;
         }
 
-        var values = $('#svn_form').serializeArray();
-        var newValues = {};
-        for (var i = 0; i < values.length; i++) {
-            newValues[values[i].name] = values[i].value;
+        // Save credentials
+        if($scope.params.remember) {
+            localStorage.setItem('username', $scope.params.username);
+            localStorage.setItem('password', $scope.params.password);
         }
-        newValues.action = 'checkoutSvn';
+
+        $scope.params.action = 'checkoutSvn';
 
         // Checkout the task and get data
-        $http.post('savesvn.php', newValues, {responseType: 'json'}).then(function(res) {
+        $http.post('savesvn.php', $scope.params, {responseType: 'json'}).then(function(res) {
             if (res.data.success && res.data.tasks) {
                 $scope.checkoutState = 'checkout_import';
                 $scope.tasksRemaining = res.data.tasks;
@@ -103,6 +161,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
             } else {
                 $scope.checkoutState = 'checkout_error';
                 $scope.checkoutMsg = res.data.error;
+                $scope.showLogin = true;
             }}, function() {
                 $scope.checkoutState = 'checkout_request_failed';
             });
@@ -271,4 +330,49 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
                 $scope.recImport();
             });
     };
+
+    $scope.displayFull = function() {
+        $scope.template = 'templates/full.html';
+    };
+
+    $scope.initParams = function() {
+        // Restore saved parameters, handle GET arguments
+        if(localStorage.getItem('lang')) {
+            $scope.options.lang = localStorage.getItem('lang');
+            $scope.changeLang();
+        }
+
+        if(localStorage.getItem('defaultParams')) {
+            $scope.defaultParams = JSON.parse(localStorage.getItem('defaultParams'));
+            for(var opt in $scope.defaultParams) {
+                $scope.params[opt] = $scope.defaultParams[opt];
+            }
+        }
+
+        if(localStorage.getItem('username')) {
+            $scope.params.username = localStorage.getItem('username');
+            if(localStorage.getItem('password')) {
+                $scope.params.password = localStorage.getItem('password');
+            }
+            $scope.params.remember = true;
+        }
+
+        // Handle GET arguments
+        if(QueryString.path) { $scope.params.svnUrl = QueryString.path; }
+        if(QueryString.username) { $scope.params.username = QueryString.username; }
+        if(QueryString.password) { $scope.params.password = QueryString.password; }
+        if(QueryString.revision) { $scope.params.revision = QueryString.revision; }
+        if(QueryString.recursive) { $scope.params.recursive = QueryString.recursive; }
+        if(QueryString.noimport) { $scope.params.noimport = QueryString.noimport; }
+        if(QueryString.localeEn) { $scope.params.localeEn = QueryString.localeEn; }
+        if(QueryString.theme) { $scope.params.theme = QueryString.theme; }
+        if(QueryString.display == 'frame') { 
+            $scope.template = 'templates/frame.html';
+        }
+
+        if(QueryString.autostart) {
+            $scope.checkoutSvn();
+        }
+    };
+    $scope.initParams();
 }]);
