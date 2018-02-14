@@ -4,17 +4,17 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="Documentation for the task importer">
+        
         <meta name="author" content="France-IOI">
         
-        <link rel="shortcut icon" href="./img/favicon.ico">
+        <link rel="shortcut icon" href="../img/favicon.ico">
 
-	<title>FIOI-Task-Importer</title>
+	<title>Embed options - FIOI-Task-Importer</title>
 
-        <link href="./css/bootstrap-custom.min.css" rel="stylesheet">
-        <link href="./css/font-awesome-4.5.0.css" rel="stylesheet">
-        <link href="./css/base.css" rel="stylesheet">
-        <link rel="stylesheet" href="./css/highlight.css">
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome-4.5.0.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="../css/highlight.css">
 
         <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!--[if lt IE 9]>
@@ -43,7 +43,7 @@
             
 
             <!-- Main title -->
-            <a class="navbar-brand" href=".">FIOI-Task-Importer</a>
+            <a class="navbar-brand" href="..">FIOI-Task-Importer</a>
         </div>
 
         <!-- Expanded navigation -->
@@ -54,19 +54,19 @@
                 
                 
                     <li >
-                        <a href=".">Home</a>
+                        <a href="..">Home</a>
                     </li>
                 
                 
                 
                     <li >
-                        <a href="repository/">Repository structure</a>
+                        <a href="../repository/">Repository structure</a>
                     </li>
                 
                 
                 
-                    <li >
-                        <a href="embed/">Embed options</a>
+                    <li class="active">
+                        <a href="./">Embed options</a>
                     </li>
                 
                 
@@ -80,8 +80,8 @@
                     </a>
                 </li>
                 
-                    <li class="disabled">
-                        <a rel="next" >
+                    <li >
+                        <a rel="next" href="../repository/">
                             <i class="fa fa-arrow-left"></i> Previous
                         </a>
                     </li>
@@ -108,15 +108,44 @@
 
         <div class="container">
             
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+    
+        <li class="main active"><a href="#embed-options">Embed options</a></li>
+        
+            <li><a href="#options">Options</a></li>
+        
+            <li><a href="#frame-display-mode">Frame display mode</a></li>
+        
+    
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
 
-    <div class="row-fluid">
-      <div id="main-content" class="span12">
-        <h1 id="404-page-not-found" style="text-align: center">404</h1>
-        <p style="text-align: center"><strong>Page not found</strong></p>
-      </div>
-    </div>
-
-
+<h1 id="embed-options">Embed options</h1>
+<p>Svnimport can be embedded in an iframe for semi-automated import of tasks.</p>
+<h2 id="options">Options</h2>
+<p>These options can be specified as GET options in the svnimport URL :</p>
+<ul>
+<li><code>path</code> : SVN path relative to the base path defined in the configuration</li>
+<li><code>revision</code> : SVN revision to import</li>
+<li><code>recursive</code> : import tasks recursively</li>
+<li><code>noimport</code> : do not reimport tasks, only generate links to current version in production</li>
+<li><code>localeEn</code> : english locale</li>
+<li><code>theme</code> : LTI display theme</li>
+<li><code>display</code> : svnimport display mode (see below)</li>
+<li><code>autostart</code> : start automatically import</li>
+</ul>
+<p>These two options are also supposed but it is strongly discouraged to use them for security reasons :</p>
+<ul>
+<li><code>username</code> : SVN username</li>
+<li><code>password</code> : SVN password</li>
+</ul>
+<p>Any options specified in the URL will supersede user-saved options.</p>
+<h2 id="frame-display-mode">Frame display mode</h2>
+<p>If you specify <code>display=frame</code> in the URL, svnimport will use a display template intended for use in embeds. This template only displays the options and results of the import. It allows the user to switch to the full interface if needed.</p>
+<p>If the import is not automatically started, or if it fails due to incorrect SVN path or credentials, it will allow the user to change these parameters.</p></div>
+            
         </div>
 
         <footer class="col-md-12">
@@ -125,12 +154,12 @@
             <p>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</p>
         </footer>
 
-        <script src="./js/jquery-1.10.2.min.js"></script>
-        <script src="./js/bootstrap-3.0.3.min.js"></script>
-        <script src="./js/highlight.pack.js"></script>
-        <script>var base_url = '.';</script>
-        <script data-main="./mkdocs/js/search.js" src="./mkdocs/js/require.js"></script>
-        <script src="./js/base.js"></script>
+        <script src="../js/jquery-1.10.2.min.js"></script>
+        <script src="../js/bootstrap-3.0.3.min.js"></script>
+        <script src="../js/highlight.pack.js"></script>
+        <script>var base_url = '..';</script>
+        <script data-main="../mkdocs/js/search.js" src="../mkdocs/js/require.js"></script>
+        <script src="../js/base.js"></script>
 
         <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
             <div class="modal-dialog">

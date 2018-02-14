@@ -2,12 +2,12 @@
     "docs": [
         {
             "location": "/", 
-            "text": "FIOI-Task-Importer\n\n\nThis tool allows to import both static tasks and \nTaskPlatform\n + \ntaskgrader\n tasks. \nThis documentation is in progress.\n\n\n\n\nRepository structure", 
+            "text": "FIOI-Task-Importer\n\n\nThis tool allows to import both static tasks and \nTaskPlatform\n + \ntaskgrader\n tasks. \nThis documentation is in progress.\n\n\n\n\nRepository structure\n\n\nEmbed options", 
             "title": "Home"
         }, 
         {
             "location": "/#fioi-task-importer", 
-            "text": "This tool allows to import both static tasks and  TaskPlatform  +  taskgrader  tasks.  This documentation is in progress.   Repository structure", 
+            "text": "This tool allows to import both static tasks and  TaskPlatform  +  taskgrader  tasks.  This documentation is in progress.   Repository structure  Embed options", 
             "title": "FIOI-Task-Importer"
         }, 
         {
@@ -34,6 +34,26 @@
             "location": "/repository/#use-in-taskgrader-tasks", 
             "text": "If you need to specify a path to the  _local_common  folder, specify it going from the  ROOT_PATH  of the repository, instead of the  TASK_PATH , as such:  $ROOT_PATH/OrganizationX/_local_common/lib.h .", 
             "title": "Use in taskgrader tasks"
+        }, 
+        {
+            "location": "/embed/", 
+            "text": "Embed options\n\n\nSvnimport can be embedded in an iframe for semi-automated import of tasks.\n\n\nOptions\n\n\nThese options can be specified as GET options in the svnimport URL :\n\n\n\n\npath\n : SVN path relative to the base path defined in the configuration\n\n\nrevision\n : SVN revision to import\n\n\nrecursive\n : import tasks recursively\n\n\nnoimport\n : do not reimport tasks, only generate links to current version in production\n\n\nlocaleEn\n : english locale\n\n\ntheme\n : LTI display theme\n\n\ndisplay\n : svnimport display mode (see below)\n\n\nautostart\n : start automatically import\n\n\n\n\nThese two options are also supposed but it is strongly discouraged to use them for security reasons :\n\n\n\n\nusername\n : SVN username\n\n\npassword\n : SVN password\n\n\n\n\nAny options specified in the URL will supersede user-saved options.\n\n\nFrame display mode\n\n\nIf you specify \ndisplay=frame\n in the URL, svnimport will use a display template intended for use in embeds. This template only displays the options and results of the import. It allows the user to switch to the full interface if needed.\n\n\nIf the import is not automatically started, or if it fails due to incorrect SVN path or credentials, it will allow the user to change these parameters.", 
+            "title": "Embed options"
+        }, 
+        {
+            "location": "/embed/#embed-options", 
+            "text": "Svnimport can be embedded in an iframe for semi-automated import of tasks.", 
+            "title": "Embed options"
+        }, 
+        {
+            "location": "/embed/#options", 
+            "text": "These options can be specified as GET options in the svnimport URL :   path  : SVN path relative to the base path defined in the configuration  revision  : SVN revision to import  recursive  : import tasks recursively  noimport  : do not reimport tasks, only generate links to current version in production  localeEn  : english locale  theme  : LTI display theme  display  : svnimport display mode (see below)  autostart  : start automatically import   These two options are also supposed but it is strongly discouraged to use them for security reasons :   username  : SVN username  password  : SVN password   Any options specified in the URL will supersede user-saved options.", 
+            "title": "Options"
+        }, 
+        {
+            "location": "/embed/#frame-display-mode", 
+            "text": "If you specify  display=frame  in the URL, svnimport will use a display template intended for use in embeds. This template only displays the options and results of the import. It allows the user to switch to the full interface if needed.  If the import is not automatically started, or if it fails due to incorrect SVN path or credentials, it will allow the user to change these parameters.", 
+            "title": "Frame display mode"
         }
     ]
 }
