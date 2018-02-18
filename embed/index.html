@@ -125,18 +125,22 @@
 <h1 id="embed-options">Embed options</h1>
 <p>Svnimport can be embedded in an iframe for semi-automated import of tasks.</p>
 <h2 id="options">Options</h2>
-<p>These options can be specified as GET options in the svnimport URL :</p>
+<p>Options can be specified as GET options in the svnimport URL. It allows for an automatic start of a task import when specifying <code>autostart=1</code>. All these options match with the fields in the svnimport interface.</p>
+<p>To start automatically an import, these two options are required :</p>
 <ul>
-<li><code>path</code> : SVN path relative to the base path defined in the configuration</li>
-<li><code>revision</code> : SVN revision to import</li>
-<li><code>recursive</code> : import tasks recursively</li>
-<li><code>noimport</code> : do not reimport tasks, only generate links to current version in production</li>
-<li><code>localeEn</code> : english locale</li>
-<li><code>theme</code> : LTI display theme</li>
-<li><code>display</code> : svnimport display mode (see below)</li>
-<li><code>autostart</code> : start automatically import</li>
+<li><code>path=[string]</code> : SVN path relative to the base path defined in the configuration</li>
+<li><code>autostart=1</code> : start automatically the import</li>
 </ul>
-<p>These two options are also supposed but it is strongly discouraged to use them for security reasons :</p>
+<p>These other options are optional, if they are not specified they will default to user-saved values or svnimport defaults :</p>
+<ul>
+<li><code>revision=[string]</code> : SVN revision to import, empty to import HEAD</li>
+<li><code>recursive=1</code> : import tasks recursively</li>
+<li><code>noimport=1</code> : do not reimport tasks, only generate links to current version in production</li>
+<li><code>localeEn=[string]</code> : english locale (either <code>default</code>, <code>gb</code> or <code>us</code>)</li>
+<li><code>theme=[string]</code> : LTI display theme (either <code>none</code> or <code>telecom</code>)</li>
+<li><code>display=[string]</code> : svnimport display mode (either <code>full</code> or <code>frame</code>, see below)</li>
+</ul>
+<p>These two options are also supported but it is strongly discouraged to use them for security reasons :</p>
 <ul>
 <li><code>username</code> : SVN username</li>
 <li><code>password</code> : SVN password</li>
