@@ -611,7 +611,7 @@ if ($request['action'] == 'checkoutSvn') {
 	}
 	$user = $request['username'] ? $request['username'] : $config->defaultSvnUser;
 	$password = $request['password'] ? $request['password'] : $config->defaultSvnPassword;
-	checkoutSvn($request['svnUrl'], $user, $password, $request['svnRev'], isset($request['recursive']), isset($request['noimport']));
+	checkoutSvn($request['svnUrl'], $user, $password, $request['svnRev'], isset($request['recursive']) && $request['recursive'], isset($request['noimport']) && $request['noimport']);
 } elseif ($request['action'] == 'saveResources') {
 	if (!isset($request['data']) || !isset($request['svnUrl']) || !isset($request['svnRev'])) {
 		die(json_encode(['success' => false, 'error' => 'error_request']));

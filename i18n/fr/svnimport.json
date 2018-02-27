@@ -23,7 +23,7 @@
     "label_locale_en": "Locale anglaise :",
     "label_theme_lti": "Thème d'affichage LTI :",
     "label_display_full": "Afficher l'interface complète",
-    "label_save_default": "Sauvegarder comme options par défaut",
+    "label_save_options": "Sauvegarder comme options par défaut",
 
     "locale_gb": "Royaume-Uni",
     "locale_us": "États-Unis",
