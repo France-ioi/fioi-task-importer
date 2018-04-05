@@ -8,6 +8,7 @@ require_once 'vendor/autoload.php';
 require_once 'config.php';
 require_once 'shared/connect.php';
 require_once 'shared/TokenGenerator.php';
+require_once 'shared/taskEditor.php';
 
 header('Content-Type: application/json');
 
@@ -539,7 +540,7 @@ function deleteRecDirectory($dir) {
 	        unlink($file->getRealPath());
 	    }
 	}
-	rmdir($dir);	
+	rmdir($dir);
 }
 
 function deleteDirectory($path) {
@@ -609,8 +610,18 @@ if ($request['action'] == 'checkoutSvn') {
 	if (!isset($request['svnUrl'])) {
 		die(json_encode(['success' => false, 'error' => 'error_request']));
 	}
+
 	$user = $request['username'] ? $request['username'] : $config->defaultSvnUser;
 	$password = $request['password'] ? $request['password'] : $config->defaultSvnPassword;
+
+	if(isset($request['token'])) {
+		$credentials = userCredentials($request['token']);
+		if($credentials !== false) {
+			$user = $credentials['username'];
+			$password = $credentials['password'];
+		}
+	}
+
 	checkoutSvn($request['svnUrl'], $user, $password, $request['svnRev'], isset($request['recursive']) && $request['recursive'], isset($request['noimport']) && $request['noimport']);
 } elseif ($request['action'] == 'saveResources') {
 	if (!isset($request['data']) || !isset($request['svnUrl']) || !isset($request['svnRev'])) {
@@ -623,5 +634,5 @@ if ($request['action'] == 'checkoutSvn') {
 	}
 	deleteDirectory($request['ID']);
 } else {
-	echo(json_encode(['success' => false, 'error' => 'error_action']));	
+	echo(json_encode(['success' => false, 'error' => 'error_action']));
 }

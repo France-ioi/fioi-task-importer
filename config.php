@@ -38,6 +38,8 @@ $config->aws->finalBucket = (object) array();
 $config->aws->finalBucket->region = '';
 $config->aws->finalBucket->name = '';
 
+//$config->taskEditorApiUrl = 'http://localhost:8080/api/auth/credentials';
+
 if (is_readable(__DIR__.'/config_local.php')) {
    include_once __DIR__.'/config_local.php';
 }
