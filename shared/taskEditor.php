@@ -5,15 +5,19 @@ require_once __DIR__.'/../config.php';
 function userCredentials($token) {
     global $config;
 
-    if(!$config->taskEditorApiUrl) {
+    if(!$config->taskEditorApi) {
         return false;
     }
 
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $config->taskEditorApiUrl);
+    $url = $config->taskEditorApi.'/auth/credentials';
+    curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+    $headers = [
+        'Content-Type: application/json'
+    ];
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
     $params = [
         'token' => $token
     ];
