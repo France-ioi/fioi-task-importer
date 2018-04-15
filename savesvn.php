@@ -10,6 +10,7 @@ require_once 'shared/connect.php';
 require_once 'shared/TokenGenerator.php';
 require_once 'shared/taskEditor.php';
 
+header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
 
 $request = json_decode(file_get_contents('php://input'), true);
