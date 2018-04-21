@@ -433,11 +433,14 @@ function saveSourceCodes($taskId, $resources) {
 function saveSamples($taskId, $resources) {
 	global $db;
 	$insertQuery = 'insert into tm_tasks_tests (idTask, sGroupType, sName, sInput, sOutput) values (:idTask, :sGroupType, :sName, :sInput, :sOutput);';
-	$deleteQuery = 'delete from tm_tasks_tests where idTask = :idTask and sGroupType = :sGroupType and sName = :sName;';
+
+    // Clear all old samples
+    $deleteQuery = "DELETE FROM tm_tasks_tests WHERE idTask = :idTask AND (sGroupType = 'Example' OR sGroupType = 'Evaluation');";
+    $stmt = $db->prepare($deleteQuery);
+    $stmt->execute(['idTask' => $taskId]);
+
 	foreach ($resources['task'] as $i => $resource) {
 		if ($resource['type'] == 'sample' && isset($resource['name']) && $resource['name']) {
-			$stmt = $db->prepare($deleteQuery);
-			$stmt->execute(['idTask' => $taskId, 'sGroupType' => 'Example', 'sName' => $resource['name']]);
 			$stmt = $db->prepare($insertQuery);
 			$stmt->execute(['idTask' => $taskId, 'sGroupType' => 'Example', 'sName' => $resource['name'], 'sInput' => $resource['inContent'], 'sOutput' => $resource['outContent']]);
 		}
@@ -447,8 +450,6 @@ function saveSamples($taskId, $resources) {
 	}
 	foreach ($resources['grader'] as $i => $resource) {
 		if ($resource['type'] == 'sample' && isset($resource['name']) && $resource['name']) {
-			$stmt = $db->prepare($deleteQuery);
-			$stmt->execute(['idTask' => $taskId, 'sGroupType' => 'Evaluation', 'sName' => $resource['name']]);
 			$stmt = $db->prepare($insertQuery);
 			$stmt->execute(['idTask' => $taskId, 'sGroupType' => 'Evaluation', 'sName' => $resource['name'], 'sInput' => $resource['inContent'], 'sOutput' => $resource['outContent']]);
 		}
