@@ -58,7 +58,8 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
     $scope.params = {
         svnUrl: config.svnExampleUrl,
         localeEn: 'default',
-        theme: 'none'
+        theme: 'none',
+        token: QueryString.token ? QueryString.token : null
         };
 
     $scope.tasksRemaining = [];
@@ -86,6 +87,10 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
             theme: $scope.params.theme
             };
         localStorage.setItem('defaultParams', JSON.stringify($scope.defaultParams));
+    };
+
+    $scope.removeToken = function() {
+        $scope.params.token = null;
     };
 
     $scope.getParamsDisabled = function() {
@@ -144,7 +149,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
         }
 
         // Save credentials
-        if($scope.params.remember) {
+        if($scope.params.remember && !$scope.params.token) {
             localStorage.setItem('username', $scope.params.username);
             localStorage.setItem('password', $scope.params.password);
         }
