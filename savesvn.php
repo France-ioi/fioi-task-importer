@@ -592,7 +592,7 @@ function generateToken($url) {
       'bAccessSolutions' => true,
       'bSubmissionPossible' => true,
       'bHintsAllowed' => true,
-      'nbHintsGiven' => 0,
+      'nbHintsGiven' => 10000,
       'bIsAdmin' => false,
       'bReadAnswers' => true,
       'idUser' => 0,
