@@ -127,6 +127,24 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
         return url;
     };
 
+    $scope.updateCommon = function() {
+        // Update _common
+        $scope.checkoutState = 'checkout_common_update';
+        $scope.checkoutMsg = '';
+
+        var params = Object.assign({}, $scope.params);
+        params.action = 'updateCommon';
+        $http.post('savesvn.php', params, {responseType: 'json'}).then(function(res) {
+            if (res.data.success) {
+                $scope.checkoutState = 'checkout_common_updated';
+            } else {
+                $scope.checkoutState = 'checkout_common_failed';
+            }}, function() {
+                $scope.checkoutState = 'checkout_common_failed';
+            });
+
+    };
+
     $scope.checkoutSvn = function() {
         // Checkout the SVN and get the list of tasks
         $scope.checkoutState = 'checkout_inprogress';
@@ -134,6 +152,10 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
         $scope.tasksRemaining = [];
         $scope.curTaskUrl = '';
         $scope.showLogin = false;
+        $scope.disableBtn = true;
+        $scope.ready = {checkout: false, local_common: false};
+        // Allows to check we're still in the same import request
+        var ready = $scope.ready;
 
         if($scope.curID) {
             $scope.logList[0].state = 'task_cancelled';
@@ -154,22 +176,62 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
             localStorage.setItem('password', $scope.params.password);
         }
 
-        $scope.params.action = 'checkoutSvn';
+        function onFail(res) {
+            $scope.checkoutState = 'checkout_error';
+            $scope.checkoutMsg = res.data.error;
+            $scope.showLogin = true;
+            $scope.ready = null;
+            $scope.disableBtn = false;
+        };
+
+        function onRequestFail() {
+            $scope.checkoutState = 'checkout_request_failed';
+            $scope.ready = null;
+            $scope.disableBtn = false;
+        };
 
         // Checkout the task and get data
-        $http.post('savesvn.php', $scope.params, {responseType: 'json'}).then(function(res) {
+        var params1 = Object.assign({}, $scope.params);
+        params1.action = 'checkoutSvn';
+        $http.post('savesvn.php', params1, {responseType: 'json'}).then(function(res) {
             if (res.data.success && res.data.tasks) {
-                $scope.checkoutState = 'checkout_import';
                 $scope.tasksRemaining = res.data.tasks;
                 $scope.curRev = res.data.revision;
-                $scope.recImport();
+                $scope.disableBtn = false;
+                $scope.recImportWhenReady('checkout', ready);
             } else {
-                $scope.checkoutState = 'checkout_error';
-                $scope.checkoutMsg = res.data.error;
-                $scope.showLogin = true;
-            }}, function() {
-                $scope.checkoutState = 'checkout_request_failed';
-            });
+                onFail(res);
+            }}, onRequestFail);
+
+        // Update _local_common
+        var params2 = Object.assign({}, $scope.params);
+        params2.action = 'updateLocalCommon';
+        $http.post('savesvn.php', params2, {responseType: 'json'}).then(function(res) {
+            if (res.data.success) {
+                $scope.recImportWhenReady('local_common', ready);
+            } else {
+                onFail(res);
+            }}, onRequestFail);
+    };
+
+    $scope.recImportWhenReady = function(step, ready) {
+        // Check all requests have completed before proceeding
+
+        // Did a request fail?
+        if(!$scope.ready) { return; }
+
+        // Are we still in the same import request?
+        if(ready !== $scope.ready) { return; }
+
+        // Check everything is ready
+        $scope.ready[step] = true;
+        for(var x in $scope.ready) {
+            if(!$scope.ready[x]) { return; }
+        }
+
+        // Everything is ready, proceed
+        $scope.checkoutState = 'checkout_import';
+        $scope.recImport();
     };
 
     $scope.recImport = function() {

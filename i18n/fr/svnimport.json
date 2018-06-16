@@ -24,6 +24,8 @@
     "label_theme_lti": "Thème d'affichage LTI :",
     "label_display_full": "Afficher l'interface complète",
     "label_save_options": "Sauvegarder comme options par défaut",
+    "label_update_common": "Mettre à jour _common",
+    "label_update_common_title": "Met à jour le dossier _common contenant les librairies partagées.",
 
     "locale_gb": "Royaume-Uni",
     "locale_us": "États-Unis",
@@ -33,6 +35,9 @@
     "checkout_error": "Erreur lors du checkout SVN :",
     "checkout_request_failed": "Erreur lors de l'appel au serveur d'import.",
     "checkout_finished": "Import terminé !",
+    "checkout_common_update": "Mise à jour de _common en cours...",
+    "checkout_common_updated": "Mise à jour de _common terminée !",
+    "checkout_common_failed": "Erreur lors de la mise à jour de _common.",
 
     "task_loading": "Tâche en cours de chargement...",
     "task_import_error": "Tâche importée (aucune ressource à envoyer).",

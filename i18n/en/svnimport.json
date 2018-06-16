@@ -24,6 +24,8 @@
     "label_theme_lti": "LTI display theme:",
     "label_display_full": "Display full interface",
     "label_save_options": "Save as default options",
+    "label_update_common": "Update _common",
+    "label_update_common_title": "Updates the _common folder containing the shared libraries.",
 
     "locale_gb": "United Kingdom",
     "locale_us": "United States",
@@ -33,6 +35,9 @@
     "checkout_error": "Error during the SVN checkout:",
     "checkout_request_failed": "Error while contacting import server.",
     "checkout_finished": "Import finished!",
+    "checkout_common_update": "Updating _common...",
+    "checkout_common_updated": "Update completed!",
+    "checkout_common_failed": "Error while updating _common.",
 
     "task_loading": "Task file loading...",
     "task_import_error": "Task import finished (no resources to send).",

@@ -136,6 +136,54 @@ function processDir($taskDir, $baseSvnFirst) {
     return $taskData;
 }
 
+function updateCommon($user, $password) {
+    svn_auth_set_parameter(SVN_AUTH_PARAM_DEFAULT_USERNAME,             $user);
+    svn_auth_set_parameter(SVN_AUTH_PARAM_DEFAULT_PASSWORD,             $password);
+    svn_auth_set_parameter(PHP_SVN_AUTH_PARAM_IGNORE_SSL_VERIFY_ERRORS, true); // <--- Important for certificate issues!
+    svn_auth_set_parameter(SVN_AUTH_PARAM_NON_INTERACTIVE,              true);
+    svn_auth_set_parameter(SVN_AUTH_PARAM_NO_AUTH_CACHE,                true);
+    try {
+        svn_update(__DIR__.'/files/checkouts/_common/');
+    } catch (Exception $e) {
+        return ['success' => false, 'error' => $e->getMessage()];
+    }
+    return ['success' => true];
+}
+
+function updateLocalCommon($subdir, $user, $password) {
+    global $config;
+
+	$baseSvnDir = trim($subdir);
+	$baseSvnDir = trim($baseSvnDir, '/');
+
+	// Create target checkout directory
+	$baseSvnExpl = explode('/', $baseSvnDir);
+    $baseSvnFirst = array_shift($baseSvnExpl);
+    svn_auth_set_parameter(SVN_AUTH_PARAM_DEFAULT_USERNAME,             $user);
+    svn_auth_set_parameter(SVN_AUTH_PARAM_DEFAULT_PASSWORD,             $password);
+    svn_auth_set_parameter(PHP_SVN_AUTH_PARAM_IGNORE_SSL_VERIFY_ERRORS, true); // <--- Important for certificate issues!
+    svn_auth_set_parameter(SVN_AUTH_PARAM_NON_INTERACTIVE,              true);
+    svn_auth_set_parameter(SVN_AUTH_PARAM_NO_AUTH_CACHE,                true);
+
+    // Get _local_common
+    $localCommonSvn = $baseSvnFirst.'/_local_common';
+    $localCommonDir = __DIR__.'/files/checkouts/local/'.$baseSvnFirst;
+    $localCommonExists = is_dir($localCommonDir);
+    $localCommonTargetDir = $localCommonExists ? $localCommonDir . '_new' : $localCommonDir;
+    mkdir($localCommonTargetDir, 0777, true);
+    try {
+        svn_checkout($config->svnBaseUrl.$localCommonSvn, $localCommonTargetDir);
+        if($localCommonExists) {
+            deleteRecDirectory($localCommonDir);
+            rename($localCommonTargetDir, $localCommonDir);
+        }
+        $localCommonExists = true;
+    } catch(Exception $e) {}
+
+    // Always a success
+    return ['success' => true, 'localCommon' => $localCommonExists];
+}
+
 function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noimport) {
 	global $config, $db;
 
@@ -169,7 +217,6 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
 	$success = true;
 	$url = $config->svnBaseUrl.$baseSvnDir;
 	try {
-		svn_update(__DIR__.'/files/checkouts/_common/');
 		if ($userRevision) {
 			$success = svn_checkout($url, __DIR__.'/files/checkouts/'.$baseTargetDir, $userRevision);
             $revision = $userRevision;
@@ -183,21 +230,6 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
 	if (!$success) {
 		die(json_encode(['success' => false, 'error' => 'error_checkout']));
 	}
-
-    // Get _local_common
-    $localCommonSvn = $baseSvnFirst.'/_local_common';
-    $localCommonDir = __DIR__.'/files/checkouts/local/'.$baseSvnFirst;
-    $localCommonExists = is_dir($localCommonDir);
-    $localCommonTargetDir = $localCommonExists ? $localCommonDir . '_new' : $localCommonDir;
-    mkdir($localCommonTargetDir, 0777, true);
-    try {
-        svn_checkout($config->svnBaseUrl.$localCommonSvn, $localCommonTargetDir);
-        if($localCommonExists) {
-            deleteRecDirectory($localCommonDir);
-            rename($localCommonTargetDir, $localCommonDir);
-        }
-        $localCommonExists = true;
-    } catch(Exception $e) {}
 
 	if($noimport) {
         // TODO :: adapt to recursive
@@ -236,7 +268,7 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
             $tasks[] = $newTaskData;
         }
     }
-    echo(json_encode(['success' => $success, 'tasks' => $tasks, 'revision' => $revision, 'localCommon' => $localCommonExists]));
+    echo(json_encode(['success' => $success, 'tasks' => $tasks, 'revision' => $revision]));
 
 /* TODO :: do something with that
         	$stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
@@ -607,9 +639,9 @@ function generateToken($url) {
 
 
 
-
-if ($request['action'] == 'checkoutSvn') {
+if ($request['action'] == 'checkoutSvn' || $request['action'] == 'updateCommon' || $request['action'] == 'updateLocalCommon') {
 	if (!isset($request['svnUrl'])) {
+        // TODO :: skip if action is updateCommon
 		die(json_encode(['success' => false, 'error' => 'error_request']));
 	}
 
@@ -624,7 +656,13 @@ if ($request['action'] == 'checkoutSvn') {
 		}
 	}
 
-	checkoutSvn($request['svnUrl'], $user, $password, $request['svnRev'], isset($request['recursive']) && $request['recursive'], isset($request['noimport']) && $request['noimport']);
+    if($request['action'] == 'checkoutSvn') {
+        checkoutSvn($request['svnUrl'], $user, $password, $request['svnRev'], isset($request['recursive']) && $request['recursive'], isset($request['noimport']) && $request['noimport']);
+    } elseif($request['action'] == 'updateCommon') {
+        echo json_encode(updateCommon($user, $password));
+    } elseif($request['action'] == 'updateLocalCommon') {
+        echo json_encode(updateLocalCommon($request['svnUrl'], $user, $password));
+    }
 } elseif ($request['action'] == 'saveResources') {
 	if (!isset($request['data']) || !isset($request['svnUrl']) || !isset($request['svnRev'])) {
 		die(json_encode(['success' => false, 'error' => 'error_request']));
