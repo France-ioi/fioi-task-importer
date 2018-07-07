@@ -83,6 +83,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
         $scope.defaultParams = {
             recursive: !!$scope.params.recursive,
             noimport: !!$scope.params.noimport,
+            rewritecommon: !!$scope.params.rewritecommon,
             localeEn: $scope.params.localeEn,
             theme: $scope.params.theme
             };
@@ -286,11 +287,14 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
             // Static file, we display it then continue
             curLog.state = 'file_static';
             curLog.url = curTask.staticUrl + curFile.filename;
+            curLog.warnPaths = curFile.warnPaths;
+            curLog.commonRewritten = curFile.commonRewritten;
             $scope.recTaskImport();
         } else {
             // TaskPlatform file, we fetch its resources
             curLog.state = 'file_loading';
             curLog.warnPaths = curFile.warnPaths;
+            curLog.commonRewritten = curFile.commonRewritten;
             $scope.curTaskUrl = curTask.baseUrl + curFile.filename;
             $timeout($scope.fetchResources, 2000);
         }
@@ -431,6 +435,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
         if(QueryString.revision) { $scope.params.revision = QueryString.revision; }
         if(QueryString.recursive) { $scope.params.recursive = QueryString.recursive; }
         if(QueryString.noimport) { $scope.params.noimport = QueryString.noimport; }
+        if(QueryString.rewritecommon) { $scope.params.rewritecommon = QueryString.rewritecommon; }
         if(QueryString.localeEn) { $scope.params.localeEn = QueryString.localeEn; }
         if(QueryString.theme) { $scope.params.theme = QueryString.theme; }
         if(QueryString.display == 'frame') { 

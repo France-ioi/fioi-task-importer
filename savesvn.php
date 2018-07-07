@@ -64,30 +64,48 @@ function checkStatic($path) {
     return true;
 }
 
-function warnPaths($path) {
+function checkCommon($path, $depth, $rewriteCommon) {
+    // Checks the _common paths; returns false if everything is fine
     $handle = fopen($path, 'r');
+    $wrong = false;
+    $targetPath = str_repeat('../', $depth) . '_common';
+    $fileBuffer = '';
     while(!feof($handle)) {
         $line = fgets($handle);
-        if(preg_match('/= *[\'"]([^=]+)_common/', $line, $matches)) {
-            if (!is_dir(dirname($path) . '/' . $matches[1] . '/_common')) {
+        if(preg_match('/= *[\'"]([^=]+)_common/', $line, $matches) && !is_dir(dirname($path) . '/' . $matches[1] . '/_common')) {
+            if($rewriteCommon) {
+                $line = preg_replace('/(= *[\'"])[^=]+_common/', '\1' . $targetPath, $line);
+                $wrong = true;
+            } else {
+                // At least one path is wrong
                 return true;
             }
         }
+        if($rewriteCommon) { $fileBuffer .= $line; }
     }
-    return false;
+    fclose($handle);
+    if($rewriteCommon && $wrong) {
+        $handle = fopen($path, 'w');
+        fwrite($handle, $fileBuffer);
+        fclose($handle);
+    }
+    return $wrong;
 }
 
-function processDir($taskDir, $baseSvnFirst) {
+function processDir($taskDir, $baseSvnFirst, $rewriteCommon) {
     global $config;
 
     // Remove first component of the path
-    $taskDirCompl = implode('/', array_slice(explode('/', $taskDir), 1));
+    $taskDirExpl = explode('/', $taskDir);
+    $taskDirCompl = implode('/', array_slice($taskDirExpl, 1));
     $taskSvnDir = $baseSvnFirst . '/' . $taskDirCompl;
 
     $indexList = [];
     $taskDirMoved = false;
 
     $filenames = scandir(__DIR__.'/files/checkouts/'.$taskDir.'/');
+
+    $depth = count(array_filter($taskDirExpl, function($path) { return $path != '.'; })) - count(array_filter($taskDirExpl, function($path) { return $path == '..'; }));
 
     foreach($filenames as $filename) {
         if(preg_match('/index.*\.html/', $filename) !== 1) {
@@ -96,7 +114,7 @@ function processDir($taskDir, $baseSvnFirst) {
         if(!file_exists(__DIR__.'/files/checkouts/'.$taskDir.'/'.$filename)) {
             continue;
         }
-        if(checkStatic(__DIR__.'/files/checkouts/'.$taskDir.'/'.$filename)) {
+        if($isStatic = checkStatic(__DIR__.'/files/checkouts/'.$taskDir.'/'.$filename)) {
             if(!$taskDirMoved) {
                 // Move task to a static location
                 $targetDir = md5($taskSvnDir). '/' . $taskDirCompl;
@@ -107,18 +125,14 @@ function processDir($taskDir, $baseSvnFirst) {
                 $taskDir = $targetDir;
                 $taskDirMoved = true;
             }
-
-            $indexList[] = [
-                'filename' => $filename,
-                'isStatic' => true
-                ];
-        } else {
-            $indexList[] = [
-                'filename' => $filename,
-                'isStatic' => false,
-                'warnPaths' => warnPaths(__DIR__.'/files/checkouts/'.$taskDir.'/'.$filename)
-                ];
         }
+        $newIndex = [
+            'filename' => $filename,
+            'isStatic' => $isStatic,
+            'depth' => $depth
+            ];
+        $newIndex[$rewriteCommon ? 'commonRewritten' : 'warnPaths'] = checkCommon(__DIR__.'/files/checkouts/'.$taskDir.'/'.$filename, $depth, $rewriteCommon);
+        $indexList[] = $newIndex;
     }
     $taskData = [
         'dirPath' => $taskDir,
@@ -184,7 +198,7 @@ function updateLocalCommon($subdir, $user, $password) {
     return ['success' => true, 'localCommon' => $localCommonExists];
 }
 
-function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noimport) {
+function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noimport, $rewriteCommon) {
 	global $config, $db;
 
     if($recursive && $noimport) {
@@ -263,7 +277,7 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
     $tasks = array();
     $taskDirs = listTaskDirs($baseTargetDir, $recursive);
     foreach($taskDirs as $taskDir) {
-        $newTaskData = processDir($taskDir, $baseSvnFirst);
+        $newTaskData = processDir($taskDir, $baseSvnFirst, $rewriteCommon);
         if(count($newTaskData['files']) > 0) {
             $tasks[] = $newTaskData;
         }
@@ -657,7 +671,7 @@ if ($request['action'] == 'checkoutSvn' || $request['action'] == 'updateCommon' 
 	}
 
     if($request['action'] == 'checkoutSvn') {
-        checkoutSvn($request['svnUrl'], $user, $password, $request['svnRev'], isset($request['recursive']) && $request['recursive'], isset($request['noimport']) && $request['noimport']);
+        checkoutSvn($request['svnUrl'], $user, $password, $request['svnRev'], isset($request['recursive']) && $request['recursive'], isset($request['noimport']) && $request['noimport'], isset($request['rewritecommon']) && $request['rewritecommon']);
     } elseif($request['action'] == 'updateCommon') {
         echo json_encode(updateCommon($user, $password));
     } elseif($request['action'] == 'updateLocalCommon') {

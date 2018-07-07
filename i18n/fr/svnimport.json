@@ -19,6 +19,8 @@
     "label_recimport_short": "Import récursif",
     "label_noimport": "Ne pas réimporter les tâches, générer seulement des liens vers la version actuellement en production",
     "label_noimport_short": "Aucun réimport",
+    "label_rewritecommon": "Réécrire les chemins vers _common s'ils sont erronés",
+    "label_rewritecommon_short": "Correction des chemins '_common'",
     "label_submit": "Importer les fichiers SVN",
     "label_locale_en": "Locale anglaise :",
     "label_theme_lti": "Thème d'affichage LTI :",
@@ -66,6 +68,7 @@
     "display_tasks_left": "tâche(s) dans la file d'attente",
     "display_static": "Fichier statique importé à",
     "display_warnpaths": "Avertissement : erreur possible dans les chemins d'accès à _common.",
+    "display_common_rewritten": "Des erreurs possibles dans les chemins d'accès à _common ont été corrigées.",
     "display_nboldlogs": "anciens imports",
     "display_hideoldlogs": "Cacher les anciens imports",
 

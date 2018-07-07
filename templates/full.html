@@ -40,7 +40,7 @@
         </div>
       </div>
     </div>
-    <div class="col-sm-12 col-lg-6">
+    <div class="col-xs-12 col-lg-6">
       <div class="panel panel-info">
         <div class="panel-heading">
           <h4 ng-i18next="panel_options"></h4>
@@ -51,6 +51,9 @@
           </div><br>
           <div class="checkbox">
             <input type="checkbox" name="noimport" ng-model="params.noimport"> <span ng-i18next="label_noimport"></span>
+          </div><br>
+          <div class="checkbox">
+            <input type="checkbox" name="rewritecommon" ng-model="params.rewritecommon"> <span ng-i18next="label_rewritecommon"></span>
           </div><br>
           <div class="form-group">
             <label for="optLocale" ng-i18next="label_locale_en"></label><br>
@@ -109,6 +112,7 @@
         <p><code>{{ file.name }}</code>: <span ng-i18next="{{ file.state }}"></span></p>
         <p ng-if="file.isStatic"><span ng-i18next="display_static"></span> <a href="{{ file.url }}">{{ file.url }}</a></p>
         <p ng-if="file.warnPaths" ng-i18next="display_warnpaths"></p>
+        <p ng-if="file.commonRewritten" ng-i18next="display_common_rewritten"></p>
       </div>
     </div>
   </div>
