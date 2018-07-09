@@ -26,6 +26,8 @@
     "label_theme_lti": "Thème d'affichage LTI :",
     "label_display_full": "Afficher l'interface complète",
     "label_save_options": "Sauvegarder comme options par défaut",
+    "label_token": "Authentifié par token",
+    "label_token_remove": "Utiliser l'authentification normale",
     "label_update_common": "Mettre à jour _common",
     "label_update_common_title": "Met à jour le dossier _common contenant les librairies partagées.",
 

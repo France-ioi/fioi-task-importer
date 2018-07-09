@@ -40,6 +40,13 @@ var QueryString = function () {
   return query_string;
 }();
 
+// Create channel with parent
+var jschannel = window.parent !== window ? Channel.build({
+    window: window.parent,
+    origin: '*',
+    scope: 'importer'
+    }) : null;
+
 
 var app = angular.module('svnImport', ['jm.i18next']);
 
@@ -391,6 +398,19 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
                     log.normalUrl = res.data.normalUrl;
                     log.ltiUrl = res.data.ltiUrl;
                     log.tokenUrl = res.data.tokenUrl;
+
+                    // Notify parent of link
+                    if(jschannel) {
+                        jschannel.notify({
+                            method: 'link',
+                            params: {
+                                url: res.data.normalUrl,
+                                ltiUrl: res.data.ltiUrl,
+                                testUrl: res.data.tokenUrl,
+                                task: log.url
+                                }
+                            });
+                    }
                 } else {
                     log.state = 'task_save_error';
                 }

@@ -26,6 +26,8 @@
     "label_theme_lti": "LTI display theme:",
     "label_display_full": "Display full interface",
     "label_save_options": "Save as default options",
+    "label_token": "Authenticating with token",
+    "label_token_remove": "Use normal username / password authentication",
     "label_update_common": "Update _common",
     "label_update_common_title": "Updates the _common folder containing the shared libraries.",
 
