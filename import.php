@@ -10,7 +10,11 @@ require_once 'config.php';
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title ng-i18next="page_title">LTI SVN task importer</title>
   <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" type="text/css" rel="stylesheet">
-  <link href="local.css" type="text/css" rel="stylesheet">
+  <?php
+if($config->localCssUrl) {
+  echo '  <link href="' . $config->localCssUrl . '" type="text/css" rel="stylesheet">';
+}
+?>
   <script type="text/javascript" src="bower_components/angular/angular.min.js"></script>
   <script type="text/javascript" src="bower_components/angular-sanitize/angular-sanitize.min.js"></script>
   <script type="text/javascript" src="bower_components/i18next/i18next.min.js"></script>
@@ -19,7 +23,7 @@ require_once 'config.php';
   <script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
   <script type="text/javascript" src="bower_components/jschannel/src/jschannel.js"></script>
   <script type="text/javascript" src="bower_components/pem-platform/task-pr.js"></script>
-  <script type="text/javascript" src="importController.js"></script>
+  <script type="text/javascript" src="importController.js?<?=$config->urlArgs ?>"></script>
   <script type="text/javascript">
     var config = <?=json_encode(['svnBaseUrl' => $config->svnBaseUrl, 'svnExampleUrl' => $config->svnExampleUrl]) ?>
   </script>

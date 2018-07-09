@@ -9,6 +9,8 @@ $config = (object) array();
 $config->baseUrl = '';
 $config->svnBaseUrl = '';
 $config->svnExampleUrl = '';
+$config->localCssUrl = null;
+$config->urlArgs = '';
 
 $config->db = (object) array();
 $config->db->host = 'localhost';

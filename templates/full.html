@@ -126,4 +126,4 @@
   <button ng-if="!hideOldLogs" class="btn btn-primary" ng-click="toggleOldLogs();" style="width: 100%;"><span ng-i18next="display_hideoldlogs"></span> <span class="glyphicon glyphicon-chevron-up"></span></button>
 </div>
 
-<iframe style="width:1px; height:1px;" id="taskIframe" src="{{ curTaskUrl }}"></iframe>
+<iframe ng-if="curTaskUrl" style="width:1px; height:1px;" id="taskIframe" src="{{ curTaskUrl }}"></iframe>
