@@ -507,16 +507,43 @@ function saveSubtasks($taskId, $metadata) {
     // Subtasks must be described in the metadata as a
     // list of objects representing subtasks, each subtask having a
     // name, comments, and gradeMax (sum of gradeMax must be 100)
+    // Old subtasks aren't deleted to not break old submissions, they are
+    // rather put as inactive with bActive = 0
     global $db;
 
-    if(!isset($metadata['subtasks'])) { return; }
+    if(!isset($metadata['subtasks'])) {
+        // No more subtasks
+        $stmt = $db->prepare("UPDATE tm_tasks_subtasks SET bActive = 0 WHERE idTask = :idTask;");
+        $stmt->execute(['idTask' => $taskId]);
+        return;
+    }
 
-    $stmt = $db->prepare("DELETE FROM tm_tasks_subtasks where idTask = :idTask;");
+    $stmt = $db->prepare("SELECT * FROM tm_tasks_subtasks WHERE idTask = :idTask AND bActive = 1 ORDER BY iRank ASC;");
+    $stmt->execute(['idTask' => $taskId]);
+
+    // Check whether subtasks are the same
+    $iRank = 0;
+    $ok = true;
+    foreach($metadata['subtasks'] as $subtask) {
+        $oldSubtask = $stmt->fetch();
+        $ok = ($oldSubtask['iRank'] == $iRank
+            && $oldSubtask['name'] == $subtask['name']
+            && $oldSubtask['comments'] == $subtask['comments']
+            && $oldSubtask['iPointsMax'] == $subtask['gradeMax']);
+        if(!$ok) { break; }
+        $iRank += 1;
+    }
+    $ok = $ok && ($stmt->fetch() == false);
+
+    if($ok) { return; }
+
+    // Subtasks are different
+    $stmt = $db->prepare("UPDATE tm_tasks_subtasks SET bActive = 0 WHERE idTask = :idTask;");
     $stmt->execute(['idTask' => $taskId]);
 
     $iRank = 0;
     foreach($metadata['subtasks'] as $subtask) {
-        $stmt = $db->prepare("INSERT INTO tm_tasks_subtasks (idTask, iRank, name, comments, iPointsMax) VALUES (:idTask, :iRank, :name, :comments, :iPointsMax);");
+        $stmt = $db->prepare("INSERT INTO tm_tasks_subtasks (idTask, iRank, name, comments, iPointsMax, bActive) VALUES (:idTask, :iRank, :name, :comments, :iPointsMax, 1);");
         $stmt->execute(['idTask' => $taskId, 'iRank' => $iRank, 'name' => $subtask['name'], 'comments' => $subtask['comments'], 'iPointsMax' => $subtask['gradeMax']]);
         $iRank += 1;
     }
