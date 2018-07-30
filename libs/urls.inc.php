@@ -2,8 +2,8 @@
 
 // Functions for URL handling
 
-require_once '../config.php';
-require_once '../shared/TokenGenerator.php';
+require_once __DIR__.'/../config.php';
+require_once __DIR__.'/../shared/TokenGenerator.php';
 
 function unparse_url($parsed_url) {
     $scheme   = isset($parsed_url['scheme']) ? $parsed_url['scheme'] . '://' : '';

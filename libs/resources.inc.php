@@ -2,9 +2,9 @@
 
 // Functions for saving resources for a TaskPlatform task
 
-require_once '../vendor/autoload.php';
-require_once '../config.php';
-require_once '../shared/connect.php';
+require_once __DIR__.'/../vendor/autoload.php';
+require_once __DIR__.'/../config.php';
+require_once __DIR__.'/../shared/connect.php';
 
 function saveLimits($taskId, $limits) {
     global $db;
@@ -55,7 +55,7 @@ function saveTask($metadata, $subdir, $revision, $resources) {
 }
 
 function saveStrings($taskId, $resources, $metadata, $dirPath) {
-    global $config, $db;
+    global $config, $db, $workingDir;
     $statement = null;
     $solution = null;
     $css = null;
@@ -63,7 +63,7 @@ function saveStrings($taskId, $resources, $metadata, $dirPath) {
     $files = array();
 
     $baseSvnFirst = explode('/', $dirPath)[0];
-    $localCommonDir = __DIR__.'/files/checkouts/local/'.$baseSvnFirst;
+    $localCommonDir = $workingDir.'/files/checkouts/local/'.$baseSvnFirst;
     $localCommonExists = is_dir($localCommonDir);
 
     foreach ($resources['task'] as $i => $resource) {

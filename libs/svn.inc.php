@@ -2,9 +2,9 @@
 
 // Functions for SVN handling
 
-require_once '../vendor/autoload.php';
-require_once '../config.php';
-require_once '../shared/connect.php';
+require_once __DIR__.'/../vendor/autoload.php';
+require_once __DIR__.'/../config.php';
+require_once __DIR__.'/../shared/connect.php';
 
 function getLastRevision($dir) {
     $status = svn_status($dir, SVN_ALL);
@@ -27,9 +27,11 @@ function setSvnParameters($user, $password) {
 
 
 function listTaskDirs($dir, $recursive) {
-    $filenames = scandir(__DIR__.'/files/checkouts/'.$dir.'/');
+    global $workingDir;
+
+    $filenames = scandir($workingDir.'/files/checkouts/'.$dir.'/');
     foreach($filenames as $filename) {
-        if(preg_match('/^index.*\.html/', $filename) === 1 && file_exists(__DIR__.'/files/checkouts/'.$dir.'/'.$filename)) {
+        if(preg_match('/^index.*\.html/', $filename) === 1 && file_exists($workingDir.'/files/checkouts/'.$dir.'/'.$filename)) {
             return array($dir);
         }
     }
@@ -40,9 +42,9 @@ function listTaskDirs($dir, $recursive) {
     }
 
     $taskDirs = array();
-    foreach(scandir(__DIR__.'/files/checkouts/'.$dir) as $elem) {
+    foreach(scandir($workingDir.'/files/checkouts/'.$dir) as $elem) {
         $elemPath = $dir.'/'.$elem;
-        if(is_dir(__DIR__.'/files/checkouts/'.$elemPath) && $elem != '.' && $elem != '..') {
+        if(is_dir($workingDir.'/files/checkouts/'.$elemPath) && $elem != '.' && $elem != '..') {
             $taskDirs = array_merge($taskDirs, listTaskDirs($elemPath, $filenames, $recursive));
         }
     }
@@ -89,7 +91,7 @@ function checkCommon($path, $depth, $rewriteCommon) {
 }
 
 function processDir($taskDir, $baseSvnFirst, $rewriteCommon) {
-    global $config;
+    global $config, $workingDir;
 
     // Remove first component of the path
     $taskDirExpl = explode('/', $taskDir);
@@ -99,7 +101,7 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon) {
     $indexList = [];
     $taskDirMoved = false;
 
-    $filenames = scandir(__DIR__.'/files/checkouts/'.$taskDir.'/');
+    $filenames = scandir($workingDir.'/files/checkouts/'.$taskDir.'/');
 
     $depth = count(array_filter($taskDirExpl, function($path) { return $path != '.'; })) - count(array_filter($taskDirExpl, function($path) { return $path == '..'; }));
 
@@ -107,17 +109,17 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon) {
         if(preg_match('/index.*\.html/', $filename) !== 1) {
             continue;
         }
-        if(!file_exists(__DIR__.'/files/checkouts/'.$taskDir.'/'.$filename)) {
+        if(!file_exists($workingDir.'/files/checkouts/'.$taskDir.'/'.$filename)) {
             continue;
         }
-        if($isStatic = checkStatic(__DIR__.'/files/checkouts/'.$taskDir.'/'.$filename)) {
+        if($isStatic = checkStatic($workingDir.'/files/checkouts/'.$taskDir.'/'.$filename)) {
             if(!$taskDirMoved) {
                 // Move task to a static location
                 $targetDir = md5($taskSvnDir). '/' . $taskDirCompl;
-                $targetFsDir = __DIR__.'/files/checkouts/'.$targetDir;
+                $targetFsDir = $workingDir.'/files/checkouts/'.$targetDir;
                 mkdir($targetFsDir, 0777, true);
                 deleteRecDirectory($targetFsDir);
-                rename(__DIR__.'/files/checkouts/'.$taskDir, $targetFsDir);
+                rename($workingDir.'/files/checkouts/'.$taskDir, $targetFsDir);
                 $taskDir = $targetDir;
                 $taskDirMoved = true;
             }
@@ -127,7 +129,7 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon) {
             'isStatic' => $isStatic,
             'depth' => $depth
             ];
-        $newIndex[$rewriteCommon ? 'commonRewritten' : 'warnPaths'] = checkCommon(__DIR__.'/files/checkouts/'.$taskDir.'/'.$filename, $depth, $rewriteCommon);
+        $newIndex[$rewriteCommon ? 'commonRewritten' : 'warnPaths'] = checkCommon($workingDir.'/files/checkouts/'.$taskDir.'/'.$filename, $depth, $rewriteCommon);
         $indexList[] = $newIndex;
     }
     $taskData = [
@@ -139,17 +141,19 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon) {
         'files' => $indexList
         ];
 
-    if(file_exists(__DIR__.'/files/checkouts/'.$taskDir.'/ref_lang.txt')) {
-        $taskData['refLang'] = trim(file_get_contents(__DIR__.'/files/checkouts/'.$taskDir.'/ref_lang.txt'));
+    if(file_exists($workingDir.'/files/checkouts/'.$taskDir.'/ref_lang.txt')) {
+        $taskData['refLang'] = trim(file_get_contents($workingDir.'/files/checkouts/'.$taskDir.'/ref_lang.txt'));
     }
 
     return $taskData;
 }
 
 function updateCommon($user, $password) {
+    global $workingDir;
+
     setSvnParameters($user, $password);
     try {
-        svn_update(__DIR__.'/files/checkouts/_common/');
+        svn_update($workingDir.'/files/checkouts/_common/');
     } catch (Exception $e) {
         return ['success' => false, 'error' => $e->getMessage()];
     }
@@ -157,7 +161,7 @@ function updateCommon($user, $password) {
 }
 
 function updateLocalCommon($subdir, $user, $password) {
-    global $config;
+    global $config, $workingDir;
 
     $baseSvnDir = trim($subdir);
     $baseSvnDir = trim($baseSvnDir, '/');
@@ -169,7 +173,7 @@ function updateLocalCommon($subdir, $user, $password) {
 
     // Get _local_common
     $localCommonSvn = $baseSvnFirst.'/_local_common';
-    $localCommonDir = __DIR__.'/files/checkouts/local/'.$baseSvnFirst;
+    $localCommonDir = $workingDir.'/files/checkouts/local/'.$baseSvnFirst;
     $localCommonExists = is_dir($localCommonDir);
     $localCommonTargetDir = $localCommonExists ? $localCommonDir . '_new' : $localCommonDir;
     mkdir($localCommonTargetDir, 0777, true);
@@ -187,7 +191,7 @@ function updateLocalCommon($subdir, $user, $password) {
 }
 
 function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noimport, $rewriteCommon) {
-    global $config, $db;
+    global $config, $db, $workingDir;
 
     if($recursive && $noimport) {
         // TODO :: adapt to recursive
@@ -209,18 +213,18 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
     if(count($baseSvnExpl)) {
         $baseTargetDir .= '/' . implode('/', $baseSvnExpl);
     }
-    mkdir(__DIR__.'/files/checkouts/'.$baseTargetDir, 0777, true);
+    mkdir($workingDir.'/files/checkouts/'.$baseTargetDir, 0777, true);
 
     setSvnParameters($user, $password);
     $success = true;
     $url = $config->svnBaseUrl.$baseSvnDir;
     try {
         if ($userRevision) {
-            $success = svn_checkout($url, __DIR__.'/files/checkouts/'.$baseTargetDir, $userRevision);
+            $success = svn_checkout($url, $workingDir.'/files/checkouts/'.$baseTargetDir, $userRevision);
             $revision = $userRevision;
         } else {
-            $success = svn_checkout($url, __DIR__.'/files/checkouts/'.$baseTargetDir);
-            $revision = getLastRevision(__DIR__.'/files/checkouts/'.$baseTargetDir);
+            $success = svn_checkout($url, $workingDir.'/files/checkouts/'.$baseTargetDir);
+            $revision = getLastRevision($workingDir.'/files/checkouts/'.$baseTargetDir);
         }
     } catch (Exception $e) {
         die(json_encode(['success' => false, 'error' => $e->getMessage()]));

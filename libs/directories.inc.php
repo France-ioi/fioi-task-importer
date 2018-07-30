@@ -4,7 +4,9 @@
 
 function deleteRecDirectory($dir) {
     // TODO :: Fix the directory specification and logic
-    if (!$dir || substr($dir, 0, strlen(__DIR__.'/files/checkouts')) != __DIR__.'/files/checkouts') return;
+    global $workingDir;
+
+    if (!$dir || substr($dir, 0, strlen($workingDir.'/files/checkouts')) != $workingDir.'/files/checkouts') return;
     $it = new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS);
     $files = new RecursiveIteratorIterator($it,
                  RecursiveIteratorIterator::CHILD_FIRST);
@@ -19,13 +21,15 @@ function deleteRecDirectory($dir) {
 }
 
 function deleteDirectory($path) {
+    global $workingDir;
+
     $firstDir = explode('/', $path);
     $firstDir = $firstDir[0];
     $ID = intval($firstDir);
     if ($ID < 1) {
         die(json_encode(['success' => false, 'error' => 'error_request']));
     }
-    //deleteRecDirectory(__DIR__.'/files/checkouts/'.$ID);
+    //deleteRecDirectory($workingDir.'/files/checkouts/'.$ID);
     return ['success' => true];
 }
 
