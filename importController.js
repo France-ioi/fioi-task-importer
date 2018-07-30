@@ -135,6 +135,11 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
         return url;
     };
 
+    $scope.getTemplate = function(log) {
+        // Return template for each log type
+        return 'templates/logImport.html';
+    };
+
     $scope.updateCommon = function() {
         // Update _common
         $scope.checkoutState = 'checkout_common_update';
@@ -252,6 +257,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
         $scope.curTask = curTask;
         if(curTask.imported) {
             $scope.logList.unshift({
+                type: 'import',
                 url: curTask.svnUrl,
                 svnRev: $scope.curRev,
                 state: 'task_noimport',
@@ -266,6 +272,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
         }
         $scope.curData = [];
         $scope.logList.unshift({
+            type: 'import',
             url: curTask.svnUrl,
             svnRev: $scope.curRev,
             state: 'task_loading',
