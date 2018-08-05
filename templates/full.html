@@ -26,14 +26,14 @@
             <label for="svnRev" ng-i18next="label_svnrev"></label><br>
             <input type="text" class="form-control" name="svnRev" ng-model="params.svnRev">
           </div><br>
-          <div class="form-group" ng-show="!params.token">
-            <label for="username" ng-i18next="label_username"></label><br>
+          <div class="form-group" ng-class="loginRequired && !params.username && 'has-error'" ng-show="!params.token">
+            <label for="username" class="control-label" ng-i18next="label_username"></label><br>
             <input type="text" class="form-control" name="username" ng-model="params.username">
-          </div><br ng-show="!params.token">
-          <div class="form-group" ng-show="!params.token">
-            <label for="password" ng-i18next="label_password"></label><br>
+          </div><br>
+          <div class="form-group" ng-class="loginRequired && !params.password && 'has-error'" ng-show="!params.token">
+            <label for="password" class="control-label" ng-i18next="label_password"></label><br>
             <input type="password" class="form-control" name="password" ng-model="params.password">
-          </div><br ng-show="!params.token">
+          </div><br>
           <div class="checkbox" ng-show="!params.token">
             <input type="checkbox" name="remember" ng-model="params.remember"> <span ng-i18next="label_remember"></span>
           </div><br ng-show="!params.token">

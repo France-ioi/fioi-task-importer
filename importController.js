@@ -140,6 +140,13 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
         return 'templates/logImport.html';
     };
 
+    $scope.notifyLink = function(linkParams) {
+        if(!jschannel) { return; }
+        jschannel.notify({
+            method: 'link',
+            params: linkParams});
+    };
+
     $scope.updateCommon = function() {
         // Update _common
         $scope.checkoutState = 'checkout_common_update';
@@ -160,11 +167,20 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
 
     $scope.checkoutSvn = function() {
         // Checkout the SVN and get the list of tasks
+
+        if(!$scope.params.username || !$scope.params.password) {
+            $scope.showLogin = true;
+            $scope.loginRequired = true;
+            if(jschannel) { jschannel.notify({method: 'syncError'}); }
+            return;
+        }
+
         $scope.checkoutState = 'checkout_inprogress';
         $scope.checkoutMsg = '';
         $scope.tasksRemaining = [];
         $scope.curTaskUrl = '';
         $scope.showLogin = false;
+        $scope.loginRequired = false;
         $scope.disableBtn = true;
         $scope.ready = {checkout: false, local_common: false};
         // Allows to check we're still in the same import request
@@ -252,6 +268,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
         var curTask = $scope.tasksRemaining.shift();
         if(!curTask) {
             $scope.checkoutState = 'checkout_finished';
+            if(jschannel) { jschannel.notify({method: 'syncFinished'}); }
             return;
         }
         $scope.curTask = curTask;
@@ -266,6 +283,12 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
                 ltiUrl: curTask.ltiUrl,
                 tokenUrl: curTask.tokenUrl,
                 foundLangs: []
+                });
+            $scope.notifyLink({
+                url: curTask.normalUrl,
+                ltiUrl: curTask.ltiUrl,
+                testUrl: curTask.tokenUrl,
+                task: curTask.svnUrl
                 });
             $scope.recImport();
             return;
@@ -303,6 +326,10 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
             curLog.url = curTask.staticUrl + curFile.filename;
             curLog.warnPaths = curFile.warnPaths;
             curLog.commonRewritten = curFile.commonRewritten;
+            $scope.notifyLink({
+                url: curLog.url,
+                task: curTask.svnUrl
+                });
             $scope.recTaskImport();
         } else {
             // TaskPlatform file, we fetch its resources
@@ -407,17 +434,12 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
                     log.tokenUrl = res.data.tokenUrl;
 
                     // Notify parent of link
-                    if(jschannel) {
-                        jschannel.notify({
-                            method: 'link',
-                            params: {
-                                url: res.data.normalUrl,
-                                ltiUrl: res.data.ltiUrl,
-                                testUrl: res.data.tokenUrl,
-                                task: log.url
-                                }
-                            });
-                    }
+                    $scope.notifyLink({
+                        url: res.data.normalUrl,
+                        ltiUrl: res.data.ltiUrl,
+                        testUrl: res.data.tokenUrl,
+                        task: log.url
+                        });
                 } else {
                     log.state = 'task_save_error';
                 }
@@ -474,4 +496,12 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
         }
     };
     $scope.initParams();
+
+    $scope.bindChannel = function() {
+        if(!jschannel) { return; }
+        jschannel.bind('syncRepository', function() {
+            $scope.$apply($scope.checkoutSvn);
+            });
+    };
+    $scope.bindChannel();
 }]);

@@ -4,23 +4,12 @@
       <b ng-i18next="panel_svn_frame"></b>
     </div>
     <div class="panel-body">
-      <div class="form-group">
-        <label for="svnUrl" ng-i18next="label_svnurl"></label><br>
-        <div class="input-group">
-          <span class="input-group-addon" style="font-weight:bold;" id="svnBaseUrl">{{ svnBaseUrl }}</span>
-          <input type="text" style="width:300px;" class="form-control" id="svnUrl" name="svnUrl" ng-model="params.svnUrl">
-        </div>
-      </div><br>
-      <div class="form-group">
-        <label for="svnRev" ng-i18next="label_svnrev"></label><br>
-        <input type="text" class="form-control" name="svnRev" ng-model="params.svnRev">
-      </div><br>
-      <div class="form-group">
-        <label for="username" ng-i18next="label_username"></label><br>
+      <div class="form-group" ng-class="loginRequired && !params.username && 'has-error'">
+        <label for="username" class="control-label" ng-i18next="label_username"></label><br>
         <input type="text" class="form-control" name="username" ng-model="params.username">
       </div><br>
-      <div class="form-group">
-        <label for="password" ng-i18next="label_password"></label><br>
+      <div class="form-group" ng-class="loginRequired && !params.password && 'has-error'">
+        <label for="password" class="control-label" ng-i18next="label_password"></label><br>
         <input type="password" class="form-control" name="password" ng-model="params.password">
       </div><br>
       <div class="checkbox">
