@@ -11,6 +11,7 @@ require_once 'config.php';
 require_once 'shared/taskEditor.php';
 
 require_once 'libs/directories.inc.php';
+require_once 'libs/git.inc.php';
 require_once 'libs/resources.inc.php';
 require_once 'libs/svn.inc.php';
 require_once 'libs/urls.inc.php';
@@ -24,7 +25,7 @@ if (!isset($request) || !isset($request['action'])) {
     die(json_encode(['success' => false, 'error' => 'missing action']));
 }
 
-if ($request['action'] == 'checkoutSvn' || $request['action'] == 'updateCommon' || $request['action'] == 'updateLocalCommon') {
+if ($request['action'] == 'checkoutSvn' || $request['action'] == 'checkoutGit' || $request['action'] == 'updateCommon' || $request['action'] == 'updateLocalCommon') {
     if (!isset($request['svnUrl'])) {
         // TODO :: skip if action is updateCommon
         die(json_encode(['success' => false, 'error' => 'error_request']));
@@ -42,7 +43,9 @@ if ($request['action'] == 'checkoutSvn' || $request['action'] == 'updateCommon' 
     }
 
     if($request['action'] == 'checkoutSvn') {
-        checkoutSvn($request['svnUrl'], $user, $password, $request['svnRev'], isset($request['recursive']) && $request['recursive'], isset($request['noimport']) && $request['noimport'], isset($request['rewritecommon']) && $request['rewritecommon']);
+        checkoutSvn($request['svnUrl'], $user, $password, $svnRev, isset($request['recursive']) && $request['recursive'], isset($request['noimport']) && $request['noimport'], isset($request['rewritecommon']) && $request['rewritecommon']);
+    } elseif($request['action'] == 'checkoutGit') {
+        checkoutGit($request['gitUrl'], $request['gitPath'], isset($request['recursive']) && $request['recursive'], isset($request['noimport']) && $request['noimport'], isset($request['rewritecommon']) && $request['rewritecommon']);
     } elseif($request['action'] == 'updateCommon') {
         echo json_encode(updateCommon($user, $password));
     } elseif($request['action'] == 'updateLocalCommon') {

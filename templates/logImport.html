@@ -1,6 +1,6 @@
 <div class="panel" ng-class="{'panel-primary': log.active, 'panel-default': !log.active, 'hidden': !log.active && hideOldLogs}">
   <div class="panel-heading">
-    <h3 class="panel-title">{{ log.url }} <small>(rev {{ log.svnRev }})</small></h3>
+    <h3 class="panel-title">{{ log.url }} <small ng-show="log.svnRev">(rev {{ log.svnRev }})</small></h3>
   </div>
   <div class="panel-body">
     <p ng-if="log.ltiUrl"><b ng-i18next="task_ltiurl"></b>: <a href="{{ makeUrl(log.ltiUrl) }}" target="_blank">{{ makeUrl(log.ltiUrl, null, true) }}</a></p>

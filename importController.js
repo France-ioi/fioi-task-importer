@@ -8,7 +8,7 @@ var i18nextOpts = {
 i18nextOpts['backend'] = {
   'allowMultiLoading': false,
   'loadPath': function (lng, ns) {
-                  return '/i18n/'+lng+'/'+ns+'.json';
+                  return '/i18n/'+lng+'/'+ns+'.json'+config.urlArgs;
                 }
   };
 window.i18next.init(i18nextOpts);
@@ -60,6 +60,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
     $scope.hideOldLogs = true;
     $scope.nbOldLogs = 0;
     $scope.showLogin = true;
+    $scope.repoType = 'svn';
 
     $scope.svnBaseUrl = config.svnBaseUrl;
     $scope.params = {
@@ -84,6 +85,11 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
 
     $scope.toggleOldLogs = function() {
         $scope.hideOldLogs = !$scope.hideOldLogs;
+    };
+
+    $scope.switchType = function(newType) {
+        $scope.repoType = newType;
+        localStorage.setItem('repoType', newType);
     };
 
     $scope.saveParams = function() {
@@ -165,6 +171,27 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
 
     };
 
+    $scope.checkout = function() {
+        // Unhighlight old tasks
+        $scope.nbOldLogs = 0;
+        for(var i=0; i < $scope.logList.length; i++) {
+            $scope.logList[i].active = false;
+            $scope.nbOldLogs += 1;
+        }
+
+        if($scope.curID) {
+            $scope.logList[0].state = 'task_cancelled';
+            $scope.curLog.state = 'file_cancelled';
+            $scope.curID = null;
+        }
+
+        if($scope.repoType == 'svn') {
+            $scope.checkoutSvn();
+        } else if($scope.repoType == 'git') {
+            $scope.checkoutGit();
+        }
+    }
+
     $scope.checkoutSvn = function() {
         // Checkout the SVN and get the list of tasks
 
@@ -190,13 +217,6 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
             $scope.logList[0].state = 'task_cancelled';
             $scope.curLog.state = 'file_cancelled';
             $scope.curID = null;
-        }
-
-        // Unhighlight old tasks
-        $scope.nbOldLogs = 0;
-        for(var i=0; i < $scope.logList.length; i++) {
-            $scope.logList[i].active = false;
-            $scope.nbOldLogs += 1;
         }
 
         // Save credentials
@@ -238,6 +258,49 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
         $http.post('savesvn.php', params2, {responseType: 'json'}).then(function(res) {
             if (res.data.success) {
                 $scope.recImportWhenReady('local_common', ready);
+            } else {
+                onFail(res);
+            }}, onRequestFail);
+    };
+
+    $scope.checkoutGit = function() {
+        // Checkout the git repository and get the list of tasks
+
+        $scope.checkoutState = 'checkout_inprogress';
+        $scope.checkoutMsg = '';
+        $scope.tasksRemaining = [];
+        $scope.curTaskUrl = '';
+        $scope.showLogin = false;
+        $scope.loginRequired = false;
+        $scope.disableBtn = true;
+        $scope.ready = {checkout: false};
+        // Allows to check we're still in the same import request
+        var ready = $scope.ready;
+
+        localStorage.setItem('gitUrl', $scope.params.gitUrl);
+
+        function onFail(res) {
+            $scope.checkoutState = 'checkout_error';
+            $scope.checkoutMsg = res.data.error;
+            $scope.ready = null;
+            $scope.disableBtn = false;
+        };
+
+        function onRequestFail() {
+            $scope.checkoutState = 'checkout_request_failed';
+            $scope.ready = null;
+            $scope.disableBtn = false;
+        };
+
+        // Checkout the task and get data
+        var params1 = Object.assign({}, $scope.params);
+        params1.action = 'checkoutGit';
+        $http.post('savesvn.php', params1, {responseType: 'json'}).then(function(res) {
+            if (res.data.success && res.data.tasks) {
+                $scope.tasksRemaining = res.data.tasks;
+                $scope.curRev = res.data.revision;
+                $scope.disableBtn = false;
+                $scope.recImportWhenReady('checkout', ready);
             } else {
                 onFail(res);
             }}, onRequestFail);
@@ -461,6 +524,9 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
             $scope.options.lang = localStorage.getItem('lang');
             $scope.changeLang();
         }
+
+        if(localStorage.getItem('repoType')) { $scope.repoType = localStorage.getItem('repoType'); }
+        if(localStorage.getItem('gitUrl')) { $scope.params.gitUrl = localStorage.getItem('gitUrl'); }
 
         if(localStorage.getItem('defaultParams')) {
             $scope.defaultParams = JSON.parse(localStorage.getItem('defaultParams'));

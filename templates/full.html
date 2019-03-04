@@ -15,32 +15,48 @@
           <h4 ng-i18next="panel_svn"></h4>
         </div>
         <div class="panel-body">
-          <div class="form-group">
-            <label for="svnUrl" ng-i18next="label_svnurl"></label><br>
-            <div class="input-group">
-              <span class="input-group-addon" style="font-weight:bold;" id="svnBaseUrl">{{ svnBaseUrl }}</span>
-              <input type="text" style="width:300px;" class="form-control" id="svnUrl" name="svnUrl" ng-model="params.svnUrl">
-            </div>
-          </div><br>
-          <div class="form-group">
-            <label for="svnRev" ng-i18next="label_svnrev"></label><br>
-            <input type="text" class="form-control" name="svnRev" ng-model="params.svnRev">
-          </div><br>
-          <div class="form-group" ng-class="loginRequired && !params.username && 'has-error'" ng-show="!params.token">
-            <label for="username" class="control-label" ng-i18next="label_username"></label><br>
-            <input type="text" class="form-control" name="username" ng-model="params.username">
-          </div><br>
-          <div class="form-group" ng-class="loginRequired && !params.password && 'has-error'" ng-show="!params.token">
-            <label for="password" class="control-label" ng-i18next="label_password"></label><br>
-            <input type="password" class="form-control" name="password" ng-model="params.password">
-          </div><br>
-          <div class="checkbox" ng-show="!params.token">
-            <input type="checkbox" name="remember" ng-model="params.remember"> <span ng-i18next="label_remember"></span>
-          </div><br ng-show="!params.token">
-          <div class="form-group" ng-show="params.token">
-            <label for="removeTokenBtn" ng-i18next="label_token"></label><br>
-            <button name="removeTokenBtn" class="form-control" name="removeTokenBtn" ng-click="removeToken();" ng-i18next="label_token_remove"></button>
-          </div><br ng-show="params.token">
+          <ul class="nav nav-tabs nav-justified">
+            <li ng-class="repoType == 'svn' ? 'active' : ''"><a ng-click="switchType('svn');">SVN</a></li>
+            <li ng-class="repoType == 'git' ? 'active' : ''"><a ng-click="switchType('git');">Git</a></li>
+          </ul>
+          <div ng-show="repoType == 'svn'">
+            <div class="form-group form-group-full">
+              <label for="svnUrl" ng-i18next="label_svnurl"></label><br>
+              <div class="input-group">
+                <span class="input-group-addon" style="font-weight:bold;" id="svnBaseUrl">{{ svnBaseUrl }}</span>
+                <input type="text" class="form-control" id="svnUrl" name="svnUrl" ng-model="params.svnUrl">
+              </div>
+            </div><br>
+            <div class="form-group">
+              <label for="svnRev" ng-i18next="label_svnrev"></label><br>
+              <input type="text" class="form-control" name="svnRev" ng-model="params.svnRev">
+            </div><br>
+            <div class="form-group" ng-class="loginRequired && !params.username && 'has-error'" ng-show="!params.token">
+              <label for="username" class="control-label" ng-i18next="label_username"></label><br>
+              <input type="text" class="form-control" name="username" ng-model="params.username">
+            </div><br>
+            <div class="form-group" ng-class="loginRequired && !params.password && 'has-error'" ng-show="!params.token">
+              <label for="password" class="control-label" ng-i18next="label_password"></label><br>
+              <input type="password" class="form-control" name="password" ng-model="params.password">
+            </div><br>
+            <div class="checkbox" ng-show="!params.token">
+              <input type="checkbox" name="remember" ng-model="params.remember"> <span ng-i18next="label_remember"></span>
+            </div><br ng-show="!params.token">
+            <div class="form-group" ng-show="params.token">
+              <label for="removeTokenBtn" ng-i18next="label_token"></label><br>
+              <button name="removeTokenBtn" class="form-control" name="removeTokenBtn" ng-click="removeToken();" ng-i18next="label_token_remove"></button>
+            </div><br ng-show="params.token">
+          </div>
+          <div ng-show="repoType == 'git'">
+            <div class="form-group form-group-full">
+              <label for="svnUrl" ng-i18next="label_giturl"></label><br>
+              <input type="text" class="form-control" id="gitUrl" name="gitUrl" placeholder="https://github.com/..." ng-model="params.gitUrl" value="https://github.com/France-ioi/bebras-tasks">
+            </div><br>
+            <div class="form-group form-group-full">
+              <label for="svnRev" ng-i18next="label_gitpath"></label><br>
+              <input type="text" class="form-control" name="gitPath" placeholder="path/to/task/" ng-model="params.gitPath" value="module_testing/test-responsive-interface">
+            </div><br>
+          </div>
         </div>
       </div>
     </div>
@@ -79,7 +95,7 @@
       </div>
     </div>
   </div>
-  <input type="submit" class="btn btn-primary" ng-click="checkoutSvn();" ng-disabled="disableBtn" ng-i18next="[value]label_submit"></input>
+  <input type="submit" class="btn btn-primary" ng-click="checkout();" ng-disabled="disableBtn" ng-i18next="[value]label_submit"></input>
   <input type="submit" class="btn btn-default" ng-click="updateCommon();" ng-disabled="disableBtn" ng-i18next="[value]label_update_common;[title]label_update_common_title"></input>
 </form>
 <hr />

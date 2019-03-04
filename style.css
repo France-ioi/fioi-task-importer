@@ -1,0 +1,8 @@
+.form-group.form-group-full,
+.form-group.form-group-full .input-group,
+.form-group.form-group-full .form-control {
+    width: 100%;
+}
+.form-group.form-group-full .input-group-addon {
+    width: 1%;
+}

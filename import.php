@@ -10,6 +10,7 @@ require_once 'config.php';
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title ng-i18next="page_title">LTI SVN task importer</title>
   <link href="bower_components/bootstrap/dist/css/bootstrap.min.css" type="text/css" rel="stylesheet">
+  <link href="style.css" type="text/css" rel="stylesheet">
   <?php
 if($config->localCssUrl) {
   echo '  <link href="' . $config->localCssUrl . '" type="text/css" rel="stylesheet">';
@@ -25,7 +26,7 @@ if($config->localCssUrl) {
   <script type="text/javascript" src="bower_components/pem-platform/task-pr.js"></script>
   <script type="text/javascript" src="importController.js?<?=$config->urlArgs ?>"></script>
   <script type="text/javascript">
-    var config = <?=json_encode(['svnBaseUrl' => $config->svnBaseUrl, 'svnExampleUrl' => $config->svnExampleUrl]) ?>
+    var config = <?=json_encode(['svnBaseUrl' => $config->svnBaseUrl, 'svnExampleUrl' => $config->svnExampleUrl, 'urlArgs' => $config->urlArgs]) ?>
   </script>
 </head>
 <body ng-app="svnImport" ng-controller="importController">
