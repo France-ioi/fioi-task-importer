@@ -153,6 +153,14 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
             params: linkParams});
     };
 
+    $scope.sanitizeInput = function() {
+        function san(val) {
+            return val && val.replace(/\\/g, '/');
+        }
+        $scope.params.svnUrl = san($scope.params.svnUrl);
+        $scope.params.gitPath = san($scope.params.gitPath);
+    };
+
     $scope.updateCommon = function() {
         // Update _common
         $scope.checkoutState = 'checkout_common_update';
@@ -184,6 +192,8 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
             $scope.curLog.state = 'file_cancelled';
             $scope.curID = null;
         }
+
+        $scope.sanitizeInput();
 
         if($scope.repoType == 'svn') {
             $scope.checkoutSvn();
