@@ -5,6 +5,14 @@
 require_once __DIR__.'/../vendor/autoload.php';
 require_once __DIR__.'/../config.php';
 require_once __DIR__.'/../shared/connect.php';
+require_once __DIR__.'/../shared/QuizzeServer.php';
+
+$quizzeServer = null;
+if($config->bebrasServerModules->quizze_url) {
+    $quizzeServer = new QuizzeServer([
+        'url' => $config->bebrasServerModules->quizze_url
+    ]);
+}
 
 function getLastRevision($dir) {
     $status = svn_status($dir, SVN_ALL);
@@ -113,6 +121,12 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon) {
             continue;
         }
         if($isStatic = checkStatic($workingDir.'/files/checkouts/'.$taskDir.'/'.$filename)) {
+            $grader_file = $targetFsDir.'/grader_data.js';
+            if($quizzeServer && file_exists($grader_file)) {
+                $quizzeServer->write($taskSvnDir, $grader_file);
+                unlink($grader_file);
+            }
+
             if(!$taskDirMoved) {
                 // Move task to a static location
                 $targetDir = md5($taskSvnDir). '/' . $taskDirCompl;
