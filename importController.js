@@ -120,8 +120,11 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
         return same;
     };
 
-    $scope.makeUrl = function(url, lang, lti) {
+    $scope.makeUrl = function(url, urlArgs, lang, lti) {
         var args = [];
+        for(var arg in urlArgs) {
+            args.push(arg + '=' + urlArgs[arg]);
+        }
         if(lang == 'en' && $scope.params.localeEn != 'default') {
             args.push('sLocale=' + lang + '_' + $scope.params.localeEn);
         } else if(lang) {
@@ -355,6 +358,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
                 normalUrl: curTask.normalUrl,
                 ltiUrl: curTask.ltiUrl,
                 tokenUrl: curTask.tokenUrl,
+                urlArgs: curTask.urlArgs,
                 foundLangs: []
                 });
             $scope.notifyLink({
@@ -370,6 +374,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
         $scope.logList.unshift({
             type: 'import',
             url: curTask.svnUrl,
+            urlArgs: curTask.urlArgs,
             svnRev: $scope.curRev,
             state: 'task_loading',
             active: true,

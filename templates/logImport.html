@@ -3,16 +3,16 @@
     <h3 class="panel-title">{{ log.url }} <small ng-show="log.svnRev">(rev {{ log.svnRev }})</small></h3>
   </div>
   <div class="panel-body">
-    <p ng-if="log.ltiUrl"><b ng-i18next="task_ltiurl"></b>: <a href="{{ makeUrl(log.ltiUrl) }}" target="_blank">{{ makeUrl(log.ltiUrl, null, true) }}</a></p>
+    <p ng-if="log.ltiUrl"><b ng-i18next="task_ltiurl"></b>: <a href="{{ makeUrl(log.ltiUrl, log.urlArgs) }}" target="_blank">{{ makeUrl(log.ltiUrl, log.urlArgs, null, true) }}</a></p>
     <ul ng-if="log.foundLangs.length > 1">
-      <li ng-repeat="taskLang in log.foundLangs"><span ng-i18next="task_ltiurl_lang"></span> {{ taskLang }} : <a ng-href="{{ makeUrl(log.ltiUrl, taskLang, true) }}" target="_blank">{{ makeUrl(log.ltiUrl, taskLang, true) }}</a></li>
+      <li ng-repeat="taskLang in log.foundLangs"><span ng-i18next="task_ltiurl_lang"></span> {{ taskLang }} : <a ng-href="{{ makeUrl(log.ltiUrl, log.urlArgs, taskLang, true) }}" target="_blank">{{ makeUrl(log.ltiUrl, log.urlArgs, taskLang, true) }}</a></li>
     </ul>
-    <p ng-if="log.normalUrl"><b ng-i18next="task_normalurl"></b>: <a href="{{ log.normalUrl }}" target="_blank">{{ makeUrl(log.normalUrl) }}</a></p>
+    <p ng-if="log.normalUrl"><b ng-i18next="task_normalurl"></b>: <a href="{{ makeUrl(log.normalUrl, log.urlArgs) }}" target="_blank">{{ makeUrl(log.normalUrl, log.urlArgs) }}</a></p>
     <div ng-if="log.tokenUrl && log.foundLangs.length <= 1">
       <p><a class="btn btn-default" href="{{ log.tokenUrl }}" target="_blank" ng-i18next="task_test"></a> <i ng-i18next="task_test_description"></i></p>
     </div>
     <div ng-if="log.tokenUrl && log.foundLangs.length > 1">
-      <span ng-repeat="taskLang in log.foundLangs"><a class="btn btn-default" ng-href="{{ makeUrl(log.tokenUrl, taskLang) }}" target="_blank"><span ng-i18next="task_test_lang"></span> {{ taskLang }}</a> </span>
+      <span ng-repeat="taskLang in log.foundLangs"><a class="btn btn-default" ng-href="{{ makeUrl(log.tokenUrl, log.urlArgs, taskLang) }}" target="_blank"><span ng-i18next="task_test_lang"></span> {{ taskLang }}</a> </span>
       <p><i ng-i18next="task_test_description"></i></p>
     </div>
     <hr ng-if="log.normalUrl" />
@@ -22,7 +22,7 @@
     <hr ng-if="log.files" />
     <div ng-repeat="file in log.files">
       <p><code>{{ file.name }}</code>: <span ng-i18next="{{ file.state }}"></span></p>
-      <p ng-if="file.isStatic"><span ng-i18next="display_static"></span> <a href="{{ file.url }}">{{ file.url }}</a></p>
+      <p ng-if="file.isStatic"><span ng-i18next="display_static"></span> <a href="{{ makeUrl(file.url, log.urlArgs) }}">{{ makeUrl(file.url, log.urlArgs) }}</a></p>
       <p ng-if="file.warnPaths" ng-i18next="display_warnpaths"></p>
       <p ng-if="file.commonRewritten" ng-i18next="display_common_rewritten"></p>
     </div>

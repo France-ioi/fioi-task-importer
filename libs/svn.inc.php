@@ -99,7 +99,7 @@ function checkCommon($path, $depth, $rewriteCommon) {
 }
 
 function processDir($taskDir, $baseSvnFirst, $rewriteCommon) {
-    global $config, $workingDir;
+    global $config, $quizzeServer, $workingDir;
 
     // Remove first component of the path
     $taskDirExpl = explode('/', $taskDir);
@@ -113,6 +113,7 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon) {
 
     $depth = count(array_filter($taskDirExpl, function($path) { return $path != '.'; })) - count(array_filter($taskDirExpl, function($path) { return $path == '..'; }));
 
+    $urlArgs = [];
     foreach($filenames as $filename) {
         if(preg_match('/index.*\.html/', $filename) !== 1) {
             continue;
@@ -121,12 +122,6 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon) {
             continue;
         }
         if($isStatic = checkStatic($workingDir.'/files/checkouts/'.$taskDir.'/'.$filename)) {
-            $grader_file = $targetFsDir.'/grader_data.js';
-            if($quizzeServer && file_exists($grader_file)) {
-                $quizzeServer->write($taskSvnDir, $grader_file);
-                unlink($grader_file);
-            }
-
             if(!$taskDirMoved) {
                 // Move task to a static location
                 $targetDir = md5($taskSvnDir). '/' . $taskDirCompl;
@@ -136,6 +131,14 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon) {
                 rename($workingDir.'/files/checkouts/'.$taskDir, $targetFsDir);
                 $taskDir = $targetDir;
                 $taskDirMoved = true;
+            }
+            $graderFilePath = $targetFsDir.'/grader_data.js';
+            if($quizzeServer && file_exists($graderFilePath)) {
+                // TODO :: fetch the ID from the task JSON
+                $quizzeId = 'quizze-' . md5($taskSvnDir);
+                $quizzeServer->write($quizzeId, $graderFilePath);
+                unlink($graderFilePath);
+                $urlArgs['taskID'] = $quizzeId;
             }
         }
         $newIndex = [
@@ -152,6 +155,7 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon) {
         'svnUrl' => $taskSvnDir,
         'baseUrl' => $config->baseUrl.'/files/checkouts/'.$taskDir.'/',
         'staticUrl' => $config->staticUrl.$taskDir.'/',
+        'urlArgs' => $urlArgs,
         'files' => $indexList
         ];
 
