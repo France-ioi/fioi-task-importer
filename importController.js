@@ -208,7 +208,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
     $scope.checkoutSvn = function() {
         // Checkout the SVN and get the list of tasks
 
-        if(!$scope.params.username || !$scope.params.password) {
+        if((!$scope.params.username || !$scope.params.password) && !$scope.params.token) {
             $scope.showLogin = true;
             $scope.loginRequired = true;
             if(jschannel) { jschannel.notify({method: 'syncError'}); }
