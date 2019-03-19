@@ -2,6 +2,8 @@
 
 class QuizzeServer {
 
+    const JS_PREFIX_REGEXP = '/window.QuizzeGrader.data\s*=\s*/';
+
     protected $options;
 
 
@@ -21,15 +23,21 @@ class QuizzeServer {
     }
 
 
+    private function readCode($file) {
+        $code = file_get_contents($file);
+        $code = preg_replace(self::JS_PREFIX_REGEXP, '', $code, 1);
+        return $code;
+    }
+
+
     public function write($task_id, $grader_data_path) {
         if(!file_exists($grader_data_path)) {
             return false;
         }
-        $data = file_get_contents($grader_data_path);
         $res = $this->sendRequest([
             'action' => 'write',
             'task_id' => $task_id,
-            'data' => $data
+            'data' => $this->readCode($grader_data_path)
         ]);
         return $res && $res['success'];
     }
