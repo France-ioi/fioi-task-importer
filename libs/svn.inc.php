@@ -114,6 +114,7 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon) {
     $depth = count(array_filter($taskDirExpl, function($path) { return $path != '.'; })) - count(array_filter($taskDirExpl, function($path) { return $path == '..'; }));
 
     $urlArgs = [];
+    $hasLti = false;
     foreach($filenames as $filename) {
         if(preg_match('/index.*\.html/', $filename) !== 1) {
             continue;
@@ -139,6 +140,7 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon) {
                 $quizzeServer->write($quizzeId, $graderFilePath);
                 unlink($graderFilePath);
                 $urlArgs['taskID'] = $quizzeId;
+                $hasLti = true;
             }
         }
         $newIndex = [
@@ -156,7 +158,8 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon) {
         'baseUrl' => $config->baseUrl.'/files/checkouts/'.$taskDir.'/',
         'staticUrl' => $config->staticUrl.$taskDir.'/',
         'urlArgs' => $urlArgs,
-        'files' => $indexList
+        'files' => $indexList,
+        'hasLti' => $hasLti
         ];
 
     if(file_exists($workingDir.'/files/checkouts/'.$taskDir.'/ref_lang.txt')) {

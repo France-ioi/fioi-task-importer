@@ -23,6 +23,7 @@
     <div ng-repeat="file in log.files">
       <p><code>{{ file.name }}</code>: <span ng-i18next="{{ file.state }}"></span></p>
       <p ng-if="file.isStatic"><span ng-i18next="display_static"></span> <a href="{{ makeUrl(file.url, log.urlArgs) }}">{{ makeUrl(file.url, log.urlArgs) }}</a></p>
+      <p ng-if="file.isStatic && log.hasLti"><b ng-i18next="task_ltiurl"></b>: <a href="{{ makeLtiUrl(file.url, log.urlArgs) }}">{{ makeLtiUrl(file.url, log.urlArgs) }}</a></p>
       <p ng-if="file.warnPaths" ng-i18next="display_warnpaths"></p>
       <p ng-if="file.commonRewritten" ng-i18next="display_common_rewritten"></p>
     </div>

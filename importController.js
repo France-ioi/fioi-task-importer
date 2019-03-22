@@ -123,7 +123,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
     $scope.makeUrl = function(url, urlArgs, lang, lti) {
         var args = [];
         for(var arg in urlArgs) {
-            args.push(arg + '=' + urlArgs[arg]);
+            args.push(arg + '=' + encodeURIComponent(urlArgs[arg]));
         }
         if(lang == 'en' && $scope.params.localeEn != 'default') {
             args.push('sLocale=' + lang + '_' + $scope.params.localeEn);
@@ -142,6 +142,11 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
             url += args.join('&');
         }
         return url;
+    };
+
+    $scope.makeLtiUrl = function(url, urlArgs) {
+        var taskUrl = $scope.makeUrl(url, urlArgs);
+        return $scope.makeUrl("https://lti.algorea.org/", {taskUrl: taskUrl}, null, true);
     };
 
     $scope.getTemplate = function(log) {
@@ -357,6 +362,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
                 active: true,
                 normalUrl: curTask.normalUrl,
                 ltiUrl: curTask.ltiUrl,
+                hasLti: curTask.hasLti,
                 tokenUrl: curTask.tokenUrl,
                 urlArgs: curTask.urlArgs,
                 foundLangs: []
@@ -375,6 +381,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
             type: 'import',
             url: curTask.svnUrl,
             urlArgs: curTask.urlArgs,
+            hasLti: curTask.hasLti,
             svnRev: $scope.curRev,
             state: 'task_loading',
             active: true,
