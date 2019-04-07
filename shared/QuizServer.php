@@ -1,8 +1,8 @@
 <?php
 
-class QuizzeServer {
+class QuizServer {
 
-    const JS_PREFIX_REGEXP = '/window.QuizzeGrader.data\s*=\s*/';
+    const JS_PREFIX_REGEXP = '/window.QuizGrader.data\s*=\s*/';
 
     protected $options;
 

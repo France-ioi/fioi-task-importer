@@ -43,7 +43,7 @@ $config->aws->finalBucket->name = '';
 //$config->taskEditorApi = 'http://localhost:8080/api';
 
 $config->bebrasServerModules = (object) array();
-$config->bebrasServerModules->quizze_url = null;
+$config->bebrasServerModules->quiz_url = null;
 
 if (is_readable(__DIR__.'/config_local.php')) {
    include_once __DIR__.'/config_local.php';

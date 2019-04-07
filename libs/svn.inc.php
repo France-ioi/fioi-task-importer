@@ -5,12 +5,12 @@
 require_once __DIR__.'/../vendor/autoload.php';
 require_once __DIR__.'/../config.php';
 require_once __DIR__.'/../shared/connect.php';
-require_once __DIR__.'/../shared/QuizzeServer.php';
+require_once __DIR__.'/../shared/QuizServer.php';
 
-$quizzeServer = null;
-if($config->bebrasServerModules->quizze_url) {
-    $quizzeServer = new QuizzeServer([
-        'url' => $config->bebrasServerModules->quizze_url
+$quizServer = null;
+if($config->bebrasServerModules->quiz_url) {
+    $quizServer = new QuizServer([
+        'url' => $config->bebrasServerModules->quiz_url
     ]);
 }
 
@@ -99,7 +99,7 @@ function checkCommon($path, $depth, $rewriteCommon) {
 }
 
 function processDir($taskDir, $baseSvnFirst, $rewriteCommon) {
-    global $config, $quizzeServer, $workingDir;
+    global $config, $quizServer, $workingDir;
 
     // Remove first component of the path
     $taskDirExpl = explode('/', $taskDir);
@@ -134,12 +134,12 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon) {
                 $taskDirMoved = true;
             }
             $graderFilePath = $targetFsDir.'/grader_data.js';
-            if($quizzeServer && file_exists($graderFilePath)) {
+            if($quizServer && file_exists($graderFilePath)) {
                 // TODO :: fetch the ID from the task JSON
-                $quizzeId = 'quizze-' . md5($taskSvnDir);
-                $quizzeServer->write($quizzeId, $graderFilePath);
+                $quizId = 'quiz-' . md5($taskSvnDir);
+                $quizServer->write($quizId, $graderFilePath);
                 unlink($graderFilePath);
-                $urlArgs['taskID'] = $quizzeId;
+                $urlArgs['taskID'] = $quizId;
                 $hasLti = true;
             }
         }
