@@ -141,6 +141,8 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon) {
                 unlink($graderFilePath);
                 $urlArgs['taskID'] = $quizId;
                 $hasLti = true;
+                $isQuiz = true;
+                $quizFilename = $filename;
             }
         }
         $newIndex = [
@@ -161,6 +163,10 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon) {
         'files' => $indexList,
         'hasLti' => $hasLti
         ];
+
+    if(isset($quizFilename)) {
+        $taskData['tokenUrl'] = addToken($config->staticUrl.$taskDir.'/'.$quizFilename.'?taskID='.$quizId);
+    }
 
     if(file_exists($workingDir.'/files/checkouts/'.$taskDir.'/ref_lang.txt')) {
         $taskData['refLang'] = trim(file_get_contents($workingDir.'/files/checkouts/'.$taskDir.'/ref_lang.txt'));

@@ -47,6 +47,7 @@ function generateToken($url) {
       'idUser' => 0,
       'idItemLocal' => 0,
       'itemUrl' => $url,
+      'randomSeed' => 0,
       'bHasSolvedTask' => false,
       'bTestMode' => true,
     );

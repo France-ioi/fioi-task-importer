@@ -382,6 +382,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
             url: curTask.svnUrl,
             urlArgs: curTask.urlArgs,
             hasLti: curTask.hasLti,
+            tokenUrl: curTask.tokenUrl,
             svnRev: $scope.curRev,
             state: 'task_loading',
             active: true,

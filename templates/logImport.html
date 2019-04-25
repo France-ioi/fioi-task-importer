@@ -27,5 +27,8 @@
       <p ng-if="file.warnPaths" ng-i18next="display_warnpaths"></p>
       <p ng-if="file.commonRewritten" ng-i18next="display_common_rewritten"></p>
     </div>
+    <div ng-if="log.tokenUrl && !log.foundLangs">
+      <p><a class="btn btn-default" ng-href="{{ makeUrl(log.tokenUrl, log.urlArgs) }}" target="_blank" ng-i18next="task_test"></a> <i ng-i18next="task_test_description"></i></p>
+    </div>
   </div>
 </div>
