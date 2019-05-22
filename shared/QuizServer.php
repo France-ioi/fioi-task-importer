@@ -2,7 +2,7 @@
 
 class QuizServer {
 
-    const JS_PREFIX_REGEXP = '/window.QuizGrader.data\s*=\s*/';
+    const JS_PREFIX_REGEXP = '/window.Quiz.grader.data\s*=\s*/';
 
     protected $options;
 
