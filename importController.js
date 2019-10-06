@@ -297,6 +297,11 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
 
         localStorage.setItem('gitUrl', $scope.params.gitUrl);
 
+        if($scope.params.gitRemember) {
+            localStorage.setItem('gitUsername', $scope.params.gitUsername);
+            localStorage.setItem('gitPassword', $scope.params.gitPassword);
+        }
+
         function onFail(res) {
             $scope.checkoutState = 'checkout_error';
             $scope.checkoutMsg = res.data.error;
@@ -384,6 +389,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
             hasLti: curTask.hasLti,
             tokenUrl: curTask.tokenUrl,
             svnRev: $scope.curRev,
+            taskPath: curTask.taskPath,
             state: 'task_loading',
             active: true,
             files: []
@@ -505,11 +511,13 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
         $scope.logList[0].foundLangsStr = foundLangs.join(', ');
 
         $scope.logList[0].state = 'task_sending';
+        var curRev = $scope.curRev ? $scope.curRev : Math.floor((new Date()).getTime() / 1000);
         $http.post('savesvn.php', {
             action: 'saveResources',
             data: $scope.curData,
-            svnRev: $scope.curRev,
+            svnRev: curRev,
             svnUrl: $scope.curTask.svnUrl,
+            taskPath: $scope.curTask.taskPath,
             dirPath: $scope.curTask.dirPath
             }).then(function(res) {
                 // Success!
@@ -566,6 +574,14 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
             $scope.params.remember = true;
         }
 
+        if(localStorage.getItem('gitUsername')) {
+            $scope.params.gitUsername = localStorage.getItem('gitUsername');
+            if(localStorage.getItem('gitPassword')) {
+                $scope.params.gitPassword = localStorage.getItem('gitPassword');
+            }
+            $scope.params.gitRemember = true;
+        }
+
         // Handle GET arguments
         if(QueryString.path) { $scope.params.svnUrl = QueryString.path; }
         if(QueryString.username) { $scope.params.username = QueryString.username; }
@@ -587,7 +603,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
     $scope.initParams();
 
     $scope.bindChannel = function() {
-        if(!jschannel) { return; }
+        if(!window.jschannel) { return; }
         jschannel.bind('syncRepository', function() {
             $scope.$apply($scope.checkoutSvn);
             });

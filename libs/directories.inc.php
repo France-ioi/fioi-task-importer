@@ -20,6 +20,26 @@ function deleteRecDirectory($dir) {
     rmdir($dir);
 }
 
+function zipAdd($zip, $curPath, $curPrefix) {
+    // Recursive part of zipDirectory
+    foreach(scandir($curPath) as $elem) {
+        if(!is_dir($curPath . $elem)) {
+            $zip->addFile($curPath . $elem, $curPrefix . $elem);
+        } elseif($elem != '.' && $elem != '..' && $elem != '.svn') {
+            $zip->addEmptyDir($curPrefix . $elem);
+            zipAdd($zip, $curPath . $elem . '/', $curPrefix . $elem . '/');
+        }
+    }
+}
+
+function zipDirectory($zipPath, $dirPath, $prefix) {
+    // Make a zip of $dirPath in $zipPath, replacing setting $prefix as the base folder
+    $zip = new ZipArchive();
+    $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
+    zipAdd($zip, $dirPath, $prefix);
+    $zip->close();
+}
+
 function deleteDirectory($path) {
     global $workingDir;
 

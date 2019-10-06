@@ -37,9 +37,9 @@ function setSvnParameters($user, $password) {
 function listTaskDirs($dir, $recursive) {
     global $workingDir;
 
-    $filenames = scandir($workingDir.'/files/checkouts/'.$dir.'/');
+    $filenames = scandir(pathJoin($workingDir, 'files/checkouts/', $dir.'/'));
     foreach($filenames as $filename) {
-        if(preg_match('/^index.*\.html/', $filename) === 1 && file_exists($workingDir.'/files/checkouts/'.$dir.'/'.$filename)) {
+        if(preg_match('/^index.*\.html/', $filename) === 1 && file_exists(pathJoin($workingDir, 'files/checkouts/', $dir, $filename))) {
             return array($dir);
         }
     }
@@ -50,9 +50,9 @@ function listTaskDirs($dir, $recursive) {
     }
 
     $taskDirs = array();
-    foreach(scandir($workingDir.'/files/checkouts/'.$dir) as $elem) {
-        $elemPath = $dir.'/'.$elem;
-        if(is_dir($workingDir.'/files/checkouts/'.$elemPath) && $elem != '.' && $elem != '..') {
+    foreach(scandir(pathJoin($workingDir, 'files/checkouts/', $dir)) as $elem) {
+        $elemPath = pathJoin($dir, $elem);
+        if(is_dir(pathJoin($workingDir, 'files/checkouts/', $elemPath)) && $elem != '.' && $elem != '..') {
             $taskDirs = array_merge($taskDirs, listTaskDirs($elemPath, $filenames, $recursive));
         }
     }
@@ -98,18 +98,19 @@ function checkCommon($path, $depth, $rewriteCommon) {
     return $wrong;
 }
 
-function processDir($taskDir, $baseSvnFirst, $rewriteCommon) {
+function processDir($taskDir, $baseSvnFirst, $rewriteCommon, $isGit) {
     global $config, $quizServer, $workingDir;
 
     // Remove first component of the path
     $taskDirExpl = explode('/', $taskDir);
     $taskDirCompl = implode('/', array_slice($taskDirExpl, 1));
-    $taskSvnDir = $baseSvnFirst . '/' . $taskDirCompl;
+    $taskSvnDir = pathJoin($baseSvnFirst, $taskDirCompl);
+    $taskId = md5($taskSvnDir);
 
     $indexList = [];
     $taskDirMoved = false;
 
-    $filenames = scandir($workingDir.'/files/checkouts/'.$taskDir.'/');
+    $filenames = scandir(pathJoin($workingDir, 'files/checkouts/', $taskDir.'/'));
 
     $depth = count(array_filter($taskDirExpl, function($path) { return $path != '.'; })) - count(array_filter($taskDirExpl, function($path) { return $path == '..'; }));
 
@@ -125,7 +126,7 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon) {
         if($isStatic = checkStatic($workingDir.'/files/checkouts/'.$taskDir.'/'.$filename)) {
             if(!$taskDirMoved) {
                 // Move task to a static location
-                $targetDir = md5($taskSvnDir). '/' . $taskDirCompl;
+                $targetDir = $taskId . '/' . $taskDirCompl;
                 $targetFsDir = $workingDir.'/files/checkouts/'.$targetDir;
                 mkdir($targetFsDir, 0777, true);
                 deleteRecDirectory($targetFsDir);
@@ -136,7 +137,7 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon) {
             $graderFilePath = $targetFsDir.'/grader_data.js';
             if($quizServer && file_exists($graderFilePath)) {
                 // TODO :: fetch the ID from the task JSON
-                $quizId = 'quiz-' . md5($taskSvnDir);
+                $quizId = 'quiz-' . $taskId;
                 $quizServer->write($quizId, $graderFilePath);
                 unlink($graderFilePath);
                 $urlArgs['taskID'] = $quizId;
@@ -153,6 +154,7 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon) {
         $newIndex[$rewriteCommon ? 'commonRewritten' : 'warnPaths'] = checkCommon($workingDir.'/files/checkouts/'.$taskDir.'/'.$filename, $depth, $rewriteCommon);
         $indexList[] = $newIndex;
     }
+
     $taskData = [
         'dirPath' => $taskDir,
         'ID' => $taskDir,
@@ -163,6 +165,13 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon) {
         'files' => $indexList,
         'hasLti' => $hasLti
         ];
+
+    if($isGit) {
+        zipDirectory($config->zipDir . $taskId . '.zip', pathJoin($workingDir, 'files/checkouts/', $taskDir.'/'), '');
+        $taskData['taskPath'] = 'zip:' . $taskId;
+    } else {
+        $taskData['taskPath'] = '$ROOT_PATH/'.$taskSvnDir;
+    }
 
     if(isset($quizFilename)) {
         $taskData['tokenUrl'] = addToken($config->staticUrl.$taskDir.'/'.$quizFilename.'?taskID='.$quizId);
@@ -205,7 +214,7 @@ function updateLocalCommon($subdir, $user, $password) {
     $localCommonTargetDir = $localCommonExists ? $localCommonDir . '_new' : $localCommonDir;
     mkdir($localCommonTargetDir, 0777, true);
     try {
-        svn_checkout($config->svnBaseUrl.$localCommonSvn, $localCommonTargetDir);
+        @svn_checkout($config->svnBaseUrl.$localCommonSvn, $localCommonTargetDir);
         if($localCommonExists) {
             deleteRecDirectory($localCommonDir);
             rename($localCommonTargetDir, $localCommonDir);

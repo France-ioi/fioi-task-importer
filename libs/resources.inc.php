@@ -22,9 +22,8 @@ function saveLimits($taskId, $limits) {
     }
 }
 
-function saveTask($metadata, $subdir, $revision, $resources) {
+function saveTask($metadata, $sTaskPath, $subdir, $revision, $resources) {
     global $db;
-    $sTaskPath = '$ROOT_PATH/'.$subdir;
     $stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
     $stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
     $ID = $stmt->fetchColumn();
@@ -253,7 +252,7 @@ function saveSubtasks($taskId, $metadata) {
     }
 }
 
-function saveResources($data, $subdir, $revision, $dirPath) {
+function saveResources($data, $sTaskPath, $subdir, $revision, $dirPath) {
     global $config, $db;
     $subdir = trim($subdir);
     $subdir = trim($subdir, '/');
@@ -266,7 +265,7 @@ function saveResources($data, $subdir, $revision, $dirPath) {
     }
     $textId = $metadata['id'];
     // save task to get ID
-    list($taskId, $alreadyImported) = saveTask($metadata, $subdir, $revision, $resources);
+    list($taskId, $alreadyImported) = saveTask($metadata, $sTaskPath, $subdir, $revision, $resources);
     if(!$alreadyImported) {
         // limits
         saveLimits($taskId, $metadata['limits']);

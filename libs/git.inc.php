@@ -5,9 +5,11 @@
 require_once __DIR__.'/../vendor/autoload.php';
 require_once __DIR__.'/../config.php';
 require_once __DIR__.'/../shared/connect.php';
+require_once __DIR__.'/funcs.inc.php';
 require_once __DIR__.'/svn.inc.php';
+require_once __DIR__.'/urls.inc.php';
 
-function checkoutGit($repo, $subpath, $recursive, $noimport, $rewriteCommon) {
+function checkoutGit($repo, $subpath, $username, $password, $recursive, $noimport, $rewriteCommon) {
     global $config, $db, $workingDir;
 
     if($noimport || $recursive && $noimport) {
@@ -21,14 +23,16 @@ function checkoutGit($repo, $subpath, $recursive, $noimport, $rewriteCommon) {
     }
 
     $baseTargetDir = $baseTargetDir = mt_rand(100000, mt_getrandmax());
-    $subDir = $baseTargetDir . '/' . $subpath;
+    $subDir = pathJoin($baseTargetDir, $subpath);
 
-    // Create target checkout directory
-    //mkdir($workingDir.'/files/repositories/'.$baseTargetDir, 0777, true);
+    $repoParse = parse_url($repo);
+    if($username) { $repoParse['user'] = $username; }
+    if($password) { $repoParse['pass'] = $password; }
+    $repoUrl = unparse_url($repoParse);
 
     $success = true;
     try {
-        exec("git clone " . $repo . " " . $workingDir.'/files/checkouts/'.$baseTargetDir);
+        exec("git clone " . $repoUrl . " " . pathJoin($workingDir, 'files/checkouts/', $baseTargetDir));
     } catch (Exception $e) {
         die(json_encode(['success' => false, 'error' => $e->getMessage()]));
     }
@@ -36,7 +40,7 @@ function checkoutGit($repo, $subpath, $recursive, $noimport, $rewriteCommon) {
     $tasks = array();
     $taskDirs = listTaskDirs($subDir, $recursive);
     foreach($taskDirs as $taskDir) {
-        $newTaskData = processDir($taskDir, $repo . '/' . $subpath, true);
+        $newTaskData = processDir($taskDir, pathJoin($repo, $subpath), true, true);
         if(count($newTaskData['files']) > 0) {
             $tasks[] = $newTaskData;
         }

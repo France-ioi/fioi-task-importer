@@ -49,12 +49,23 @@
           </div>
           <div ng-show="repoType == 'git'">
             <div class="form-group form-group-full">
-              <label for="svnUrl" ng-i18next="label_giturl"></label><br>
+              <label for="gitUrl" ng-i18next="label_giturl"></label><br>
               <input type="text" class="form-control" id="gitUrl" name="gitUrl" placeholder="https://github.com/..." ng-model="params.gitUrl" value="https://github.com/France-ioi/bebras-tasks">
             </div><br>
             <div class="form-group form-group-full">
-              <label for="svnRev" ng-i18next="label_gitpath"></label><br>
+              <label for="gitPath" ng-i18next="label_gitpath"></label><br>
               <input type="text" class="form-control" name="gitPath" placeholder="path/to/task/" ng-model="params.gitPath" value="module_testing/test-responsive-interface">
+            </div><br>
+            <div class="form-group form-group-full">
+              <label for="gitUsername" ng-i18next="label_username"></label><br>
+              <input type="text" class="form-control" id="gitUsername" name="gitUsername" ng-model="params.gitUsername">
+            </div><br>
+            <div class="form-group form-group-full">
+              <label for="gitPassword" ng-i18next="label_password"></label><br>
+              <input type="password" class="form-control" id="gitPassword" name="gitPassword" ng-model="params.gitPassword">
+            </div><br>
+            <div class="checkbox">
+              <input type="checkbox" name="gitRemember" ng-model="params.gitRemember"> <span ng-i18next="label_remember"></span>
             </div><br>
           </div>
         </div>

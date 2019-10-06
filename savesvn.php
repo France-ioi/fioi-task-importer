@@ -1,14 +1,16 @@
 <?php
 
-ini_set('display_errors', 0);
-ini_set('display_startup_errors', 1);
-error_reporting(0);
-
 $workingDir = __DIR__;
 
 require_once 'vendor/autoload.php';
 require_once 'config.php';
 require_once 'shared/taskEditor.php';
+
+if(!$config->debug) {
+    ini_set('display_errors', 0);
+    ini_set('display_startup_errors', 1);
+    error_reporting(0);
+}
 
 require_once 'libs/directories.inc.php';
 require_once 'libs/git.inc.php';
@@ -33,6 +35,7 @@ if ($request['action'] == 'checkoutSvn' || $request['action'] == 'checkoutGit' |
 
     $user = $request['username'] ? $request['username'] : $config->defaultSvnUser;
     $password = $request['password'] ? $request['password'] : $config->defaultSvnPassword;
+    $svnRev = isset($request['svnRev']) ? $request['svnRev'] : '';
 
     if(isset($request['token'])) {
         $credentials = userCredentials($request['token']);
@@ -45,17 +48,20 @@ if ($request['action'] == 'checkoutSvn' || $request['action'] == 'checkoutGit' |
     if($request['action'] == 'checkoutSvn') {
         checkoutSvn($request['svnUrl'], $user, $password, $svnRev, isset($request['recursive']) && $request['recursive'], isset($request['noimport']) && $request['noimport'], isset($request['rewritecommon']) && $request['rewritecommon']);
     } elseif($request['action'] == 'checkoutGit') {
-        checkoutGit($request['gitUrl'], $request['gitPath'], isset($request['recursive']) && $request['recursive'], isset($request['noimport']) && $request['noimport'], isset($request['rewritecommon']) && $request['rewritecommon']);
+        $user = isset($request['gitUsername']) ? $request['gitUsername'] : null;
+        $password = isset($request['gitPassword']) ? $request['gitPassword'] : null;
+        $gitPath = isset($request['gitPath']) && $request['gitPath'] || '';
+        checkoutGit($request['gitUrl'], $gitPath, $user, $password, isset($request['recursive']) && $request['recursive'], isset($request['noimport']) && $request['noimport'], isset($request['rewritecommon']) && $request['rewritecommon']);
     } elseif($request['action'] == 'updateCommon') {
         echo json_encode(updateCommon($user, $password));
     } elseif($request['action'] == 'updateLocalCommon') {
         echo json_encode(updateLocalCommon($request['svnUrl'], $user, $password));
     }
 } elseif ($request['action'] == 'saveResources') {
-    if (!isset($request['data']) || !isset($request['svnUrl']) || !isset($request['svnRev'])) {
+    if (!isset($request['data']) || !isset($request['svnUrl']) || !isset($request['taskPath'])) {
         die(json_encode(['success' => false, 'error' => 'error_request']));
     }
-    saveResources($request['data'], $request['svnUrl'], $request['svnRev'], $request['dirPath']);
+    saveResources($request['data'], $request['taskPath'], $request['svnUrl'], $request['svnRev'], $request['dirPath']);
 } elseif ($request['action'] == 'deletedirectory') {
     if (!isset($request['ID'])) {
         die(json_encode(['success' => false, 'error' => 'error_request']));
