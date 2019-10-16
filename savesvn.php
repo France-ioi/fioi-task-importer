@@ -33,24 +33,28 @@ if ($request['action'] == 'checkoutSvn' || $request['action'] == 'checkoutGit' |
         die(json_encode(['success' => false, 'error' => 'error_request']));
     }
 
-    $user = $request['username'] ? $request['username'] : $config->defaultSvnUser;
-    $password = $request['password'] ? $request['password'] : $config->defaultSvnPassword;
     $svnRev = isset($request['svnRev']) ? $request['svnRev'] : '';
 
     if(isset($request['token'])) {
         $credentials = userCredentials($request['token']);
+    }
+
+    if($request['action'] == 'checkoutSvn') {
+        $user = $request['username'] ? $request['username'] : $config->defaultSvnUser;
+        $password = $request['password'] ? $request['password'] : $config->defaultSvnPassword;
         if($credentials !== false) {
             $user = $credentials['username'];
             $password = $credentials['password'];
         }
-    }
-
-    if($request['action'] == 'checkoutSvn') {
         checkoutSvn($request['svnUrl'], $user, $password, $svnRev, isset($request['recursive']) && $request['recursive'], isset($request['noimport']) && $request['noimport'], isset($request['rewritecommon']) && $request['rewritecommon']);
     } elseif($request['action'] == 'checkoutGit') {
         $user = isset($request['gitUsername']) ? $request['gitUsername'] : null;
         $password = isset($request['gitPassword']) ? $request['gitPassword'] : null;
-        $gitPath = isset($request['gitPath']) && $request['gitPath'] || '';
+        $gitPath = isset($request['gitPath']) ? $request['gitPath'] : '';
+        if($credentials !== false) {
+            $user = $credentials['username'];
+            $password = $credentials['password'];
+        }
         checkoutGit($request['gitUrl'], $gitPath, $user, $password, isset($request['recursive']) && $request['recursive'], isset($request['noimport']) && $request['noimport'], isset($request['rewritecommon']) && $request['rewritecommon']);
     } elseif($request['action'] == 'updateCommon') {
         echo json_encode(updateCommon($user, $password));

@@ -22,7 +22,7 @@ function checkoutGit($repo, $subpath, $username, $password, $recursive, $noimpor
         return;
     }
 
-    $baseTargetDir = $baseTargetDir = mt_rand(100000, mt_getrandmax());
+    $baseTargetDir = mt_rand(100000, mt_getrandmax());
     $subDir = pathJoin($baseTargetDir, $subpath);
 
     $repoParse = parse_url($repo);

@@ -1,4 +1,5 @@
-<form ng-show="showLogin" class="form-inline" role="form" id="svn_form">
+<button ng-show="showLogin" class="btn btn-default" ng-click="displayFull();" ng-i18next="label_display_full"></button>
+<!--<form ng-show="showLogin" class="form-inline" role="form" id="svn_form">
   <div class="panel panel-primary">
     <div class="panel-heading">
       <b ng-i18next="panel_svn_frame"></b>
@@ -19,13 +20,17 @@
       <input type="submit" class="btn btn-default" ng-click="updateCommon();" ng-i18next="[value]label_update_common;[title]label_update_common_title"></input>
     </div>
   </div>
-</form>
+</form>-->
 <div class="well well-sm">
   <b>Options :</b>
-  <span ng-hide="showLogin">
+  <span ng-show="params.type == 'svn' && showLogin">
     <span ng-i18next="label_svnurl"></span> {{ params.svnUrl }}
     <span ng-show="params.svnRev">@ {{ params.svnRev }}</span> &bull;
     <span ng-i18next="label_username"></span> {{ params.username }} &bull;
+  </span>
+  <span ng-show="params.type == 'git' && showLogin">
+    <span ng-i18next="label_giturl"></span> {{ params.gitUrl }}
+    <span ng-show="params.gitPath">&bull; {{ params.gitPath }}</span> &bull;
   </span>
   <span ng-show="params.recursive"><span ng-i18next="label_recimport_short"></span> &bull;</span>
   <span ng-show="params.noimport"><span ng-i18next="label_noimport_short"></span> &bull;</span>

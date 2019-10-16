@@ -34,18 +34,19 @@
             <div class="form-group" ng-class="loginRequired && !params.username && 'has-error'" ng-show="!params.token">
               <label for="username" class="control-label" ng-i18next="label_username"></label><br>
               <input type="text" class="form-control" name="username" ng-model="params.username">
-            </div><br>
+            </div><br ng-show="!params.token">
             <div class="form-group" ng-class="loginRequired && !params.password && 'has-error'" ng-show="!params.token">
               <label for="password" class="control-label" ng-i18next="label_password"></label><br>
               <input type="password" class="form-control" name="password" ng-model="params.password">
-            </div><br>
+            </div><br ng-show="!params.token">
             <div class="checkbox" ng-show="!params.token">
               <input type="checkbox" name="remember" ng-model="params.remember"> <span ng-i18next="label_remember"></span>
-            </div><br ng-show="!params.token">
+            </div>
             <div class="form-group" ng-show="params.token">
               <label for="removeTokenBtn" ng-i18next="label_token"></label><br>
               <button name="removeTokenBtn" class="form-control" name="removeTokenBtn" ng-click="removeToken();" ng-i18next="label_token_remove"></button>
-            </div><br ng-show="params.token">
+            </div>
+            <br>
           </div>
           <div ng-show="repoType == 'git'">
             <div class="form-group form-group-full">
@@ -56,17 +57,22 @@
               <label for="gitPath" ng-i18next="label_gitpath"></label><br>
               <input type="text" class="form-control" name="gitPath" placeholder="path/to/task/" ng-model="params.gitPath" value="module_testing/test-responsive-interface">
             </div><br>
-            <div class="form-group form-group-full">
+            <div class="form-group form-group-full" ng-show="!params.token">
               <label for="gitUsername" ng-i18next="label_username"></label><br>
               <input type="text" class="form-control" id="gitUsername" name="gitUsername" ng-model="params.gitUsername">
-            </div><br>
-            <div class="form-group form-group-full">
+            </div><br ng-show="!params.token">
+            <div class="form-group form-group-full" ng-show="!params.token">
               <label for="gitPassword" ng-i18next="label_password"></label><br>
               <input type="password" class="form-control" id="gitPassword" name="gitPassword" ng-model="params.gitPassword">
-            </div><br>
-            <div class="checkbox">
+            </div><br ng-show="!params.token">
+            <div class="checkbox" ng-show="!params.token">
               <input type="checkbox" name="gitRemember" ng-model="params.gitRemember"> <span ng-i18next="label_remember"></span>
-            </div><br>
+            </div>
+            <div class="form-group" ng-show="params.token">
+              <label for="removeTokenBtn" ng-i18next="label_token"></label><br>
+              <button name="removeTokenBtn" class="form-control" name="removeTokenBtn" ng-click="removeToken();" ng-i18next="label_token_remove"></button>
+            </div>
+            <br>
           </div>
         </div>
       </div>
