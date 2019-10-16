@@ -35,6 +35,7 @@ if ($request['action'] == 'checkoutSvn' || $request['action'] == 'checkoutGit' |
 
     $svnRev = isset($request['svnRev']) ? $request['svnRev'] : '';
 
+    $credentials = false;
     if(isset($request['token'])) {
         $credentials = userCredentials($request['token']);
     }
