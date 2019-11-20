@@ -151,7 +151,10 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon, $isGit) {
             'isStatic' => $isStatic,
             'depth' => $depth
             ];
-        $newIndex[$rewriteCommon ? 'commonRewritten' : 'warnPaths'] = checkCommon($workingDir.'/files/checkouts/'.$taskDir.'/'.$filename, $depth, $rewriteCommon);
+        $commonCheck = checkCommon($workingDir.'/files/checkouts/'.$taskDir.'/'.$filename, $depth, $rewriteCommon);
+        if(!$isGit) {
+            $newIndex[$rewriteCommon ? 'commonRewritten' : 'warnPaths'] = $commonCheck;
+        }
         $indexList[] = $newIndex;
     }
 

@@ -583,10 +583,10 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
         }
 
         // Handle GET arguments
-        if(QueryString.type) { $scope.params.repoType = QueryString.type == 'git' ? 'git' : 'svn'; }
+        if(QueryString.type) { $scope.repoType = QueryString.type == 'git' ? 'git' : 'svn'; }
         if(QueryString.repo) { $scope.params.gitUrl = QueryString.repo; }
         if(QueryString.path) {
-            if($scope.params.repoType == 'git') {
+            if($scope.repoType == 'git') {
                 $scope.params.gitPath = QueryString.path;
             } else {
                 $scope.params.svnUrl = QueryString.path;
