@@ -42,8 +42,26 @@ function saveTask($metadata, $sTaskPath, $subdir, $revision, $resources) {
             break;
         }
     }
-    $stmt = $db->prepare('insert into tm_tasks (sTextId, sSupportedLangProg, sEvalTags, sAuthor, bUserTests, sTaskPath, sRevision, sEvalResultOutputScript, sScriptAnimation) values (:id, :langprog, :evaltags, :authors, :bUserTests, :sTaskPath, :revision, :sEvalResultOutputScript, :sScriptAnimation) on duplicate key update sSupportedLangProg = values(sSupportedLangProg), sAuthor = values(sAuthor), bUserTests = values(bUserTests), sTaskPath = values(sTaskPath), sRevision = values(sRevision), sEvalResultOutputScript = values(sEvalResultOutputScript), sScriptAnimation = values(sScriptAnimation);');
-    $stmt->execute(['id' => $metadata['id'], 'langprog' => $sSupportedLangProg, 'evaltags' => $sEvalTags, 'authors' => $authors, 'bUserTests' => $bUserTests, 'sTaskPath' => $sTaskPath, 'revision' => $revision, 'sEvalResultOutputScript' => $sEvalResultOutputScript, 'sScriptAnimation' => $sScriptAnimation]);
+    $bHasSubtasks = isset($metadata['subtasks']);
+    $stmt = $db->prepare("
+        INSERT INTO tm_tasks
+        (sTextId, sSupportedLangProg, sEvalTags, sAuthor, bUserTests, sTaskPath, sRevision, sEvalResultOutputScript, sScriptAnimation, bHasSubtasks)
+        VALUES (:id, :langprog, :evaltags, :authors, :bUserTests, :sTaskPath, :revision, :sEvalResultOutputScript, :sScriptAnimation, :bHasSubtasks)
+        ON DUPLICATE KEY UPDATE
+        sSupportedLangProg = VALUES(sSupportedLangProg), sAuthor = VALUES(sAuthor), bUserTests = VALUES(bUserTests), sTaskPath = VALUES(sTaskPath), sRevision = VALUES(sRevision), sEvalResultOutputScript = VALUES(sEvalResultOutputScript), sScriptAnimation = VALUES(sScriptAnimation), bHasSubtasks = VALUES(bHasSubtasks);
+        ");
+    $stmt->execute([
+        'id' => $metadata['id'],
+        'langprog' => $sSupportedLangProg,
+        'evaltags' => $sEvalTags,
+        'authors' => $authors,
+        'bUserTests' => $bUserTests,
+        'sTaskPath' => $sTaskPath,
+        'revision' => $revision,
+        'sEvalResultOutputScript' => $sEvalResultOutputScript,
+        'sScriptAnimation' => $sScriptAnimation,
+        'bHasSubtasks' => $bHasSubtasks
+        ]);
     $stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
     $stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
     $taskId = $stmt->fetchColumn();
