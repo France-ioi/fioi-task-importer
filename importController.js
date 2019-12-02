@@ -497,8 +497,9 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
             var newLang = data.metadata['language'];
             if(foundLangs.indexOf(newLang) > -1) {
                 $scope.logList[0].doubleLang = true;
+            } else {
+                foundLangs.push(newLang);
             }
-            foundLangs.push(newLang);
 
             // Determine which file is the reference
             if($scope.curTask.refLang && data.metadata['language'] == $scope.curTask.refLang) {
