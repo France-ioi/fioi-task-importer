@@ -42,7 +42,7 @@ function checkoutGit($repo, $subpath, $username, $password, $recursive, $noimpor
     $tasks = array();
     $taskDirs = listTaskDirs($subDir, $recursive);
     foreach($taskDirs as $taskDir) {
-        $newTaskData = processDir($taskDir, pathJoin($repo, $subpath), true, true);
+        $newTaskData = processDir($taskDir, $repo, true, true);
         if(count($newTaskData['files']) > 0) {
             $tasks[] = $newTaskData;
         }

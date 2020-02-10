@@ -14,6 +14,8 @@
     "label_svnrev": "Révision SVN à importer (laisser vide pour HEAD) :",
     "label_username": "Utilisateur SVN :",
     "label_password": "Mot de passe SVN :",
+    "label_git_username": "Utilisateur Git :",
+    "label_git_password": "Mot de passe Git :",
     "label_remember": "Se souvenir de moi",
     "label_giturl": "Dépôt Git :",
     "label_gitpath": "Chemin au sein du dépôt Git :",
