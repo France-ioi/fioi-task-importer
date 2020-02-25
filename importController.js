@@ -419,7 +419,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
             curLog.warnPaths = curFile.warnPaths;
             curLog.commonRewritten = curFile.commonRewritten;
             $scope.notifyLink({
-                url: curLog.url,
+                url: $scope.makeUrl(curLog.url, curTask.urlArgs),
                 task: curTask.svnUrl
                 });
             $scope.recTaskImport();
