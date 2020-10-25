@@ -70,7 +70,7 @@ function checkStatic($path) {
     return true;
 }
 
-function checkCommon($path, $depth, $rewriteCommon) {
+function checkCommon($path, $depth, $localCommonRewrite=null, $rewriteCommon=false) {
     // Checks the _common paths; returns false if everything is fine
     $handle = fopen($path, 'r');
     $wrong = false;
@@ -90,6 +90,11 @@ function checkCommon($path, $depth, $rewriteCommon) {
         if($rewriteCommon) { $fileBuffer .= $line; }
     }
     fclose($handle);
+
+    if($localCommonRewrite) {
+        $fileBuffer = str_replace('_local_common', $localCommonRewrite, $fileBuffer);
+    }
+
     if($rewriteCommon && $wrong) {
         $handle = fopen($path, 'w');
         fwrite($handle, $fileBuffer);
@@ -151,7 +156,12 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon, $isGit) {
             'isStatic' => $isStatic,
             'depth' => $depth
             ];
-        $commonCheck = checkCommon($workingDir.'/files/checkouts/'.$taskDir.'/'.$filename, $depth, $rewriteCommon);
+
+        $localCommonDir = $workingDir.'/files/checkouts/local/'.$baseSvnFirst;
+        $localCommonRewrite = is_dir($localCommonDir) ? '../local/'.$baseSvnFirst : null;
+
+        $commonCheck = checkCommon($workingDir.'/files/checkouts/'.$taskDir.'/'.$filename, $depth, $localCommonRewrite, $rewriteCommon);
+
         if(!$isGit) {
             $newIndex[$rewriteCommon ? 'commonRewritten' : 'warnPaths'] = $commonCheck;
         }
