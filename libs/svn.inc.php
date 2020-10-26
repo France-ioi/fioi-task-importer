@@ -74,6 +74,7 @@ function checkCommon($path, $depth, $localCommonRewrite=null, $rewriteCommon=fal
     // Checks the _common paths; returns false if everything is fine
     $handle = fopen($path, 'r');
     $wrong = false;
+    $rewrite = false;
     $targetPath = str_repeat('../', $depth) . '_common';
     $fileBuffer = '';
     while(!feof($handle)) {
@@ -81,21 +82,21 @@ function checkCommon($path, $depth, $localCommonRewrite=null, $rewriteCommon=fal
         if(preg_match('/= *[\'"]([^=]+)_common/', $line, $matches) && !is_dir(dirname($path) . '/' . $matches[1] . '/_common')) {
             if($rewriteCommon) {
                 $line = preg_replace('/(= *[\'"])[^=]+_common/', '\1' . $targetPath, $line);
-                $wrong = true;
-            } else {
-                // At least one path is wrong
-                return true;
+                $rewrite = true;
             }
+            $wrong = true;
         }
-        if($rewriteCommon) { $fileBuffer .= $line; }
+        $fileBuffer .= $line;
     }
     fclose($handle);
 
     if($localCommonRewrite) {
-        $fileBuffer = str_replace('_local_common', $localCommonRewrite, $fileBuffer);
+        $newFileBuffer = str_replace('_local_common', $localCommonRewrite, $fileBuffer);
+        if($fileBuffer != $newFileBuffer) { $rewrite = true; }
+        $fileBuffer = $newFileBuffer;
     }
 
-    if($rewriteCommon && $wrong) {
+    if($rewrite) {
         $handle = fopen($path, 'w');
         fwrite($handle, $fileBuffer);
         fclose($handle);
