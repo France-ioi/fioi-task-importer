@@ -139,7 +139,7 @@ function saveHints($taskId, $hintsResources, $metadata) {
         $imagesRes = [];
         foreach ($resources as $j => $resource) {
             if ($resource['type'] == 'html') {
-                $hint = $resource['content'];
+                $hint = trim($resource['content']);
             } else if ($resource['type'] == 'image' && isset($resource['content'])) {
                 $imagesRes[] = $resource;
             }
