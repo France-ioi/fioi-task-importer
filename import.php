@@ -24,7 +24,7 @@ if($config->localCssUrl) {
   <script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
   <script type="text/javascript" src="bower_components/jschannel/src/jschannel.js"></script>
   <script type="text/javascript" src="bower_components/pem-platform/task-pr.js"></script>
-  <script type="text/javascript" src="importController.js?<?=$config->urlArgs ?>"></script>
+  <script type="text/javascript" src="importController.js<?=$config->urlArgs ?>"></script>
   <script type="text/javascript">
     var config = <?=json_encode(['svnBaseUrl' => $config->svnBaseUrl, 'svnExampleUrl' => $config->svnExampleUrl, 'urlArgs' => $config->urlArgs]) ?>
   </script>
