@@ -243,6 +243,12 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
             localStorage.setItem('password', $scope.params.password);
         }
 
+        // Filter path for double slashes
+        $scope.params.svnUrl = $scope.params.svnUrl.replace(/\/+/g, '/');
+        if($scope.params.svnUrl[0] == '/') {
+            $scope.params.svnUrl = $scope.params.svnUrl.substr(1);
+        }
+
         function onFail(res) {
             $scope.checkoutState = 'checkout_error';
             $scope.checkoutMsg = res.data.error;
@@ -300,6 +306,13 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
         if($scope.params.gitRemember) {
             localStorage.setItem('gitUsername', $scope.params.gitUsername);
             localStorage.setItem('gitPassword', $scope.params.gitPassword);
+        }
+
+        // Filter paths for double slashes
+        $scope.params.gitUrl = $scope.params.gitUrl.replace(/\/+/g, '/');
+        $scope.params.gitPath = $scope.params.gitPath.replace(/\/+/g, '/');
+        if($scope.params.gitPath[0] == '/') {
+            $scope.params.gitPath = $scope.params.gitPath.substr(1);
         }
 
         function onFail(res) {
