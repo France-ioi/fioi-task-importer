@@ -25,6 +25,7 @@
     "label_noimport_short": "Aucun réimport",
     "label_rewritecommon": "Réécrire les chemins vers _common s'ils sont erronés",
     "label_rewritecommon_short": "Correction des chemins '_common'",
+    "label_acceptmovedtasks": "Écraser les tâches avec le même ID mais un nouveau chemin",
     "label_submit": "Importer les fichiers",
     "label_locale_en": "Locale anglaise :",
     "label_theme_lti": "Thème d'affichage LTI :",
@@ -51,9 +52,12 @@
     "task_import_error": "Tâche importée (aucune ressource à envoyer).",
     "task_sending": "Sauvegarde des ressources dans la base de données...",
     "task_success": "Tâche importée.",
-    "task_save_error": "Erreur lors de la sauvegarde des ressources de cette tâche.",
     "task_cancelled": "Import annulé.",
     "task_noimport": "Liens vers la tâche récupérés.",
+
+    "task_save_error": "Erreur lors de la sauvegarde des ressources de cette tâche.",
+    "task_error_metadata": "Les métadonnées 'id' ou 'language' de la tâche sont manquantes.",
+    "task_error_moved": "Une tâche avec le même id mais un chemin différent a été trouvée. Si la tâche a bien été déplacée, veuillez cocher la case 'Écraser les tâches avec le même ID mais un nouveau chemin' puis réessayer l'import. Sinon, veuillez corriger l'id de la tâche dans les fichiers.",
 
     "task_ltiurl": "URL pour LTI",
     "task_ltiurl_lang": "URL pour LTI dans la langue",
@@ -68,7 +72,7 @@
     "file_loading": "Chargement du fichier...",
     "file_timeout": "Limite de temps pour charger les ressources dépassée.",
     "file_resources": "Tâche chargée, récupération des ressources...",
-    "file_done": "Import de ce fichier effectué.",
+    "file_done": "Ressources chargées depuis ce fichier.",
     "file_cancelled": "Import annulé.",
 
     "display_tasks_left": "tâche(s) dans la file d'attente",

@@ -72,7 +72,7 @@ if ($request['action'] == 'checkoutSvn' || $request['action'] == 'checkoutGit' |
     if (!isset($request['data']) || !isset($request['svnUrl']) || !isset($request['taskPath'])) {
         die(json_encode(['success' => false, 'error' => 'error_request']));
     }
-    saveResources($request['data'], $request['taskPath'], $request['svnUrl'], $request['svnRev'], $request['dirPath']);
+    saveResources($request['data'], $request['taskPath'], $request['svnUrl'], $request['svnRev'], $request['dirPath'], $request['acceptMovedTasks']);
 } elseif ($request['action'] == 'deletedirectory') {
     if (!isset($request['ID'])) {
         die(json_encode(['success' => false, 'error' => 'error_request']));

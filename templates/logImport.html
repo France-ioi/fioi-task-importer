@@ -1,4 +1,4 @@
-<div class="panel" ng-class="{'panel-primary': log.active, 'panel-default': !log.active, 'hidden': !log.active && hideOldLogs}">
+<div class="panel" ng-class="{'panel-danger': log.active && log.error, 'panel-primary': log.active && !log.error, 'panel-default': !log.active, 'hidden': !log.active && hideOldLogs}">
   <div class="panel-heading">
     <h3 class="panel-title">{{ log.url }} <small ng-show="log.svnRev">(rev {{ log.svnRev }})</small></h3>
   </div>
@@ -16,7 +16,11 @@
       <p><i ng-i18next="task_test_description"></i></p>
     </div>
     <hr ng-if="log.normalUrl" />
-    <p><span ng-i18next="status"></span>: <span ng-i18next="{{ log.state }}"></span></p>
+    <p ng-if="log.error" class="text-danger">
+      <b><span ng-i18next="status"></span>: <span ng-i18next="{{ log.state }}"></span></b><br>
+      <span ng-if="log.error !== true" ng-i18next="{{ log.error }}"></span>
+    </p>
+    <p ng-if="!log.error"><span ng-i18next="status"></span>: <span ng-i18next="{{ log.state }}"></span></p>
     <p ng-if="log.doubleLang" ng-i18next="task_doublelang"></p>
     <p ng-if="log.foundLangsStr"><span ng-i18next="task_langs"></span> : {{ log.foundLangsStr }}.</p>
     <hr ng-if="log.files" />

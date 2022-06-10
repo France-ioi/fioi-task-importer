@@ -24,12 +24,6 @@ function saveLimits($taskId, $limits) {
 
 function saveTask($metadata, $sTaskPath, $subdir, $revision, $resources) {
     global $db;
-    $stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
-    $stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);
-    $ID = $stmt->fetchColumn();
-    if ($ID) {
-        return [$ID, true];
-    }
     $authors = (isset($metadata['authors']) && count($metadata['authors'])) ? join(',', $metadata['authors']) : '';
     $sSupportedLangProg = (isset($metadata['supportedLanguages']) && count($metadata['supportedLanguages'])) ? join(',', $metadata['supportedLanguages']) : '*';
     $sEvalTags = (isset($metadata['evaluationTags']) && count($metadata['evaluationTags'])) ? join(',', $metadata['evaluationTags']) : '';
@@ -68,7 +62,7 @@ function saveTask($metadata, $sTaskPath, $subdir, $revision, $resources) {
     if (!$taskId) {
         die(json_encode(['success' => false, 'impossible to find id for '.$metadata['id']]));
     }
-    return [$taskId, false];
+    return $taskId;
 }
 
 function saveStrings($taskId, $resources, $metadata, $dirPath) {
@@ -270,7 +264,7 @@ function saveSubtasks($taskId, $metadata) {
     }
 }
 
-function saveResources($data, $sTaskPath, $subdir, $revision, $dirPath) {
+function saveResources($data, $sTaskPath, $subdir, $revision, $dirPath, $acceptMovedTasks) {
     global $config, $db;
     $subdir = trim($subdir);
     $subdir = trim($subdir, '/');
@@ -279,12 +273,33 @@ function saveResources($data, $sTaskPath, $subdir, $revision, $dirPath) {
     $resources = $data[0]['resources'];
 
     if (!isset($metadata['id']) || !isset($metadata['language'])) {
-        die(json_encode(['success' => false, 'error' => 'missing id or language in metadata']));
+        die(json_encode(['success' => false, 'error' => 'task_error_metadata']));
     }
     $textId = $metadata['id'];
-    // save task to get ID
-    list($taskId, $alreadyImported) = saveTask($metadata, $sTaskPath, $subdir, $revision, $resources);
+
+    // Get information for the path
+    $stmt = $db->prepare("SELECT * FROM tm_tasks WHERE sTextId = :sTextId;");
+    $stmt->execute(['sTextId' => $textId]);
+    $taskInfo = $stmt->fetch();
+
+    // Check whether task has already been imported
+    $alreadyImported = false;
+    $differentTask = false;
+    if ($taskInfo) {
+        $taskId = $taskInfo['ID'];
+        if ($taskInfo['sTaskPath'] == $sTaskPath && $taskInfo['sRevision'] == $revision) {
+            $alreadyImported = true;
+        } elseif ($taskInfo['sTaskPath'] != $sTaskPath) {
+            // Task with same ID but different path
+            $differentTask = true;
+            if(!$acceptMovedTasks) {
+                die(json_encode(['success' => false, 'error' => 'task_error_moved']));
+            }
+        }
+    }
+
     if(!$alreadyImported) {
+        $taskId = saveTask($metadata, $sTaskPath, $subdir, $revision, $resources);
         // limits
         saveLimits($taskId, $metadata['limits']);
         // source code
@@ -314,6 +329,7 @@ function saveResources($data, $sTaskPath, $subdir, $revision, $dirPath) {
             saveHints($taskId, $hintsResources, $metadata);
         }
     }
+
     echo(json_encode([
         'success' => true,
         'ID' => $taskId,

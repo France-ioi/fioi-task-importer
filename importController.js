@@ -67,6 +67,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
         svnUrl: config.svnExampleUrl,
         localeEn: 'default',
         theme: 'none',
+        acceptMovedTasks: false,
         token: QueryString.token ? QueryString.token : null
         };
 
@@ -532,7 +533,8 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
             svnRev: curRev,
             svnUrl: $scope.curTask.svnUrl,
             taskPath: $scope.curTask.taskPath,
-            dirPath: $scope.curTask.dirPath
+            dirPath: $scope.curTask.dirPath,
+            acceptMovedTasks: $scope.params.acceptMovedTasks
             }).then(function(res) {
                 // Success!
                 if(res.data.success) {
@@ -550,11 +552,13 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
                         });
                 } else {
                     log.state = 'task_save_error';
+                    log.error = res.data.error;
                 }
                 $scope.recImport();
             }, function() {
                 // Error
                 log.state = 'task_save_error';
+                log.error = true;
                 $scope.recImport();
             });
     };
