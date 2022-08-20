@@ -78,7 +78,7 @@ if ($request['action'] == 'checkoutSvn' || $request['action'] == 'checkoutGit' |
     if (!isset($request['html']) || !isset($request['gitRepo']) || !isset($request['gitPath']) || !isset($request['filename'])) {
         die(json_encode(['success' => false, 'error' => 'error_request']));
     }
-    echo (json_encode(saveMarkdown($request['html'], $request['headers'], $request['gitRepo'], $request['gitPath'], $request['filename'])));
+    echo (json_encode(saveMarkdown($request['html'], $request['headers'], $request['dirPath'], $request['gitRepo'], $request['gitPath'], $request['filename'])));
 } elseif ($request['action'] == 'deletedirectory') {
     if (!isset($request['ID'])) {
         die(json_encode(['success' => false, 'error' => 'error_request']));

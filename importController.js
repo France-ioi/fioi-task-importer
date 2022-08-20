@@ -584,6 +584,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
                 action: 'saveMarkdown',
                 headers: markdown.headers,
                 html: html,
+                dirPath: curTask.dirPath,
                 gitRepo: curTask.gitRepo,
                 gitPath: curTask.gitPath,
                 taskPath: $scope.curTask.taskPath,

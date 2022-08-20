@@ -2,7 +2,7 @@
 
 require_once __DIR__ . '/funcs.inc.php';
 
-function saveMarkdown($html, $headers, $gitRepo, $gitPath, $filename)
+function saveMarkdown($html, $headers, $checkoutPath, $gitRepo, $gitPath, $filename)
 {
     global $config, $workingDir;
 
@@ -10,19 +10,20 @@ function saveMarkdown($html, $headers, $gitRepo, $gitPath, $filename)
     if (!file_exists(pathJoin($workingDir, 'files/checkouts/', $dirPath))) {
         mkdir(pathJoin($workingDir, 'files/checkouts/', $dirPath), 0777, true);
     }
-    $filePath = $dirPath . 'index.html';
+    $filePath = pathJoin($dirPath, 'index.html');
     $localFilePath = pathJoin($workingDir, 'files/checkouts/', $filePath);
 
     $title = isset($headers['title']) ? $headers['title'] : '';
 
-    // Replace img src= in html by another path
+    // Find all src=""
     $imagesFound = [];
-    $html = preg_replace_callback('/src="(.*?)"/', function ($matches) {
-        $src = $matches[0];
-        $src = preg_replace('/^(.*?)static/', '', $src);
-        return 'src="/files/opentezos/static' . $src . '"';
-    }, $html);
-
+    preg_match_all('/src="([^"]+)"/', $html, $imagesFound);
+    foreach($imagesFound[1] as $img) {
+        $imgPath = pathJoin('files/checkouts/', $checkoutPath, $img);
+        if (file_exists($imgPath)) {
+            copy($imgPath, pathJoin('files/checkouts/', $dirPath, $img));
+        }
+    }
 
     $fullHtml = '<!DOCTYPE html><html><head>';
     $fullHtml .= '<meta charset="utf-8">';
@@ -42,6 +43,7 @@ function saveMarkdown($html, $headers, $gitRepo, $gitPath, $filename)
 
     return [
         'success' => true,
-        'url' => $config->staticUrl . $filePath
+        'url' => $config->staticUrl . $filePath,
+        'images' => $imagesFound[0]
     ];
 }
