@@ -47,5 +47,5 @@ function checkoutGit($repo, $subpath, $username, $password, $recursive, $noimpor
             $tasks[] = $newTaskData;
         }
     }
-    echo(json_encode(['success' => $success, 'tasks' => $tasks]));
+    echo(json_encode(['success' => $success, 'tasks' => $tasks, 'count' => count($taskDirs), 'basetarget' => $baseTargetDir]));
 }

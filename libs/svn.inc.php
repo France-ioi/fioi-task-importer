@@ -38,22 +38,27 @@ function listTaskDirs($dir, $recursive) {
     global $workingDir;
 
     $filenames = scandir(pathJoin($workingDir, 'files/checkouts/', $dir.'/'));
+    $taskDirs = array();
     foreach($filenames as $filename) {
         if(preg_match('/^index.*\.html/', $filename) === 1 && file_exists(pathJoin($workingDir, 'files/checkouts/', $dir, $filename))) {
             return array($dir);
         }
+        if (preg_match('/^.*\.md/', $filename) === 1 && file_exists(pathJoin($workingDir, 'files/checkouts/', $dir, $filename))) {
+            if (!in_array($dir, $taskDirs)) {
+                $taskDirs[] = $dir;
+            }
+        }
     }
 
     // No task file has been found
-    if(!$recursive) {
+    if (!$recursive && count($taskDirs) == 0) {
         die(json_encode(['success' => false, 'error' => 'error_noindex']));
     }
 
-    $taskDirs = array();
     foreach(scandir(pathJoin($workingDir, 'files/checkouts/', $dir)) as $elem) {
         $elemPath = pathJoin($dir, $elem);
         if(is_dir(pathJoin($workingDir, 'files/checkouts/', $elemPath)) && $elem != '.' && $elem != '..') {
-            $taskDirs = array_merge($taskDirs, listTaskDirs($elemPath, $filenames, $recursive));
+            $taskDirs = array_merge($taskDirs, listTaskDirs($elemPath, $recursive));
         }
     }
     return $taskDirs;
@@ -123,13 +128,16 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon, $isGit) {
     $urlArgs = [];
     $hasLti = false;
     foreach($filenames as $filename) {
-        if(preg_match('/index.*\.html/', $filename) !== 1) {
+        $filePath = pathJoin($workingDir, 'files/checkouts/', $taskDir, $filename);
+        $isMarkdown = preg_match('/.*\.md/', $filename) === 1;
+        if (preg_match('/index.*\.html/', $filename) !== 1 && !$isMarkdown) {
             continue;
         }
-        if(!file_exists($workingDir.'/files/checkouts/'.$taskDir.'/'.$filename)) {
+        if (!file_exists($filePath)) {
             continue;
         }
-        if($isStatic = checkStatic($workingDir.'/files/checkouts/'.$taskDir.'/'.$filename)) {
+        $isStatic = false;
+        if (!$isMarkdown && $isStatic = checkStatic($filePath)) {
             if(!$taskDirMoved) {
                 // Move task to a static location
                 $targetDir = $taskId . '/' . $taskDirCompl;
@@ -155,13 +163,14 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon, $isGit) {
         $newIndex = [
             'filename' => $filename,
             'isStatic' => $isStatic,
+            'isMarkdown' => $isMarkdown,
             'depth' => $depth
             ];
 
         $localCommonDir = $workingDir.'/files/checkouts/local/'.$baseSvnFirst;
         $localCommonRewrite = is_dir($localCommonDir) ? '../local/'.$baseSvnFirst : null;
 
-        $commonCheck = checkCommon($workingDir.'/files/checkouts/'.$taskDir.'/'.$filename, $depth, $localCommonRewrite, $rewriteCommon);
+        $commonCheck = !$isMarkdown && checkCommon($workingDir . '/files/checkouts/' . $taskDir . '/' . $filename, $depth, $localCommonRewrite, $rewriteCommon);
 
         if(!$isGit) {
             $newIndex[$rewriteCommon ? 'commonRewritten' : 'warnPaths'] = $commonCheck;
@@ -183,6 +192,8 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon, $isGit) {
     if($isGit) {
         zipDirectory($config->zipDir . $taskId . '.zip', pathJoin($workingDir, 'files/checkouts/', $taskDir.'/'), '');
         $taskData['taskPath'] = 'zip:' . $taskId;
+        $taskData['gitRepo'] = $baseSvnFirst;
+        $taskData['gitPath'] = $taskDirCompl;
     } else {
         $taskData['taskPath'] = '$ROOT_PATH/'.$taskSvnDir;
     }

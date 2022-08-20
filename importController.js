@@ -164,7 +164,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
 
     $scope.sanitizeInput = function() {
         function san(val) {
-            return val && val.replace(/\\/g, '/');
+            return (val && val.replace(/\\/g, '/')) || '';
         }
         $scope.params.svnUrl = san($scope.params.svnUrl);
         $scope.params.gitPath = san($scope.params.gitPath);
@@ -310,7 +310,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
         }
 
         // Filter paths for double slashes
-        $scope.params.gitUrl = $scope.params.gitUrl.replace(/\/+/g, '/');
+        $scope.params.gitUrl = $scope.params.gitUrl.substr(0, 10) + $scope.params.gitUrl.substr(10).replace(/\/+/g, '/');
         $scope.params.gitPath = $scope.params.gitPath.replace(/\/+/g, '/');
         if($scope.params.gitPath[0] == '/') {
             $scope.params.gitPath = $scope.params.gitPath.substr(1);
@@ -422,7 +422,8 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
         var curFile = curTask.files.shift();
         var curLog = {
             name: curFile.filename,
-            isStatic: curFile.isStatic
+            isStatic: curFile.isStatic || curFile.isMarkdown,
+            isMarkdown: curFile.isMarkdown
             };
         $scope.curLog = curLog;
         $scope.logList[0].files.push(curLog);
@@ -432,11 +433,18 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
             curLog.url = curTask.staticUrl + curFile.filename;
             curLog.warnPaths = curFile.warnPaths;
             curLog.commonRewritten = curFile.commonRewritten;
+            curLog.gitRepo = curTask.gitRepo;
+            curLog.gitPath = curTask.gitPath;
+
             $scope.notifyLink({
                 url: $scope.makeUrl(curLog.url, curTask.urlArgs),
                 task: curTask.svnUrl
                 });
             $scope.recTaskImport();
+        } else if (curFile.isMarkdown) {
+            // Markdown file, we load and convert it
+            curLog.state = 'file_loading';
+            $scope.convertMarkdown(curTask, curFile);
         } else {
             // TaskPlatform file, we fetch its resources
             curLog.state = 'file_loading';
@@ -562,6 +570,31 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
                 $scope.recImport();
             });
     };
+
+    $scope.convertMarkdown = function (curTask, curFile) {
+        // Convert a markdown file to HTML
+        var url = curTask.baseUrl + curFile.filename;
+        var log = $scope.logList[0];
+        $http.get(url).then(function (res) {
+            var markdown = mdcompiler.parseHeader(res.data);
+            var html = mdcompiler.compileMarkdown(markdown.body);
+            $scope.curLog.state = 'file_done';
+            log.state = 'task_sending';
+            $http.post('savesvn.php', {
+                action: 'saveMarkdown',
+                headers: markdown.headers,
+                html: html,
+                gitRepo: curTask.gitRepo,
+                gitPath: curTask.gitPath,
+                taskPath: $scope.curTask.taskPath,
+                filename: curFile.filename
+            }).then(function (res) {
+                log.state = 'task_success';
+                $scope.curLog.url = res.data.url;
+                $scope.recTaskImport();
+            })
+        });
+    }
 
     $scope.displayFull = function() {
         $scope.template = 'templates/full.html';

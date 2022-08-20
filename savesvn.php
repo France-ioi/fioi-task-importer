@@ -17,6 +17,7 @@ require_once 'libs/git.inc.php';
 require_once 'libs/resources.inc.php';
 require_once 'libs/svn.inc.php';
 require_once 'libs/urls.inc.php';
+require_once 'libs/markdown.inc.php';
 
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
@@ -73,6 +74,11 @@ if ($request['action'] == 'checkoutSvn' || $request['action'] == 'checkoutGit' |
         die(json_encode(['success' => false, 'error' => 'error_request']));
     }
     saveResources($request['data'], $request['taskPath'], $request['svnUrl'], $request['svnRev'], $request['dirPath'], $request['acceptMovedTasks']);
+} elseif ($request['action'] == 'saveMarkdown') {
+    if (!isset($request['html']) || !isset($request['gitRepo']) || !isset($request['gitPath']) || !isset($request['filename'])) {
+        die(json_encode(['success' => false, 'error' => 'error_request']));
+    }
+    echo (json_encode(saveMarkdown($request['html'], $request['headers'], $request['gitRepo'], $request['gitPath'], $request['filename'])));
 } elseif ($request['action'] == 'deletedirectory') {
     if (!isset($request['ID'])) {
         die(json_encode(['success' => false, 'error' => 'error_request']));

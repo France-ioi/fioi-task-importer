@@ -1,5 +1,6 @@
-config_local.php
+config_local*.php
 vendor/
 bower_components/
 checkouts/
 logs/
+files/
