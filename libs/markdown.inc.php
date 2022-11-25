@@ -33,7 +33,7 @@ function saveMarkdown($html, $headers, $checkoutPath, $gitRepo, $gitPath, $filen
                   <script src="/files/checkouts/_common/modules/ext/jschannel/jschannel.js"></script>
                   <script src="/files/checkouts/_common/modules/integrationAPI.01/official/platform-pr.js"></script>
                   <script src="/files/checkouts/_common/modules/pemFioi/static-task.js"></script>';
-    $fullHtml .= '<script type="text/javascript">window.staticTaskOptions = { autoValidate: true; };</script>';
+    $fullHtml .= '<script type="text/javascript">window.staticTaskOptions = { autoValidate: true };</script>';
     $fullHtml .= '<script src="/markdown/dist/markdown-css.js"></script>';
     $fullHtml .= '</head><body>';
     $fullHtml .= '<h1>' . $title . '</h1>';
