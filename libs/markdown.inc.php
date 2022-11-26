@@ -21,6 +21,10 @@ function saveMarkdown($html, $headers, $checkoutPath, $gitRepo, $gitPath, $filen
     foreach($imagesFound[1] as $img) {
         $imgPath = pathJoin('files/checkouts/', $checkoutPath, $img);
         if (file_exists($imgPath)) {
+            $imgDir = pathJoin($workingDir, 'files/checkouts/', $dirPath, dirname($img));
+            if (!file_exists($imgDir)) {
+                mkdir($imgDir, 0777, true);
+            }
             copy($imgPath, pathJoin('files/checkouts/', $dirPath, $img));
         }
     }
