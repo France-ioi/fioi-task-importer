@@ -53,9 +53,16 @@ function saveMarkdown($html, $headers, $checkoutPath, $gitRepo, $gitPath, $filen
 
         // uslug is for relative paths
         $uslug = getAbsolutePath(pathJoin(dirname($slug), $url));
-        $targetUrl = explode('#', $url)[0];
+        $urlHashExp = explode('#', $url);
+        $urlHash = isset($urlHashExp[1]) ? $urlHashExp[1] : null;
+        $targetUrl = $urlHashExp[0];
         $targetUrl = rtrim('/' . ltrim($targetUrl, '/'), '/');
         $uslug = rtrim('/' . ltrim($uslug, '/'), '/');
+        if(($targetUrl == $slug || $uslug == $slug) && $urlHash) {
+            // Local anchor
+            $html = str_replace('href="' . $url . '"', 'onclick="platformScrollTo(\'#' . $urlHash . '\');"', $html);
+            continue;
+        }
         if(isset($localIds[$targetUrl])) {
             $html = str_replace('href="' . $url . '"', 'onclick="platformOpenUrl({item_id: \'' . $localIds[$targetUrl] . '\'});"', $html);
         } elseif(isset($localIds[$uslug])) {
