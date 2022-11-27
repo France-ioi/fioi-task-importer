@@ -92,7 +92,6 @@ function saveMarkdown($html, $headers, $checkoutPath, $gitRepo, $gitPath, $filen
 
     return [
         'success' => true,
-        'url' => $config->staticUrl . $filePath,
-        'images' => $imagesFound[0]
+        'url' => $config->staticUrl . $filePath
     ];
 }
