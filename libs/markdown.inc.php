@@ -4,7 +4,7 @@ require_once __DIR__ . '/funcs.inc.php';
 
 function saveMarkdown($html, $headers, $checkoutPath, $gitRepo, $gitPath, $filename)
 {
-    global $config, $workingDir;
+    global $config, $markdownIds, $workingDir;
 
     $dirPath = md5($gitRepo) . '/' . md5(pathJoin($gitPath, $filename)) . '/';
     if (!file_exists(pathJoin($workingDir, 'files/checkouts/', $dirPath))) {
@@ -14,6 +14,15 @@ function saveMarkdown($html, $headers, $checkoutPath, $gitRepo, $gitPath, $filen
     $localFilePath = pathJoin($workingDir, 'files/checkouts/', $filePath);
 
     $title = isset($headers['title']) ? $headers['title'] : '';
+
+    if(!isset($markdownIds)) {
+        $markdownIds = json_decode(file_get_contents(__DIR__ . '/../markdown_textid_to_id.json'), true);
+    }
+    $localIds = [];
+    if(isset($markdownIds[$gitRepo])) {
+        $localIds = $markdownIds[$gitRepo];
+    }
+    $slug = isset($headers['slug']) ? $headers['slug'] : substr($gitPath, 4);
 
     // Find all src=""
     $imagesFound = [];
@@ -26,6 +35,34 @@ function saveMarkdown($html, $headers, $checkoutPath, $gitRepo, $gitPath, $filen
                 mkdir($imgDir, 0777, true);
             }
             copy($imgPath, pathJoin('files/checkouts/', $dirPath, $img));
+        }
+    }
+
+    // Find all href=""
+    $urlsFound = [];
+    preg_match_all('/href="([^"]+)"/', $html, $urlsFound);
+    foreach($urlsFound[1] as $url) {
+        if(substr($url, 0, 4) == 'http') {
+            continue;
+        }
+        if(substr($url, 0, 1) == '#') {
+            // Local anchor
+            $html = str_replace('href="' . $url . '"', 'onclick="platformScrollTo(\'' . $url . '\');"', $html);
+            continue;
+        }
+
+        // uslug is for relative paths
+        $uslug = getAbsolutePath(pathJoin(dirname($slug), $url));
+        $targetUrl = explode('#', $url)[0];
+        $targetUrl = rtrim('/' . ltrim($targetUrl, '/'), '/');
+        $uslug = rtrim('/' . ltrim($uslug, '/'), '/');
+        if(isset($localIds[$targetUrl])) {
+            $html = str_replace('href="' . $url . '"', 'onclick="platformOpenUrl({item_id: \'' . $localIds[$targetUrl] . '\'});"', $html);
+        } elseif(isset($localIds[$uslug])) {
+            $html = str_replace('href="' . $url . '"', 'onclick="platformOpenUrl({item_id: \'' . $localIds[$uslug] . '\'});"', $html);
+        } else {
+            // for debug
+            // $html = str_replace('href="' . $url . '"', 'onclick="platformOpenUrl({not_found: \'' . $url . '\', not_found_slug: \'' . $uslug . '\'});"', $html);
         }
     }
 
