@@ -166,8 +166,12 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
         function san(val) {
             return (val && val.replace(/\\/g, '/')) || '';
         }
+        function sanUrl(val) {
+            return san(val).replace(/\/$/, '').replace(/\.git$/, '');
+        }
         $scope.params.svnUrl = san($scope.params.svnUrl);
         $scope.params.gitPath = san($scope.params.gitPath);
+        $scope.params.gitUrl = sanUrl($scope.params.gitUrl);
     };
 
     $scope.updateCommon = function() {
