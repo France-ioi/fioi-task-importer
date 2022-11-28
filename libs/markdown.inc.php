@@ -47,7 +47,7 @@ function saveMarkdown($html, $headers, $checkoutPath, $gitRepo, $gitPath, $filen
         }
         if(substr($url, 0, 1) == '#') {
             // Local anchor
-            $html = str_replace('href="' . $url . '"', 'onclick="platformScrollTo(\'' . $url . '\');"', $html);
+            $html = str_replace('href="' . $url . '"', 'title="Scroll to &quot;' . substr($url, 1) . '&quot;" onclick="platformScrollTo(\'' . $url . '\');"', $html);
             continue;
         }
 
@@ -60,13 +60,13 @@ function saveMarkdown($html, $headers, $checkoutPath, $gitRepo, $gitPath, $filen
         $uslug = rtrim('/' . ltrim($uslug, '/'), '/');
         if(($targetUrl == $slug || $uslug == $slug) && $urlHash) {
             // Local anchor
-            $html = str_replace('href="' . $url . '"', 'onclick="platformScrollTo(\'#' . $urlHash . '\');"', $html);
+            $html = str_replace('href="' . $url . '"', 'title="Scroll to &quot;' . $urlHash . '&quot;" onclick="platformScrollTo(\'#' . $urlHash . '\');"', $html);
             continue;
         }
         if(isset($localIds[$targetUrl])) {
-            $html = str_replace('href="' . $url . '"', 'onclick="platformOpenUrl({itemId: \'' . $localIds[$targetUrl] . '\'});"', $html);
+            $html = str_replace('href="' . $url . '"', 'title="Go to &quot;' . $targetUrl . '&quot;" onclick="platformOpenUrl({itemId: \'' . $localIds[$targetUrl] . '\'});"', $html);
         } elseif(isset($localIds[$uslug])) {
-            $html = str_replace('href="' . $url . '"', 'onclick="platformOpenUrl({itemId: \'' . $localIds[$uslug] . '\'});"', $html);
+            $html = str_replace('href="' . $url . '"', 'title="Go to &quot;' . $uslug . '&quot;" onclick="platformOpenUrl({itemId: \'' . $localIds[$uslug] . '\'});"', $html);
         } else {
             // for debug
             // $html = str_replace('href="' . $url . '"', 'onclick="platformOpenUrl({not_found: \'' . $url . '\', not_found_slug: \'' . $uslug . '\'});"', $html);
