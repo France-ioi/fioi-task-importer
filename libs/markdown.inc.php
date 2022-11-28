@@ -64,9 +64,9 @@ function saveMarkdown($html, $headers, $checkoutPath, $gitRepo, $gitPath, $filen
             continue;
         }
         if(isset($localIds[$targetUrl])) {
-            $html = str_replace('href="' . $url . '"', 'onclick="platformOpenUrl({item_id: \'' . $localIds[$targetUrl] . '\'});"', $html);
+            $html = str_replace('href="' . $url . '"', 'onclick="platformOpenUrl({itemId: \'' . $localIds[$targetUrl] . '\'});"', $html);
         } elseif(isset($localIds[$uslug])) {
-            $html = str_replace('href="' . $url . '"', 'onclick="platformOpenUrl({item_id: \'' . $localIds[$uslug] . '\'});"', $html);
+            $html = str_replace('href="' . $url . '"', 'onclick="platformOpenUrl({itemId: \'' . $localIds[$uslug] . '\'});"', $html);
         } else {
             // for debug
             // $html = str_replace('href="' . $url . '"', 'onclick="platformOpenUrl({not_found: \'' . $url . '\', not_found_slug: \'' . $uslug . '\'});"', $html);
