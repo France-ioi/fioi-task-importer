@@ -16,8 +16,13 @@ function saveMarkdown($html, $headers, $checkoutPath, $gitRepo, $gitPath, $filen
     $title = isset($headers['title']) ? $headers['title'] : '';
 
     if(!isset($markdownIds)) {
-        $markdownIds = json_decode(file_get_contents(__DIR__ . '/../markdown_textid_to_id.json'), true);
+        if(file_exists(__DIR__ . '/../markdown_textid_to_id.json')) {
+            $markdownIds = json_decode(file_get_contents(__DIR__ . '/../markdown_textid_to_id.json'), true);
+        } else {
+            $markdownIds = [];
+        }
     }
+
     $localIds = [];
     if(isset($markdownIds[$gitRepo])) {
         $localIds = $markdownIds[$gitRepo];
@@ -81,7 +86,10 @@ function saveMarkdown($html, $headers, $checkoutPath, $gitRepo, $gitPath, $filen
                   <script src="/files/checkouts/_common/modules/ext/jschannel/jschannel.js"></script>
                   <script src="/files/checkouts/_common/modules/integrationAPI.01/official/platform-pr.js"></script>
                   <script src="/files/checkouts/_common/modules/pemFioi/static-task.js"></script>';
-    $fullHtml .= '<script type="text/javascript">window.staticTaskOptions = { autoValidate: true };</script>';
+    $fullHtml .= '<script type="text/javascript">
+                    window.staticTaskOptions = { autoValidate: true };
+                    window.json = { editorUrl: "' . $config->baseUrl . '?edition=true&display=frame&type=git&repo=' . urlencode($gitRepo) . '&path=' . urlencode($gitPath) . '" };
+                  </script>';
     $fullHtml .= '<script src="/markdown/dist/markdown-css.js"></script>';
     $fullHtml .= '</head><body>';
     $fullHtml .= '<h1>' . $title . '</h1>';

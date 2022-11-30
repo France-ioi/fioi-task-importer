@@ -4,12 +4,12 @@
 
 function checkToken($token, $sessionId) {
     // TODO
-    return ($token == 'testtoken') && ($sessionId == 'testsession');
+    return ($token == 'testtoken');
 }
 
 function getSessionDir($sessionId) {
     // TODO
-    return realpath("/var/www/svnimport/files/sessions/$sessionId");
+    return "/var/www/svnimport/files/sessions/$sessionId";
 }
 
 function getSessionFilePath($sessionId, $path) {
@@ -32,7 +32,7 @@ function recursiveDirList($path, $prefix) {
         if(is_dir($subpath)) {
             $list = array_merge($list, recursiveDirList($subpath, "$prefix/$file"));
         } else {
-            $list[] = "$prefix/$file";
+            $list[] = ltrim("$prefix/$file", '/');
         }
     }
     return $list;
@@ -49,7 +49,7 @@ function getFile($sessionId, $path) {
         header("HTTP/1.0 404 Not Found");
         die();
     }
-    header('Content-Type: application/octet-stream');
+    header('Content-Type: ' . mime_content_type($file));
     echo file_get_contents($file);
     die();
 }
@@ -80,19 +80,20 @@ function deleteFile($sessionId, $path) {
 }
 
 function handleEditorApi() {
-    if(!isset($_SERVER['HTTP_AUTHORIZATION'])) {
-        header("HTTP/1.1 401 Unauthorized");
-        header('WWW-Authenticate: Bearer');
-        die();
-    }
+    // if(!isset($_SERVER['HTTP_AUTHORIZATION'])) {
+    //     header("HTTP/1.1 401 Unauthorized");
+    //     header('WWW-Authenticate: Bearer');
+    //     die();
+    // }
 
-    $authorization = $_SERVER['HTTP_AUTHORIZATION'];
-    if(substr($authorization, 0, 7) != 'Bearer ') {
-        header('HTTP/1.1 401 Unauthorized');
-        header('WWW-Authenticate: Bearer');
-        die();
-    }
-    $token = substr($authorization, 7);
+    // $authorization = $_SERVER['HTTP_AUTHORIZATION'];
+    // if(substr($authorization, 0, 7) != 'Bearer ') {
+    //     header('HTTP/1.1 401 Unauthorized');
+    //     header('WWW-Authenticate: Bearer');
+    //     die();
+    // }
+    // $token = substr($authorization, 7);
+    $token = 'testtoken';
 
     $uriSplit = explode('/', parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), 5);
     if($uriSplit[1] != 'edition' || count($uriSplit) < 4) {
@@ -137,6 +138,9 @@ function handleEditorApi() {
             die();
         } else if($_SERVER['REQUEST_METHOD'] == 'DELETE') {
             deleteFile($sessionId, $path);
+            die();
+        } else if($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+            header('Access-Control-Allow-Methods: GET, PUT, DELETE, OPTIONS');
             die();
         } else {
             header('HTTP/1.1 405 Method Not Allowed');

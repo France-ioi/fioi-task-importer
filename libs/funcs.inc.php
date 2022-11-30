@@ -33,13 +33,12 @@ function pathJoin() {
 
 function dirCopy($src, $dst) {
 	$dir = opendir($src);
-	@mkdir($dst);
+	@mkdir($dst, 0777, true);
 	while(($file = readdir($dir))) {
 		if(($file != '.') && ($file != '..')) {
 			if(is_dir(pathJoin($src, $file))) {
 				dirCopy(pathJoin($src, $file), pathJoin($dst, $file));
-			}
-			else {
+			} else {
 				copy(pathJoin($src, $file), pathJoin($dst, $file));
 			}
 		}

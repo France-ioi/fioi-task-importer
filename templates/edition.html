@@ -1,0 +1,70 @@
+<div class="edition-div">
+    <div class="edition-error-header" ng-show="showLogin && checkoutState">
+        <div class="alert alert-danger" role="alert">
+            {{ checkoutState }}
+        </div>
+        <div class="form-group">
+            <label for="gitUsername" ng-i18next="label_git_username"></label><br>
+            <input type="text" class="form-control" id="gitUsername" name="gitUsername" ng-model="params.gitUsername">
+        </div>
+        <div class="form-group form-group-full">
+            <label for="gitPassword" ng-i18next="label_git_password"></label><br>
+            <input type="password" class="form-control" id="gitPassword" name="gitPassword" ng-model="params.gitPassword">
+        </div>
+    </div>
+    <div class="edition-header">
+        <div>
+            <span class="fas fa-folder-open"></span> Editing {{ edition.path }}
+            <span class="edition-old-version" ng-show="edition.oldVersion">(editing previous version {{ edition.oldVersion }})</span>
+        </div>
+        <div>
+            <button class="btn btn-primary" ng-disabled="edition.saving" ng-click="editionSave()"><span class="fas fa-floppy-disk"></span> Save</button>
+            <button class="btn btn-default" ng-disabled="edition.saving" ng-click="editionSave('close')"><span class="fas fa-floppy-disk"></span> Save &amp; Close</button>
+            <!--<button class="btn btn-default" ng-disabled="edition.saving" ng-click="editionSave('import')"><span class="fas fa-file-import"></span> Save &amp; Import</button>-->
+            <span class="glyphicon glyphicon-refresh spin" ng-show="edition.saving"></span>
+        </div>
+        <div>
+            <button class="btn btn-default" ng-click="editionHistory()"><span class="fas fa-clock"></span> History</button>
+            <!--<button class="btn btn-danger" ng-click="editionCancel()"><span class="fas fa-xmark"></span> Cancel</button>-->
+        </div>
+    </div>
+    <div ng-show="edition.ready" class="edition-iframe-div">
+        <iframe id="edition-iframe" class="edition-iframe" src="{{ edition.editorUrl }}"></iframe>
+    </div>
+    <div class="edition-history" ng-show="edition.history">
+        <div class="edition-history-inner">
+            <h3><span class="fas fa-clock"></span> History for {{ edition.path }}</h3>
+            <p>
+                <button class="btn btn-warning" ng-click="closeEditionHistory()"><span class="fas fa-xmark"></span> Close</button>
+                <button class="btn" ng-click="editionHistoryRestore()" ng-class="edition.history.selected != edition.history.editedHash && 'btn-primary' || 'btn-default'" ng-disabled="edition.history.selected == edition.history.editedHash"><span class="fas fa-pen"></span> Edit selected version</button>
+                <button class="btn" ng-click="editionHistoryRestore(true)" ng-class="edition.oldVersion && 'btn-primary' || 'btn-default'" ng-disabled="!edition.oldVersion"><span class="fas fa-clock-rotate-left"></span> Return to latest version</button>
+                <a class="btn" ng-class="edition.oldVersion && 'btn-primary' || 'btn-default'" href="{{ makeDiffUrl(edition.history.selected, 'commit') }}" target="_blank"><span class="fas fa-magnifying-glass"></span> View selected commit</a>
+                <a class="btn" ng-class="edition.oldVersion && 'btn-primary' || 'btn-default'" href="{{ makeDiffUrl(edition.history.selected, 'master') }}" target="_blank"><span class="fas fa-code-compare"></span> View diff with production version</a>
+                <a class="btn" ng-class="edition.oldVersion && 'btn-primary' || 'btn-default'" href="{{ makeDiffUrl(edition.history.selected, 'editor') }}" target="_blank"><span class="fas fa-code-compare"></span> View diff with edition version</a>
+            </p>
+            <p ng-show="edition.historyAdditional">
+                <b>Note : Production version has {{ edition.history.masterAdditional }} more commits than the edition branch.</b>
+            </p>
+            <button ng-show="$first && edition.oldVersion" class="btn btn-xs btn-primary" ng-click="editionHistoryRestore()">Return to current version</button>
+            <table class="edition-history-table">
+                <tbody>
+                    <tr class="edition-history-log" ng-repeat="log in edition.history.commits" ng-class="edition.history.editedHash == log.hash ? 'edition-history-log-current' : ''">
+                        <td>
+                            <input type="radio" ng-model="edition.history.selected" ng-value="log.hash" />
+                        </td>
+                        <td>
+                            <div ng-show="log.master" class="edition-history-master">production version</div>
+                        </td>
+                        <td>
+                            {{ log.date }}
+                        </td>
+                        <td>
+                            {{ log.message }}
+                            <i ng-show="log.master && edition.history.masterAdditional"><br>&#8618; {{ edition.history.masterAdditional }} more commits from there in production version</i>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

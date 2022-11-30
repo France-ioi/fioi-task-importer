@@ -50,7 +50,7 @@ var jschannel = window.parent !== window ? Channel.build({
 
 var app = angular.module('svnImport', ['jm.i18next']);
 
-app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', function($scope, $http, $timeout, $i18next) {
+app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '$sce', function ($scope, $http, $timeout, $i18next, $sce) {
     $scope.template = 'templates/full.html';
 
     $scope.options = {lang: $i18next.options.lng};
@@ -78,6 +78,11 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
     $scope.curLog = null;
     $scope.curID = null;
     $scope.curData = [];
+
+    $scope.edition = {
+        path: '',
+        editorUrl: ''
+    };
 
     $scope.changeLang = function() {
         $i18next.changeLanguage($scope.options.lang);
@@ -662,9 +667,10 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
 
         if(QueryString.autostart) {
             $scope.checkout();
+        } else if (QueryString.edition) {
+            $scope.checkoutEdit();
         }
     };
-    $scope.initParams();
 
     $scope.bindChannel = function() {
         if(!window.jschannel) { return; }
@@ -673,4 +679,259 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', f
             });
     };
     $scope.bindChannel();
+
+    $scope.checkoutEdit = function () {
+        $scope.edition.lastTemplate = $scope.template;
+        //$scope.template = 'templates/edition.html';
+        //$scope.edition.ready = false;
+        $scope.checkoutState = 'Checking out Git repository...';
+        $scope.showLogin = false;
+        localStorage.setItem('gitUrl', $scope.params.gitUrl);
+
+        if ($scope.params.gitRemember) {
+            localStorage.setItem('gitUsername', $scope.params.gitUsername);
+            localStorage.setItem('gitPassword', $scope.params.gitPassword);
+        }
+
+        // Filter paths for double slashes
+        $scope.params.gitUrl = $scope.params.gitUrl.substr(0, 10) + $scope.params.gitUrl.substr(10).replace(/\/+/g, '/');
+        $scope.params.gitPath = $scope.params.gitPath || '';
+        $scope.params.gitPath = $scope.params.gitPath.replace(/\/+/g, '/');
+        if ($scope.params.gitPath[0] == '/') {
+            $scope.params.gitPath = $scope.params.gitPath.substr(1);
+        }
+
+        function onFail(err) {
+            $scope.checkoutState = 'Error checking out';
+            if (err) { $scope.checkoutState += ': ' + err; }
+            $scope.ready = null;
+            $scope.disableBtn = false;
+            $scope.showLogin = true;
+        };
+
+        function onRequestFail() {
+            $scope.checkoutState = 'Checkout request failed';
+            $scope.ready = null;
+            $scope.disableBtn = false;
+            $scope.showLogin = true;
+        };
+
+        // Checkout the task and get data
+        var params1 = Object.assign({}, $scope.params);
+        params1.action = 'checkoutEdition';
+        $http.post('savesvn.php', params1, { responseType: 'json' }).then(function (res) {
+            if (!res.data.success) {
+                onFail(res.data.error);
+                return;
+            }
+            $scope.prepareEdition();
+        }, onRequestFail);
+    }
+
+    $scope.editionCommit = function () {
+        $scope.edition.saving = false;
+
+        function onFail(err) {
+            $scope.checkoutState = 'Error pushing the commit';
+            if (err) { $scope.checkoutState += ': ' + err; }
+            $scope.ready = null;
+            $scope.disableBtn = false;
+            $scope.showLogin = true;
+        };
+
+        function onRequestFail() {
+            $scope.checkoutState = 'Checkout request failed';
+            $scope.ready = null;
+            $scope.disableBtn = false;
+            $scope.showLogin = true;
+        };
+
+        // Checkout the task and get data
+        var params1 = Object.assign({}, $scope.params);
+        params1.action = 'commitEdition';
+        params1.session = $scope.edition.session;
+        $http.post('savesvn.php', params1, { responseType: 'json' }).then(function (res) {
+            if (!res.data.success) {
+                onFail(res.data.error);
+                return;
+            }
+            if ($scope.edition.saveCallback) {
+                $scope.edition.saveCallback();
+                $scope.edition.saveCallback = null;
+            }
+        }, onRequestFail);
+    }
+
+    $scope.createEditionChannel = function () {
+        $scope.edition.channel = Channel.build({
+            window: document.getElementById('edition-iframe').contentWindow,
+            origin: '*',
+            scope: 'editor'
+        });
+
+        $scope.edition.channel.bind('saved', function () {
+            $scope.$apply($scope.editionCommit);
+        });
+    }
+
+    $scope.prepareEdition = function () {
+        $scope.checkoutState = 'Preparing edition session...';
+        var params2 = Object.assign({}, $scope.params);
+        params2.action = 'prepareEdition';
+
+        function onFail(err) {
+            $scope.checkoutState = 'Error starting edition session';
+            if (err) { $scope.checkoutState += ': ' + err; }
+            $scope.ready = null;
+            $scope.disableBtn = false;
+            $scope.showLogin = true;
+        };
+
+        function onRequestFail() {
+            $scope.checkoutState = 'Prepare edition request failed';
+            $scope.ready = null;
+            $scope.disableBtn = false;
+            $scope.showLogin = true;
+        };
+
+        $http.post('savesvn.php', params2, { responseType: 'json' }).then(function (res) {
+            if (!res.data.success) {
+                onFail(res.data.error);
+                return;
+            }
+            $scope.edition.session = res.data.session;
+            $scope.edition.token = res.data.token;
+            $scope.edition.path = params2.gitPath + ' (from ' + params2.gitUrl + ')';
+            $scope.startEdition();
+        }, onRequestFail);
+    }
+
+    $scope.startEdition = function () {
+        $scope.checkoutState = null;
+        $scope.template = 'templates/edition.html';
+        $scope.edition.ready = true;
+        $scope.edition.editorUrl = $sce.trustAsResourceUrl('https://fioi2.mblockelet.info/markdown-editor/?session=' + $scope.edition.session + '&token=' + $scope.edition.token);
+        $timeout($scope.createEditionChannel, 100);
+    }
+
+    $scope.editionSave = function (mode) {
+        $scope.showLogin = false;
+        $scope.edition.channel.notify({
+            method: 'save',
+            params: {}
+        });
+        $scope.edition.saving = true;
+        if (mode == 'close') {
+            $scope.edition.saveCallback = function () {
+                $scope.editionCancel();
+            };
+        } else if (mode == 'import') {
+            $scope.edition.saveCallback = function () {
+                $scope.editionCancel();
+                $scope.params.recursive = true;
+                $scope.checkout();
+            };
+        }
+    }
+
+    $scope.editionCancel = function () {
+        $scope.template = $scope.edition.lastTemplate;
+        $scope.edition = {
+            ready: false,
+            status: '',
+            session: null,
+            token: null,
+            editorUrl: null,
+            saving: false
+        };
+    }
+
+    $scope.editionHistory = function () {
+        var params2 = Object.assign({}, $scope.params);
+        params2.action = 'historyEdition';
+
+        function onFail() {
+            $scope.edition.status = 'Error fetching history';
+            $scope.ready = null;
+            $scope.disableBtn = false;
+        };
+
+        function onRequestFail() {
+            $scope.checkoutState = 'History request failed';
+            $scope.ready = null;
+            $scope.disableBtn = false;
+        };
+
+        $http.post('savesvn.php', params2, { responseType: 'json' }).then(function (res) {
+            if (!res.data.success) {
+                onFail(res);
+                return;
+            }
+            $scope.edition.history = {
+                commits: res.data.history,
+                editorAdditional: res.data.editorAdditional,
+                masterAdditional: res.data.masterAdditional
+            };
+            $scope.edition.history.editedHash = $scope.edition.oldVersion || $scope.edition.history.commits[0].hash
+            $scope.edition.history.selected = $scope.edition.history.editedHash;
+            $scope.edition.history.commits.map(function (x) {
+                var d = new Date(x.date * 1000);
+                x.date = d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
+            });
+            console.log($scope.edition);
+        }, onRequestFail);
+    }
+
+    $scope.editionHistoryRestore = function (first) {
+        var params2 = Object.assign({}, $scope.params);
+        params2.action = 'checkoutHashEdition';
+
+        if (first) {
+            $scope.edition.oldVersion = null;
+            params2.hash = 'HEAD';
+        } else {
+            $scope.edition.oldVersion = $scope.edition.history.selected;
+            params2.hash = $scope.edition.history.selected;
+        }
+
+        function onFail() {
+            $scope.edition.status = 'Error fetching history';
+            $scope.ready = null;
+            $scope.disableBtn = false;
+        };
+
+        function onRequestFail() {
+            $scope.checkoutState = 'History request failed';
+            $scope.ready = null;
+            $scope.disableBtn = false;
+        };
+
+        $http.post('savesvn.php', params2, { responseType: 'json' }).then(function (res) {
+            if (!res.data.success) {
+                onFail(res);
+                return;
+            }
+            $scope.closeEditionHistory();
+            $scope.prepareEdition();
+        }, onRequestFail);
+    }
+
+    $scope.makeDiffUrl = function (hash, type) {
+        var isGitlab = $scope.params.gitUrl.indexOf('gitlab.com') != -1;
+        var url = $scope.params.gitUrl;
+        if (isGitlab) {
+            url += '/-';
+        }
+        if (type == 'commit') {
+            return url + '/commit/' + hash;
+        } else {
+            return url + '/compare/' + hash + '...' + type;
+        }
+    }
+
+    $scope.closeEditionHistory = function () {
+        $scope.edition.history = null;
+    }
+
+    $scope.initParams();
 }]);

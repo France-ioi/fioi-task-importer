@@ -18,6 +18,7 @@ require_once 'libs/resources.inc.php';
 require_once 'libs/svn.inc.php';
 require_once 'libs/urls.inc.php';
 require_once 'libs/markdown.inc.php';
+require_once 'libs/edition.inc.php';
 
 header('Access-Control-Allow-Origin: *');
 header('Content-Type: application/json');
@@ -84,6 +85,16 @@ if ($request['action'] == 'checkoutSvn' || $request['action'] == 'checkoutGit' |
         die(json_encode(['success' => false, 'error' => 'error_request']));
     }
     echo(json_encode(deleteDirectory($request['ID'])));
+} elseif ($request['action'] == 'checkoutEdition') {
+    echo(json_encode(updateGit($request['gitUrl'], isset($request['gitUsername']) ? $request['gitUsername'] : '', isset($request['gitPassword']) ? $request['gitPassword'] : '')));
+} elseif ($request['action'] == 'prepareEdition') {
+    echo(json_encode(prepareEdition($request['gitUrl'], $request['gitPath'])));
+} elseif ($request['action'] == 'historyEdition') {
+    echo(json_encode(getHistory($request['gitUrl'], $request['gitPath'])));
+} elseif ($request['action'] == 'checkoutHashEdition') {
+    echo(json_encode(checkoutHashEdition($request['gitUrl'], $request['hash'])));
+} elseif ($request['action'] == 'commitEdition') {
+    echo(json_encode(commitEdition($request['gitUrl'], $request['gitPath'], $request['session'], isset($request['gitUsername']) ? $request['gitUsername'] : '', isset($request['gitPassword']) ? $request['gitPassword'] : '')));
 } else {
     echo(json_encode(['success' => false, 'error' => 'error_action']));
 }
