@@ -27,11 +27,11 @@ function updateGit($repo, $username, $password) {
     // If it exists, update
     try {
         if(is_dir($repoDir)) {
-            exec("cd " . $repoDir . " && git branch editor", $retval);
+            exec("cd " . $repoDir . " && git branch editor");
             exec("cd " . $repoDir . " && git checkout editor");
         } else {
             // Otherwise, clone
-            exec("git clone " . $repoUrl . " " . $repoDir, $retval);
+            exec("git clone " . $repoUrl . " " . $repoDir, $output, $retval);
             if($retval != 0) { return ['success' => false, 'error' => 'Failed to clone repository']; }
             exec("cd " . $repoDir . " && git branch editor");
             exec("cd " . $repoDir . " && git checkout editor");            
@@ -94,7 +94,7 @@ function commitEdition($repo, $subdir, $sessionId, $username, $password) {
 
     exec("cd " . $repoDir . " && git add -A");
     exec("cd " . $repoDir . " && git commit --author=\"Editor <task-editor@france-ioi.org>\" -m \"Editor commit for $username\"");
-    exec("cd " . $repoDir . " && git push " . $repoUrl, $retval);
+    exec("cd " . $repoDir . " && git push " . $repoUrl, $output, $retval);
     if($retval != 0) { return ['success' => false, 'error' => 'Failed to push, are the username/password correct?']; }
 
     return ['success' => true];
