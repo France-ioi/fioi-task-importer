@@ -2,14 +2,16 @@
 
 // TODO :: cleanup sessions
 
+require_once __DIR__.'/funcs.inc.php';
+
 function checkToken($token, $sessionId) {
     // TODO
     return ($token == 'testtoken');
 }
 
 function getSessionDir($sessionId) {
-    // TODO
-    return "/var/www/svnimport/files/sessions/$sessionId";
+    $workingDir = realpath(__DIR__.'/../');
+    return pathJoin($workingDir, "files/sessions", $sessionId);
 }
 
 function getSessionFilePath($sessionId, $path) {

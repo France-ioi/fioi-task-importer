@@ -878,7 +878,6 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
                 var d = new Date(x.date * 1000);
                 x.date = d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
             });
-            console.log($scope.edition);
         }, onRequestFail);
     }
 
@@ -925,7 +924,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         if (type == 'commit') {
             return url + '/commit/' + hash;
         } else {
-            return url + '/compare/' + hash + '...' + type;
+            return url + '/compare/' + type + '...' + hash;
         }
     }
 

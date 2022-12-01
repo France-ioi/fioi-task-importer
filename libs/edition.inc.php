@@ -143,6 +143,7 @@ function getHistory($repo, $subdir) {
             $editorAdditional += 1;
         }
     }
+    unset($editorLog);
     $masterAdditional = 0;
     foreach($historyMaster as $masterLog) {
         $found = false;
