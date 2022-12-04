@@ -109,7 +109,7 @@ function checkCommon($path, $depth, $localCommonRewrite=null, $rewriteCommon=fal
     return $wrong;
 }
 
-function processDir($taskDir, $baseSvnFirst, $rewriteCommon, $isGit) {
+function processDir($taskDir, $baseSvnFirst, $rewriteCommon, $isGit=false) {
     global $config, $quizServer, $workingDir;
 
     // Remove first component of the path
@@ -142,7 +142,7 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon, $isGit) {
                 // Move task to a static location
                 $targetDir = $taskId . '/' . $taskDirCompl;
                 $targetFsDir = $workingDir.'/files/checkouts/'.$targetDir;
-                mkdir($targetFsDir, 0777, true);
+                @mkdir($targetFsDir, 0777, true);
                 deleteRecDirectory($targetFsDir);
                 rename($workingDir.'/files/checkouts/'.$taskDir, $targetFsDir);
                 $taskDir = $targetDir;
@@ -326,7 +326,7 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
     $tasks = array();
     $taskDirs = listTaskDirs($baseTargetDir, $recursive);
     foreach($taskDirs as $taskDir) {
-        $newTaskData = processDir($taskDir, $baseSvnFirst, $rewriteCommon);
+        $newTaskData = processDir($taskDir, $baseSvnFirst, $rewriteCommon, false);
         if(count($newTaskData['files']) > 0) {
             $tasks[] = $newTaskData;
         }
