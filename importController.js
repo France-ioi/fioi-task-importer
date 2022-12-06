@@ -811,7 +811,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         $scope.checkoutState = null;
         $scope.template = 'templates/edition.html';
         $scope.edition.ready = true;
-        var url = 'https://fioi2.mblockelet.info/markdown-editor/'; // TODO
+        var url = 'https://edit.france-ioi.org/editors/markdown-editor/';
         url += '?session=' + $scope.edition.session;
         url += '&token=' + $scope.edition.token
         url += '&api=' + encodeURIComponent(window.location.origin + '/edition/');
