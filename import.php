@@ -18,15 +18,16 @@ if($config->localCssUrl) {
   echo '  <link href="' . $config->localCssUrl . '" type="text/css" rel="stylesheet">';
 }
 ?>
-  <script type="text/javascript" src="bower_components/angular/angular.min.js"></script>
-  <script type="text/javascript" src="bower_components/angular-sanitize/angular-sanitize.min.js"></script>
-  <script type="text/javascript" src="bower_components/i18next/i18next.min.js"></script>
-  <script type="text/javascript" src="bower_components/i18next-xhr-backend/i18nextXHRBackend.min.js"></script>
-  <script type="text/javascript" src="bower_components/ng-i18next/dist/ng-i18next.min.js"></script>
-  <script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
-  <script type="text/javascript" src="bower_components/jschannel/src/jschannel.js"></script>
-  <script type="text/javascript" src="bower_components/pem-platform/task-pr.js"></script>
-  <script type="text/javascript" src="/markdown/dist/markdown-bundle.js"></script>
+  <script type="text/javascript" src="bower_components/angular/angular.min.js<?=$config->urlArgs ?>"></script>
+  <script type="text/javascript" src="bower_components/angular-sanitize/angular-sanitize.min.js<?=$config->urlArgs ?>"></script>
+  <script type="text/javascript" src="bower_components/i18next/i18next.min.js<?=$config->urlArgs ?>"></script>
+  <script type="text/javascript" src="bower_components/i18next-xhr-backend/i18nextXHRBackend.min.js<?=$config->urlArgs ?>"></script>
+  <script type="text/javascript" src="bower_components/ng-i18next/dist/ng-i18next.min.js<?=$config->urlArgs ?>"></script>
+  <script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js<?=$config->urlArgs ?>"></script>
+  <script type="text/javascript" src="bower_components/jschannel/src/jschannel.js<?=$config->urlArgs ?>"></script>
+  <script type="text/javascript" src="bower_components/pem-platform/task-pr.js<?=$config->urlArgs ?>"></script>
+  <script type="text/javascript" src="/markdown/dist/markdown-bundle.js<?=$config->urlArgs ?>"></script>
+  <script type="text/javascript" src="editApi.js<?=$config->urlArgs ?>"></script>
   <script type="text/javascript" src="importController.js<?=$config->urlArgs ?>"></script>
   <script type="text/javascript">
     var config = <?=json_encode(['svnBaseUrl' => $config->svnBaseUrl, 'svnExampleUrl' => $config->svnExampleUrl, 'urlArgs' => $config->urlArgs]) ?>

@@ -7,6 +7,22 @@
     width: 1%;
 }
 
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.spin {
+    animation-name: spin;
+    animation-duration: 3000ms;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+}
 .edition-div {
     width: 100%;
     height: 98vh;
@@ -47,7 +63,7 @@
     color: red;
 }
 
-.edition-history {
+.edition-overlay {
     position: absolute;
     top: 0px;
     left: 0px;
@@ -56,7 +72,8 @@
     background-color: rgba(0, 0, 0, 0.5);
 }
 
-.edition-history-inner {
+.edition-history,
+.edition-fm {
     width: 90%;
     height: 90vh;
     margin: auto;
@@ -65,6 +82,9 @@
     border-radius: 10px;
     padding: 16px;
     overflow-x: hidden;
+}
+
+.edition-history {
     overflow-y: auto;
 }
 
@@ -93,19 +113,57 @@
     background-color: lightgreen;
 }
 
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
+.edition-fm {
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
 }
 
-.spin {
-    animation-name: spin;
-    animation-duration: 3000ms;
-    animation-iteration-count: infinite;
-    animation-timing-function: linear;
+.edition-fm-files {
+    flex: 1 0 0;
+    display: flex;
+    justify-content: space-between;
+    min-height: 0;
+}
+
+.edition-fm-tree {
+    flex: 0 0 40%;
+    font-size: 1.1em;
+    border: 1px solid #ccc;
+    padding: 8px;
+    overflow-y: auto;
+}
+
+.edition-fm-info {
+    flex: 0 0 60%;
+    padding: 8px;
+    margin-left: 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+.edition-fm-controls {
+    flex: 0 0 auto;
+}
+
+.edition-fm-display {
+    flex: 1 0 0;
+    min-height: 0;
+}
+
+.edition-fm-display img {
+    max-height: 100%;
+    max-width: 100%;
+}
+
+.treeview-children {
+    margin-left: 20px;
+}
+.treeview-item:hover {
+    background-color: rgb(214, 236, 242);
+}
+
+.treeview-item.treeview-selected {
+    background-color: lightblue;
+    font-weight: bold;
 }

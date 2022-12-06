@@ -1,0 +1,13 @@
+<div ng-repeat="item in node.folders">
+    <div class="treeview-item" ng-click="editionFmSelect(item.path)" ng-class="edition.fileManager.selectedPath == item.path ? 'treeview-selected' : ''">
+        <span class="fas fa-folder-open"></span> {{ item.name }}
+    </div>
+    <div class="treeview-children">
+        <treeview node="item"></treeview>
+    </div>
+</div>
+<div ng-repeat="item in node.files">
+    <div class="treeview-item" ng-click="editionFmSelect(item.path)" ng-class="edition.fileManager.selectedPath == item.path ? 'treeview-selected' : ''">
+        <span ng-class="getClass(item.name)"></span> {{ item.name }}
+    </div>
+</div>

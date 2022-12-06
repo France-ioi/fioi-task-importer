@@ -936,9 +936,131 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         }
     }
 
-    $scope.closeEditionHistory = function () {
+    $scope.closeEditionPopup = function () {
         $scope.edition.history = null;
+        $scope.edition.fileManager = null;
+    }
+
+    function editionFmUpdate(callback) {
+        editionApi.refreshFileList(function (data) {
+            var tree = { folders: [], files: [], name: $scope.edition.path };
+            var treePointers = {};
+            for (var i = 0; i < data.length; i++) {
+                var pathSplit = data[i].split('/');
+                var curTree = tree;
+                var curPath = null;
+                for (var j = 0; j < pathSplit.length - 1; j++) {
+                    curPath = j > 0 ? curPath + '/' + pathSplit[j] : pathSplit[j];
+                    if (!treePointers[curPath]) {
+                        treePointers[curPath] = { folders: [], files: [], name: pathSplit[j], path: curPath };
+                        curTree.folders.push(treePointers[curPath]);
+                    }
+                    curTree = treePointers[curPath];
+                }
+                curTree.files.push({ name: pathSplit[pathSplit.length - 1], path: data[i] });
+            }
+            $scope.edition.fileManager.root = tree;
+            $scope.$apply(callback);
+        });
+    }
+
+    $scope.editionFileManager = function () {
+        $scope.edition.fileManager = {};
+        editionApi.setupEditionApi(window.location.origin + '/edition/', $scope.edition.token, $scope.edition.session);
+        editionFmUpdate();
+    }
+
+    $scope.imageCache = {};
+    $scope.editionFmSelect = function (path) {
+        $scope.edition.fileManager.selectedPath = path;
+        $scope.edition.fileManager.renameFile = path;
+        if (!editionFmFilenameChanged) {
+            // Suggest current folder as base for filename
+            var pathSplit = path.split('/');
+            $scope.edition.fileManager.newFile = pathSplit.length > 1 ? pathSplit.slice(0, -1).join('/') + '/' : '';
+        }
+        if ($scope.editionFmSelectedIsImage() && !$scope.imageCache[path]) {
+            editionApi.getImageContent(path, function (data) {
+                $scope.imageCache[path] = data;
+                $scope.$apply();
+            });
+        }
+    }
+
+    $scope.editionFmSelectedIsImage = function () {
+        return $scope.edition.fileManager && $scope.edition.fileManager.selectedPath && /\.(gif|jpg|jpeg|tiff|png)$/i.test($scope.edition.fileManager.selectedPath);
+    }
+
+    var editionFmFilenameChanged = false;
+    $scope.editionFmFilenameChange = function () {
+        $scope.edition.fileManager.uploadSuccessful = false;
+        editionFmFilenameChanged = true;
+    }
+
+    $scope.editionFmDownload = function () {
+        if (!$scope.edition.fileManager.selectedPath) { return; }
+        editionApi.getFileBlob($scope.edition.fileManager.selectedPath, function (blob) {
+            var link = document.createElement('a');
+            var filename = $scope.edition.fileManager.selectedPath.split('/');
+            filename = filename[filename.length - 1];
+            link.download = filename;
+            link.href = URL.createObjectURL(blob);
+            link.click();
+            URL.revokeObjectURL(link.href);
+        });
+    }
+
+    $scope.editionFmDelete = function () {
+        if (!$scope.edition.fileManager.selectedPath) { return; }
+        editionApi.deleteFile($scope.edition.fileManager.selectedPath, function () {
+            editionFmUpdate();
+        });
+    }
+
+    $scope.editionFmRename = function () {
+        if (!$scope.edition.fileManager.selectedPath) { return; }
+        editionApi.getFileBlob($scope.edition.fileManager.selectedPath, function (blob) {
+            editionApi.putFile($scope.edition.fileManager.renameFile, blob, function () {
+                editionApi.deleteFile($scope.edition.fileManager.selectedPath, function () {
+                    editionFmUpdate();
+                    $scope.edition.fileManager.selectedPath = $scope.edition.fileManager.renameFile;
+                });
+            });
+        });
+    }
+
+    $scope.editionFmUpload = function () {
+        if (!$scope.edition.fileManager.newFile || !document.getElementById('edition-fm-newFileContent').files[0]) { return; }
+        editionApi.putFile($scope.edition.fileManager.newFile, document.getElementById('edition-fm-newFileContent').files[0], function () {
+            $scope.edition.fileManager.uploadSuccessful = true;
+            editionFmUpdate(function () {
+                $scope.editionFmSelect($scope.edition.fileManager.newFile);
+            });
+        });
     }
 
     $scope.initParams();
 }]);
+
+app.directive('treeview', function () {
+    return {
+        restrict: 'E',
+        scope: {
+            node: '='
+        },
+        templateUrl: 'templates/treeview.html',
+        link: function (scope, element, attrs) {
+            scope.edition = scope.$parent.edition;
+            scope.editionFmSelect = scope.$parent.editionFmSelect;
+            scope.getClass = function (name) {
+                if (/\.(gif|jpg|jpeg|tiff|png)$/i.test(name)) {
+                    return 'fas fa-file-image';
+                }
+                if (/\.(md)$/i.test(name)) {
+                    return 'fas fa-file-lines';
+                }
+                return 'fas fa-file';
+            }
+        }
+    }
+});

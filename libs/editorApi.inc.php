@@ -10,13 +10,13 @@ function checkToken($token, $sessionId) {
 }
 
 function getSessionDir($sessionId) {
-    $workingDir = realpath(__DIR__.'/../');
+    global $workingDir;
     return pathJoin($workingDir, "files/sessions", $sessionId);
 }
 
 function getSessionFilePath($sessionId, $path) {
     $sessionDir = getSessionDir($sessionId);
-    $file = realpath("$sessionDir/$path");
+    $file = getAbsolutePath(pathJoin($sessionDir, $path));
     if (substr($file, 0, strlen($sessionDir)) != $sessionDir) {
         header("HTTP/1.0 403 Forbidden");
         die();
@@ -64,6 +64,9 @@ function putFile($sessionId, $path, $start, $truncate) {
         mkdir($dir, 0777, true);
     }
 
+    if(!file_exists($file)) {
+        $truncate = true;
+    }
     $fp = fopen($file, $truncate ? 'w' : 'r+');
     fseek($fp, $start);
     fwrite($fp, file_get_contents('php://input'));

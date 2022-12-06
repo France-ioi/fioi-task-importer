@@ -19,23 +19,24 @@
         </div>
         <div>
             <button class="btn btn-primary" ng-disabled="edition.saving" ng-click="editionSave()"><span class="fas fa-floppy-disk"></span> Save</button>
-            <button class="btn btn-default" ng-disabled="edition.saving" ng-click="editionSave('close')"><span class="fas fa-floppy-disk"></span> Save &amp; Close</button>
+            <!--<button class="btn btn-default" ng-disabled="edition.saving" ng-click="editionSave('close')"><span class="fas fa-floppy-disk"></span> Save &amp; Close</button>-->
             <!--<button class="btn btn-default" ng-disabled="edition.saving" ng-click="editionSave('import')"><span class="fas fa-file-import"></span> Save &amp; Import</button>-->
             <span class="glyphicon glyphicon-refresh spin" ng-show="edition.saving"></span>
         </div>
         <div>
             <button class="btn btn-default" ng-click="editionHistory()"><span class="fas fa-clock"></span> History</button>
+            <button class="btn btn-default" ng-click="editionFileManager()"><span class="fas fa-folder-tree"></span> File manager</button>
             <!--<button class="btn btn-danger" ng-click="editionCancel()"><span class="fas fa-xmark"></span> Cancel</button>-->
         </div>
     </div>
     <div ng-show="edition.ready" class="edition-iframe-div">
         <iframe id="edition-iframe" class="edition-iframe" src="{{ edition.editorUrl }}"></iframe>
     </div>
-    <div class="edition-history" ng-show="edition.history">
-        <div class="edition-history-inner">
+    <div class="edition-overlay" ng-show="edition.history || edition.fileManager">
+        <div class="edition-history" ng-show="edition.history">
             <h3><span class="fas fa-clock"></span> History for {{ edition.path }}</h3>
             <p>
-                <button class="btn btn-warning" ng-click="closeEditionHistory()"><span class="fas fa-xmark"></span> Close</button>
+                <button class="btn btn-warning" ng-click="closeEditionPopup()"><span class="fas fa-xmark"></span> Close</button>
                 <button class="btn" ng-click="editionHistoryRestore()" ng-class="edition.history.selected != edition.history.editedHash && 'btn-primary' || 'btn-default'" ng-disabled="edition.history.selected == edition.history.editedHash"><span class="fas fa-pen"></span> Edit selected version</button>
                 <button class="btn" ng-click="editionHistoryRestore(true)" ng-class="edition.oldVersion && 'btn-primary' || 'btn-default'" ng-disabled="!edition.oldVersion"><span class="fas fa-clock-rotate-left"></span> Return to latest version</button>
                 <a class="btn" ng-class="edition.oldVersion && 'btn-primary' || 'btn-default'" href="{{ makeDiffUrl(edition.history.selected, 'commit') }}" target="_blank"><span class="fas fa-magnifying-glass"></span> View selected commit</a>
@@ -65,6 +66,40 @@
                     </tr>
                 </tbody>
             </table>
+        </div>
+        <div class="edition-fm" ng-show="edition.fileManager">
+            <div class="edition-fm-header">
+                <h3><span class="fas fa-folder-tree"></span> Files of {{ edition.path }}</h3>
+                <p>
+                    <button class="btn btn-warning" ng-click="closeEditionPopup()"><span class="fas fa-xmark"></span> Close</button>
+                </p>
+            </div>
+            <div class="edition-fm-files">
+                <div class="edition-fm-tree">
+                    <treeview node="edition.fileManager.root"></treeview>
+                </div>
+                <div class="edition-fm-info">
+                    <div class="edition-fm-controls">
+                        <p>
+                            Add file :
+                            <input type="text" ng-model="edition.fileManager.newFile" ng-change="editionFmFilenameChange()" placeholder="File path" />
+                            <input type="file" id="edition-fm-newFileContent" />
+                            <button class="btn btn-default" ng-click="editionFmUpload()"><span class="fas fa-upload"></span> Upload</button>
+                            <span ng-show="edition.fileManager.uploadSuccessful"><span class="fas fa-check"></span> Upload successful!</span>
+                        </p>
+                        <hr>
+                        <p>Selected : {{ edition.fileManager.selectedPath }}</p>
+                        <p>
+                            <button class="btn btn-default" ng-click="editionFmDownload()"><span class="fas fa-download"></span> Download</button>
+                            <button class="btn btn-danger" ng-click="editionFmDelete()"><span class="fas fa-trash-can"></span> Delete</button>
+                            Rename : <input type="text" ng-model="edition.fileManager.renameFile" style="width: 400px;" /> <button class="btn btn-default" ng-click="editionFmRename()"><span class="fas fa-edit"></span> Rename</button>
+                        </p>
+                    </div>
+                    <div class="edition-fm-display" ng-if="editionFmSelectedIsImage(edition.fileManager.selected)">
+                        <img ng-src="{{ imageCache[edition.fileManager.selectedPath] }}" />
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

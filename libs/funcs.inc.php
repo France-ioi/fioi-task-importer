@@ -58,5 +58,5 @@ function getAbsolutePath($path) {
             $absolutes[] = $part;
         }
     }
-    return implode(DIRECTORY_SEPARATOR, $absolutes);
+    return DIRECTORY_SEPARATOR.implode(DIRECTORY_SEPARATOR, $absolutes);
 }
