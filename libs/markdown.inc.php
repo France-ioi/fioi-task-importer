@@ -88,7 +88,7 @@ function saveMarkdown($html, $headers, $checkoutPath, $gitRepo, $gitPath, $filen
                   <script src="/files/checkouts/_common/modules/pemFioi/static-task.js"></script>';
     $fullHtml .= '<script type="text/javascript">
                     window.staticTaskOptions = { autoValidate: true };
-                    window.json = { editorUrl: "' . $config->baseUrl . '?edition=true&display=frame&type=git&repo=' . urlencode($gitRepo) . '&path=' . urlencode($gitPath) . '" };
+                    window.json = { editorUrl: "' . $config->baseUrl . '?edition=true&display=frame&type=git&repo=' . urlencode($gitRepo) . '&path=' . urlencode($gitPath) . '&filename=' . urlencode($filename) . '" };
                   </script>';
     $fullHtml .= '<script src="/markdown/dist/markdown-css.js"></script>';
     $fullHtml .= '</head><body>';

@@ -653,6 +653,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
                 $scope.params.svnUrl = QueryString.path;
             }
         }
+        if (QueryString.filename) { $scope.params.filename = QueryString.filename; }
         if(QueryString.username) { $scope.params.username = QueryString.username; }
         if(QueryString.password) { $scope.params.password = QueryString.password; }
         if(QueryString.revision) { $scope.params.revision = QueryString.revision; }
@@ -810,7 +811,14 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         $scope.checkoutState = null;
         $scope.template = 'templates/edition.html';
         $scope.edition.ready = true;
-        $scope.edition.editorUrl = $sce.trustAsResourceUrl('https://fioi2.mblockelet.info/markdown-editor/?session=' + $scope.edition.session + '&token=' + $scope.edition.token);
+        var url = 'https://fioi2.mblockelet.info/markdown-editor/'; // TODO
+        url += '?session=' + $scope.edition.session;
+        url += '&token=' + $scope.edition.token
+        url += '&api=' + encodeURIComponent(window.location.origin + '/edition/');
+        if ($scope.params.filename) {
+            url += '&filename=' + encodeURIComponent($scope.params.filename);
+        }
+        $scope.edition.editorUrl = $sce.trustAsResourceUrl(url);
         $timeout($scope.createEditionChannel, 100);
     }
 
