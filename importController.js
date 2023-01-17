@@ -805,6 +805,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             $scope.edition.path = params2.gitPath + ' (from ' + params2.gitUrl + ')';
             $scope.edition.masterBranch = res.data.masterBranch;
             $scope.edition.history = {};
+            $scope.edition.taskEditor = res.data.taskEditor;
             $scope.startEdition();
         }, onRequestFail);
     }
@@ -813,11 +814,11 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         $scope.checkoutState = null;
         $scope.template = 'templates/edition.html';
         $scope.edition.ready = true;
-        if ($scope.params.filename && $scope.params.filename.endsWith('.md')) {
-            var url = 'https://edit.france-ioi.org/editors/markdown-editor/';
-        } else {
+        if ($scope.edition.taskEditor) {
             var url = 'https://task-editor.mblockelet.info/';
             // var url = 'https://edit.france-ioi.org/editors/task-editor/';
+        } else {
+            var url = 'https://edit.france-ioi.org/editors/markdown-editor/';
         }
         url += '?session=' + $scope.edition.session;
         url += '&token=' + $scope.edition.token

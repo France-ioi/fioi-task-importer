@@ -118,7 +118,8 @@ function prepareEdition($repo, $subdir) {
         'token' => 'testtoken',
         'masterSynced' => $historyInfo['masterAdditional'] == 0,
         'editorSynced' => $historyInfo['editorAdditional'] == 0,
-        'masterBranch' => getGitMainBranch($repo)
+        'masterBranch' => getGitMainBranch($repo),
+        'taskEditor' => file_exists(pathJoin($subdir, 'task_editor.json'))
     ];
 
 }
