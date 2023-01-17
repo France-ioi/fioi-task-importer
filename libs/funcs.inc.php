@@ -30,12 +30,16 @@ function pathJoin() {
     return $path;
 }
 
+function isFileExcludedFromSync($file) {
+    $excludes = ['.', '..', '.git', '.gitignore', '.svn'];
+    return in_array($file, $excludes);
+}
 
 function dirCopy($src, $dst) {
 	$dir = opendir($src);
 	@mkdir($dst, 0777, true);
 	while(($file = readdir($dir))) {
-		if(($file != '.') && ($file != '..')) {
+		if(!isFileExcludedFromSync($file)) {
 			if(is_dir(pathJoin($src, $file))) {
 				dirCopy(pathJoin($src, $file), pathJoin($dst, $file));
 			} else {

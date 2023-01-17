@@ -47,6 +47,13 @@ $config->aws->finalBucket->name = '';
 $config->bebrasServerModules = (object) array();
 $config->bebrasServerModules->quiz_url = null;
 
+$config->git = (object) array();
+$config->git->allowedRepositories = null;
+$config->git->githubUser = null;
+$config->git->githubPassword = null;
+$config->git->gitlabUser = null;
+$config->git->gitlabPassword = null;
+
 if (is_readable(__DIR__.'/config_local.php')) {
    include_once __DIR__.'/config_local.php';
 }

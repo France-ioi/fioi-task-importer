@@ -38,6 +38,20 @@
     justify-content: space-between;
 }
 
+.edition-header>div {
+    flex-basis: 49%;
+}
+
+.edition-header-left {
+    flex-grow: 1;
+    flex-shrink: 1;
+}
+
+.edition-header-right {
+    flex-grow: 1;
+    flex-shrink: 1;
+    text-align: right;
+}
 .edition-error-header {
     flex: 0 0 auto;
     display: flex;
@@ -73,7 +87,10 @@
 }
 
 .edition-history,
-.edition-fm {
+.edition-fm,
+.edition-save,
+.edition-publish,
+.edition-merge {
     width: 90%;
     height: 90vh;
     margin: auto;
@@ -166,4 +183,41 @@
 .treeview-item.treeview-selected {
     background-color: lightblue;
     font-weight: bold;
+}
+.edition-save-publish {
+    padding-left: 16px;
+}
+
+.edition-status-icon.fa-check {
+    color: green;
+}
+
+.edition-status-icon.fa-sync {
+    -webkit-animation-name: fa-spin;
+    animation-name: fa-spin;
+    -webkit-animation-duration: var(--fa-animation-duration, 2s);
+    animation-duration: var(--fa-animation-duration, 2s);
+    -webkit-animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+    animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+    -webkit-animation-timing-function: var(--fa-animation-timing, linear);
+    animation-timing-function: var(--fa-animation-timing, linear)
+}
+
+.edition-status-icon.fa-circle-exclamation {
+    color: orange;
+}
+
+.edition-input-red {
+    border: 2px solid red;
+}
+
+.edition-publish-title {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.edition-publish-or {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 16px;
 }

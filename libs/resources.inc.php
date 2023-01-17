@@ -31,7 +31,7 @@ function saveTask($metadata, $sTaskPath, $subdir, $revision, $resources) {
     $sEvalResultOutputScript = isset($metadata['evalOutputScript']) ? $metadata['evalOutputScript'] : null;
     $sScriptAnimation = '';
     foreach ($resources['task'] as $i => $resource) {
-        if ($resource['type'] == 'javascript' && $resource['id'] == 'animation' && isset($resource['content'])) {
+        if ($resource['type'] == 'javascript' && isset($resource['id']) && $resource['id'] == 'animation' && isset($resource['content'])) {
             $sScriptAnimation = $resource['content'];
             break;
         }
@@ -301,7 +301,9 @@ function saveResources($data, $sTaskPath, $subdir, $revision, $dirPath, $acceptM
     if(!$alreadyImported) {
         $taskId = saveTask($metadata, $sTaskPath, $subdir, $revision, $resources);
         // limits
-        saveLimits($taskId, $metadata['limits']);
+        if(isset($metadata['limits'])) {
+            saveLimits($taskId, $metadata['limits']);
+        }
         // source code
         saveSourceCodes($taskId, $resources);
         saveSamples($taskId, $resources);

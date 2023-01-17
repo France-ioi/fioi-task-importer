@@ -50,7 +50,7 @@ var jschannel = window.parent !== window ? Channel.build({
 
 var app = angular.module('svnImport', ['jm.i18next']);
 
-app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '$sce', function ($scope, $http, $timeout, $i18next, $sce) {
+app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '$sce', '$interval', function ($scope, $http, $timeout, $i18next, $sce, $interval) {
     $scope.template = 'templates/full.html';
 
     $scope.options = {lang: $i18next.options.lng};
@@ -730,8 +730,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
     }
 
     $scope.editionCommit = function () {
-        $scope.edition.saving = false;
-
+        $scope.edition.saveInfo.committing = true;
         function onFail(err) {
             $scope.checkoutState = 'Error pushing the commit';
             if (err) { $scope.checkoutState += ': ' + err; }
@@ -751,15 +750,16 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         var params1 = Object.assign({}, $scope.params);
         params1.action = 'commitEdition';
         params1.session = $scope.edition.session;
+        params1.commitMsg = $scope.edition.saveInfo.commitMessage;
         $http.post('savesvn.php', params1, { responseType: 'json' }).then(function (res) {
             if (!res.data.success) {
                 onFail(res.data.error);
                 return;
             }
-            if ($scope.edition.saveCallback) {
-                $scope.edition.saveCallback();
-                $scope.edition.saveCallback = null;
-            }
+            $scope.edition.saveInfo.committing = false;
+            $scope.edition.saveInfo.committed = true;
+            $scope.compareLastCommits(true);
+            $timeout(function () { $scope.closeEditionPopup(); }, 3000);
         }, onRequestFail);
     }
 
@@ -771,7 +771,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         });
 
         $scope.edition.channel.bind('saved', function () {
-            $scope.$apply($scope.editionCommit);
+            $scope.$apply($scope.editionEditorSaved);
         });
     }
 
@@ -803,6 +803,8 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             $scope.edition.session = res.data.session;
             $scope.edition.token = res.data.token;
             $scope.edition.path = params2.gitPath + ' (from ' + params2.gitUrl + ')';
+            $scope.edition.masterBranch = res.data.masterBranch;
+            $scope.edition.history = {};
             $scope.startEdition();
         }, onRequestFail);
     }
@@ -811,35 +813,200 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         $scope.checkoutState = null;
         $scope.template = 'templates/edition.html';
         $scope.edition.ready = true;
-        var url = 'https://edit.france-ioi.org/editors/markdown-editor/';
+        if ($scope.params.filename && $scope.params.filename.endsWith('.md')) {
+            var url = 'https://edit.france-ioi.org/editors/markdown-editor/';
+        } else {
+            var url = 'https://task-editor.mblockelet.info/';
+            // var url = 'https://edit.france-ioi.org/editors/task-editor/';
+        }
         url += '?session=' + $scope.edition.session;
         url += '&token=' + $scope.edition.token
         url += '&api=' + encodeURIComponent(window.location.origin + '/edition/');
+        var depthSplit = $scope.params.gitPath.split('/');
+        var depth = depthSplit.length;
+        if (depthSplit[depthSplit.length - 1] == '') {
+            depth--;
+        }
+        url += '&depth=' + depth;
         if ($scope.params.filename) {
             url += '&filename=' + encodeURIComponent($scope.params.filename);
         }
         $scope.edition.editorUrl = $sce.trustAsResourceUrl(url);
         $timeout($scope.createEditionChannel, 100);
+        $scope.compareLastCommits();
+        $interval($scope.compareLastCommits, 300000);
     }
 
-    $scope.editionSave = function (mode) {
+    $scope.compareLastCommits = function (editionSaved) {
+        if (!$scope.edition || !$scope.edition.ready) {
+            if ($scope.compareLastCommitsInterval) {
+                $interval.cancel($scope.compareLastCommitsInterval);
+            }
+            return;
+        }
+
+        $scope.editionGetHistory();
+
+        var params2 = Object.assign({}, $scope.params);
+        params2.action = 'getLastCommits';
+
+        $http.post('savesvn.php', params2, { responseType: 'json' }).then(function (res) {
+            if (!res.data.success) {
+                return;
+            }
+            if (!$scope.edition.lastCommits) {
+                $scope.edition.lastCommits = {
+                    origMaster: res.data.master,
+                    origEditor: res.data.editor
+                };
+            }
+            if (editionSaved) {
+                $scope.edition.lastCommits.origEditor = res.data.editor;
+            }
+            $scope.edition.lastCommits.curMaster = res.data.master;
+            $scope.edition.lastCommits.curEditor = res.data.editor;
+        });
+    }
+
+    $scope.editionEditorSave = function () {
+        if (!$scope.edition.saveInfo || $scope.edition.saveInfo.editorSaving) {
+            return;
+        }
         $scope.showLogin = false;
         $scope.edition.channel.notify({
             method: 'save',
             params: {}
         });
-        $scope.edition.saving = true;
-        if (mode == 'close') {
-            $scope.edition.saveCallback = function () {
-                $scope.editionCancel();
-            };
-        } else if (mode == 'import') {
-            $scope.edition.saveCallback = function () {
-                $scope.editionCancel();
-                $scope.params.recursive = true;
-                $scope.checkout();
+        $scope.edition.saveInfo.editorSaving = true;
+    }
+
+    $scope.editionEditorSaved = function () {
+        if (!$scope.edition.saveInfo) { return; }
+        $scope.edition.saveInfo.editorSaving = false;
+        if ($scope.edition.saveInfo.doSave) {
+            $scope.editionCommit();
+        }
+    }
+
+    $scope.editionSave = function () {
+        $scope.edition.saveInfo = {
+            show: true,
+            commitMessage: '',
+            masterCommits: $scope.getHistoryUntilSplit($scope.edition.history.masterCommits)
+        }
+        $scope.editionEditorSave();
+    }
+
+    $scope.editionPublish = function () {
+        if ($scope.edition.publishType != 'pr' && $scope.edition.publishType != 'mpr') {
+            $scope.edition.publishType = 'pr';
+        }
+        if (!$scope.edition.publishInfo) {
+            $scope.edition.publishInfo = {
+                prTitle: 'Pull request for editor changes',
+                prBody: 'Pull request for changes made from the editor',
+                commits: $scope.getHistoryUntilSplit($scope.edition.history.commits)
             };
         }
+        $scope.edition.publishInfo.show = true;
+        $scope.edition.publishInfo.status = [];
+        $scope.edition.publishInfo.doSave = false;
+    }
+
+    $scope.editionMerge = function () {
+        if ($scope.edition.publishType != 'prod' && $scope.edition.publishType != 'merge') {
+            $scope.edition.publishType = 'prod';
+        }
+        if (!$scope.edition.mergeInfo) {
+            $scope.edition.mergeInfo = {
+                editorCommits: $scope.getHistoryUntilSplit($scope.edition.history.commits),
+                masterCommits: $scope.getHistoryUntilSplit($scope.edition.history.masterCommits)
+            };
+        }
+        $scope.edition.mergeInfo.show = true;
+    }
+
+    $scope.editionDoSave = function () {
+        if (!$scope.edition.saveInfo.commitMessage) {
+            return;
+        }
+        $scope.edition.saveInfo.doSave = true;
+        if ($scope.edition.saveInfo.editorSaving) {
+            return;
+        }
+        $scope.editionCommit();
+    }
+
+    $scope.editionDoPublish = function () {
+        $scope.edition.publishInfo.done = false;
+        $scope.edition.publishInfo.error = false;
+        $scope.edition.publishInfo.prUrl = null;
+        $scope.edition.publishInfo.mprUrl = null;
+        $scope.edition.publishInfo.publishing = true;
+
+        var params2 = Object.assign({}, $scope.params);
+        params2.action = 'publishEdition';
+        params2.type = $scope.edition.publishType;
+        params2.prTitle = $scope.edition.publishInfo.prTitle;
+        params2.prBody = $scope.edition.publishInfo.prBody;
+
+        $http.post('savesvn.php', params2, { responseType: 'json' }).then(function (res) {
+            $scope.edition.publishInfo.publishing = false;
+            if (!res.data.success) {
+                $scope.edition.publishInfo.error = true;
+                return;
+            }
+
+            $scope.edition.publishInfo.done = true;
+            if (params2.type == 'mpr') {
+                $scope.edition.publishInfo.mprUrl = $scope.makeDiffUrl(res.data.branch, 'pr');
+            } else if (params2.type == 'pr') {
+                $scope.edition.publishInfo.prUrl = res.data.prUrl;
+            }
+
+        }, function () {
+            $scope.edition.publishInfo.publishing = false;
+            $scope.edition.publishInfo.error = true;
+        });
+    }
+
+    $scope.editionDoMerge = function () {
+        $scope.edition.mergeInfo.done = false;
+        $scope.edition.mergeInfo.error = false;
+        $scope.edition.mergeInfo.merging = true;
+
+        var params2 = Object.assign({}, $scope.params);
+        params2.action = 'publishEdition';
+        params2.type = $scope.edition.publishType;
+        params2.prTitle = '';
+        params2.prBody = '';
+
+        $http.post('savesvn.php', params2, { responseType: 'json' }).then(function (res) {
+            $scope.edition.mergeInfo.merging = false;
+            if (!res.data.success) {
+                $scope.edition.mergeInfo.error = true;
+                return;
+            }
+
+            $scope.edition.mergeInfo.done = true;
+            if (params2.type == 'prod') {
+                $scope.edition.mergeInfo.showImport = true;
+            } else if (params2.type == 'merge') {
+                $timeout(function () {
+                    $scope.closeEditionPopup();
+                    $scope.prepareEdition();
+                }, 3000);
+            }
+
+        }, function () {
+            $scope.edition.mergeInfo.publishing = false;
+            $scope.edition.mergeInfo.error = true;
+        });
+    }
+
+    $scope.editionDoImport = function () {
+        $scope.editionCancel();
+        $scope.checkoutGit();
     }
 
     $scope.editionCancel = function () {
@@ -854,7 +1021,27 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         };
     }
 
+    $scope.getHistoryUntilSplit = function (commits) {
+        var i = 0;
+        for (i = 0; i < commits.length; i++) {
+            if (commits[i].master) {
+                break;
+            }
+        }
+        return commits.slice(0, i);
+    }
+
     $scope.editionHistory = function () {
+        $scope.edition.history.show = true;
+        $scope.edition.history.loading = true;
+        $scope.editionGetHistory(function () {
+            $scope.edition.history.loading = false;
+            $scope.edition.history.editedHash = $scope.edition.oldVersion || $scope.edition.history.commits[0].hash
+            $scope.edition.history.selected = $scope.edition.history.editedHash;
+        });
+    }
+
+    $scope.editionGetHistory = function (callback) {
         var params2 = Object.assign({}, $scope.params);
         params2.action = 'historyEdition';
 
@@ -875,17 +1062,34 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
                 onFail(res);
                 return;
             }
-            $scope.edition.history = {
-                commits: res.data.history,
-                editorAdditional: res.data.editorAdditional,
-                masterAdditional: res.data.masterAdditional
-            };
-            $scope.edition.history.editedHash = $scope.edition.oldVersion || $scope.edition.history.commits[0].hash
-            $scope.edition.history.selected = $scope.edition.history.editedHash;
+            if (!$scope.edition.history) { $scope.edition.history = {}; }
+            $scope.edition.history.commits = res.data.history;
+            $scope.edition.history.masterCommits = res.data.historyMaster;
+            $scope.edition.history.editorAdditional = res.data.editorAdditional;
+            $scope.edition.history.masterAdditional = res.data.masterAdditional
+
             $scope.edition.history.commits.map(function (x) {
                 var d = new Date(x.date * 1000);
                 x.date = d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
             });
+
+            $scope.edition.history.allCommits = [];
+            var masterAdditionalCommits = $scope.getHistoryUntilSplit($scope.edition.history.masterCommits)
+            masterAdditionalCommits.map(function (x) {
+                x.fromMaster = true;
+                var d = new Date(x.date * 1000);
+                x.date = d.toLocaleDateString() + ' ' + d.toLocaleTimeString();
+            });
+
+            for (var i = 0; i < $scope.edition.history.commits.length; i++) {
+                var c = $scope.edition.history.commits[i];
+                if (c.master) {
+                    $scope.edition.history.allCommits = $scope.edition.history.allCommits.concat(masterAdditionalCommits);
+                }
+                $scope.edition.history.allCommits.push(c);
+            }
+
+            if (callback) { callback(); }
         }, onRequestFail);
     }
 
@@ -918,7 +1122,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
                 onFail(res);
                 return;
             }
-            $scope.closeEditionHistory();
+            $scope.closeEditionPopup();
             $scope.prepareEdition();
         }, onRequestFail);
     }
@@ -931,14 +1135,33 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         }
         if (type == 'commit') {
             return url + '/commit/' + hash;
+        } else if (type == 'pr') {
+            if (isGitlab) {
+                return url + '/merge_requests/new?merge_request%5Bsource_branch%5D=' + hash + '&merge_request%5Btarget_branch%5D=' + $scope.edition.masterBranch;
+            } else {
+                return url + '/compare/' + $scope.edition.masterBranch + '...' + hash + '?expand=1';
+            }
+        } else if (type == 'master') {
+            return url + '/compare/' + $scope.edition.masterBranch + '...' + hash;
         } else {
             return url + '/compare/' + type + '...' + hash;
         }
     }
 
     $scope.closeEditionPopup = function () {
-        $scope.edition.history = null;
         $scope.edition.fileManager = null;
+        if ($scope.edition.history) {
+            $scope.edition.history.show = false;
+        }
+        if ($scope.edition.saveInfo) {
+            $scope.edition.saveInfo.show = false;
+        }
+        if ($scope.edition.publishInfo) {
+            $scope.edition.publishInfo.show = false;
+        }
+        if ($scope.edition.mergeInfo) {
+            $scope.edition.mergeInfo.show = false;
+        }
     }
 
     function editionFmUpdate(callback) {

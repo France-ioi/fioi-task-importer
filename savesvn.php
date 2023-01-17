@@ -93,8 +93,12 @@ if ($request['action'] == 'checkoutSvn' || $request['action'] == 'checkoutGit' |
     echo(json_encode(getHistory($request['gitUrl'], $request['gitPath'])));
 } elseif ($request['action'] == 'checkoutHashEdition') {
     echo(json_encode(checkoutHashEdition($request['gitUrl'], $request['hash'])));
+} elseif ($request['action'] == 'getLastCommits') {
+    echo(json_encode(getLastCommits($request['gitUrl'], $request['gitPath'], isset($request['gitUsername']) ? $request['gitUsername'] : '', isset($request['gitPassword']) ? $request['gitPassword'] : '')));
 } elseif ($request['action'] == 'commitEdition') {
-    echo(json_encode(commitEdition($request['gitUrl'], $request['gitPath'], $request['session'], isset($request['gitUsername']) ? $request['gitUsername'] : '', isset($request['gitPassword']) ? $request['gitPassword'] : '')));
+    echo(json_encode(commitEdition($request['gitUrl'], $request['gitPath'], $request['session'], $request['commitMsg'], isset($request['gitUsername']) ? $request['gitUsername'] : '', isset($request['gitPassword']) ? $request['gitPassword'] : '')));
+} elseif ($request['action'] == 'publishEdition') {
+    echo(json_encode(publishEdition($request['gitUrl'], $request['gitPath'], $request['type'], $request['prTitle'], $request['prBody'], isset($request['gitUsername']) ? $request['gitUsername'] : '', isset($request['gitPassword']) ? $request['gitPassword'] : '')));
 } else {
     echo(json_encode(['success' => false, 'error' => 'error_action']));
 }

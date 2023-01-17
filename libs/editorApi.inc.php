@@ -27,7 +27,7 @@ function getSessionFilePath($sessionId, $path) {
 function recursiveDirList($path, $prefix) {
     $list = [];
     foreach(scandir($path) as $file) {
-        if($file == "." || $file == "..") {
+        if(isFileExcludedFromSync($file)) {
             continue;
         }
         $subpath = "$path/$file";
@@ -131,6 +131,8 @@ function handleEditorApi() {
             $truncate = 0;
             if(isset($_GET['start'])) {
                 $start = $_GET['start'];
+            } else {
+                $truncate = 1;
             }
             if(isset($_GET['truncate'])) {
                 $truncate = $_GET['truncate'];
