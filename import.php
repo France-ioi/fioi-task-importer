@@ -30,7 +30,12 @@ if($config->localCssUrl) {
   <script type="text/javascript" src="editApi.js<?=$config->urlArgs ?>"></script>
   <script type="text/javascript" src="importController.js<?=$config->urlArgs ?>"></script>
   <script type="text/javascript">
-    var config = <?=json_encode(['svnBaseUrl' => $config->svnBaseUrl, 'svnExampleUrl' => $config->svnExampleUrl, 'urlArgs' => $config->urlArgs]) ?>
+    var config = <?=json_encode([
+      'svnBaseUrl' => $config->svnBaseUrl,
+      'svnExampleUrl' => $config->svnExampleUrl,
+      'urlArgs' => $config->urlArgs,
+      'editors' => $config->editors
+      ]) ?>
   </script>
 </head>
 <body ng-app="svnImport" ng-controller="importController">

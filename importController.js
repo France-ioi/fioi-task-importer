@@ -815,10 +815,9 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         $scope.template = 'templates/edition.html';
         $scope.edition.ready = true;
         if ($scope.edition.taskEditor) {
-            var url = 'https://task-editor.mblockelet.info/';
-            // var url = 'https://edit.france-ioi.org/editors/task-editor/';
+            var url = config.editors.taskEditor;
         } else {
-            var url = 'https://edit.france-ioi.org/editors/markdown-editor/';
+            var url = config.editors.markdownEditor;
         }
         url += '?session=' + $scope.edition.session;
         url += '&token=' + $scope.edition.token
