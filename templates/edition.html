@@ -25,6 +25,9 @@
     </div>
     <div class="edition-overlay" ng-show="edition.history.show || edition.fileManager || edition.saveInfo.show || edition.publishInfo.show || edition.mergeInfo.show">
         <div class="edition-history" ng-show="edition.history.show">
+            <div class="edition-overlay-close" ng-click="closeEditionPopup()">
+                <span class="fas fa-xmark"></span>
+            </div>
             <h3><span class="fas fa-clock"></span> History for {{ edition.path }}</h3>
             <p>
                 <button class="btn btn-warning" ng-click="closeEditionPopup()"><span class="fas fa-xmark"></span> Close</button>
@@ -64,6 +67,9 @@
             </table>
         </div>
         <div class="edition-fm" ng-show="edition.fileManager">
+            <div class="edition-overlay-close" ng-click="closeEditionPopup()">
+                <span class="fas fa-xmark"></span>
+            </div>
             <div class="edition-fm-header">
                 <h3><span class="fas fa-folder-tree"></span> Files of {{ edition.path }}</h3>
                 <p>
@@ -98,6 +104,9 @@
             </div>
         </div>
         <div class="edition-save" ng-show="edition.saveInfo.show">
+            <div class="edition-overlay-close" ng-click="closeEditionPopup()">
+                <span class="fas fa-xmark"></span>
+            </div>
             <h3>Saving {{ edition.path }}</h3>
             <hr>
             <div class="alert alert-warning" ng-show="edition.lastCommits.curEditor != edition.lastCommits.origEditor">
@@ -133,6 +142,9 @@
             </table>
         </div>
         <div class="edition-publish" ng-show="edition.publishInfo.show">
+            <div class="edition-overlay-close" ng-click="closeEditionPopup()">
+                <span class="fas fa-xmark"></span>
+            </div>
             <h3>Creating a pull request for {{ edition.path }}</h3>
             <hr>
             <p>
@@ -200,6 +212,9 @@
             </table>
         </div>
         <div class="edition-merge" ng-show="edition.mergeInfo.show">
+            <div class="edition-overlay-close" ng-click="closeEditionPopup()">
+                <span class="fas fa-xmark"></span>
+            </div>
             <h3>Merging {{ edition.path }}</h3>
             <hr>
             <p>

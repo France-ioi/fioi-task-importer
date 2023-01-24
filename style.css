@@ -86,11 +86,25 @@
     background-color: rgba(0, 0, 0, 0.5);
 }
 
+.edition-overlay-close {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    width: 30px;
+    height: 30px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    font-size: 1.5em;
+    text-align: center;
+    line-height: 30px;
+    cursor: pointer;
+}
 .edition-history,
 .edition-fm,
 .edition-save,
 .edition-publish,
 .edition-merge {
+    position: relative;
     width: 90%;
     height: 90vh;
     margin: auto;
