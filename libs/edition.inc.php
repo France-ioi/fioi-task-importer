@@ -33,12 +33,12 @@ function setGitUser($repo, $username, $password) {
     return unparse_url($repoParse);
 }
 
-function setGitBackendUser($repo) {
+function setGitBackendUser($repo, $username, $password) {
     global $config;
     if(isGitlab($repo)) {
-        return setGitUser($repo, $config->git->gitlabUser, $config->git->gitlabPassword);
+        return setGitUser($repo, $config->git->gitlabUser ? $config->git->gitlabUser : $username, $config->git->gitlabPassword ? $config->git->gitlabPassword : $password);
     } else {
-        return setGitUser($repo, $config->git->githubUser, $config->git->githubPassword);
+        return setGitUser($repo, $config->git->githubUser ? $config->git->githubUser : $username, $config->git->githubPassword ? $config->git->githubPassword : $password);
     }
 }
 
@@ -131,9 +131,6 @@ function commitEdition($repo, $subdir, $sessionId, $commitMsg, $username, $passw
     }
     if(!$sessionId) {
         return ['success' => false, 'error' => 'No session ID provided'];
-    }
-    if(!$username) {
-        return ['success' => false, 'error' => 'No username provided'];
     }
     $sessionDir = getSessionDir($sessionId);
 
