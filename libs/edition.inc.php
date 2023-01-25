@@ -258,6 +258,8 @@ function isGitlab($repo) {
 }
 
 function publishEdition($repo, $subdir, $type, $title, $body, $username, $password) {
+    global $config;
+
     if(!checkRepositoryAllowed($repo)) {
         return ['success' => false, 'error' => 'Repository not allowed'];
     }
@@ -315,7 +317,8 @@ function publishEdition($repo, $subdir, $type, $title, $body, $username, $passwo
             $data_string = json_encode($data);
             $repoId = substr($repoParse['path'], 1);
             $repoId = str_replace('/', '%2F', $repoId);
-            $ch = curl_init('https://gitlab.com/api/v4/projects/' . $repoId . '/merge_requests?private_token=' . $password);
+            $pw = $config->git->gitlabPassword ? $config->git->gitlabPassword : $password;
+            $ch = curl_init('https://gitlab.com/api/v4/projects/' . $repoId . '/merge_requests?private_token=' . $pw);
             curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
             curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
