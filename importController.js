@@ -764,6 +764,9 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
     }
 
     $scope.createEditionChannel = function () {
+        if ($scope.edition.channel) {
+            $scope.edition.channel.destroy();
+        }
         $scope.edition.channel = Channel.build({
             window: document.getElementById('edition-iframe').contentWindow,
             origin: '*',
@@ -811,9 +814,16 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
     }
 
     $scope.startEdition = function () {
+        if ($scope.edition.editorUrl) {
+            $scope.edition.editorUrl = null;
+            $timeout($scope.startEdition, 100);
+            return;
+        }
         $scope.checkoutState = null;
         $scope.template = 'templates/edition.html';
         $scope.edition.ready = true;
+        $scope.edition.isGitlab = $scope.params.gitUrl.indexOf('gitlab.com') != -1;
+
         if ($scope.edition.taskEditor) {
             var url = config.editors.taskEditor;
         } else {
@@ -832,6 +842,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             url += '&filename=' + encodeURIComponent($scope.params.filename);
         }
         $scope.edition.editorUrl = $sce.trustAsResourceUrl(url);
+
         $timeout($scope.createEditionChannel, 100);
         $scope.compareLastCommits();
         $interval($scope.compareLastCommits, 300000);
@@ -1127,24 +1138,30 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         }, onRequestFail);
     }
 
+    $scope.editionRevert = function () {
+        if (!confirm('Are you sure you want to revert to the last saved version?')) {
+            return;
+        }
+        $scope.prepareEdition();
+    }
+
     $scope.makeDiffUrl = function (hash, type) {
-        var isGitlab = $scope.params.gitUrl.indexOf('gitlab.com') != -1;
         var url = $scope.params.gitUrl;
-        if (isGitlab) {
+        if ($scope.edition.isGitlab) {
             url += '/-';
         }
         if (type == 'commit') {
             return url + '/commit/' + hash;
         } else if (type == 'pr') {
-            if (isGitlab) {
+            if ($scope.edition.isGitlab) {
                 return url + '/merge_requests/new?merge_request%5Bsource_branch%5D=' + hash + '&merge_request%5Btarget_branch%5D=' + $scope.edition.masterBranch;
             } else {
-                return url + '/compare/' + $scope.edition.masterBranch + '...' + hash + '?expand=1';
+                return url + '/compare/' + hash + '...' + $scope.edition.masterBranch + '?expand=1';
             }
         } else if (type == 'master') {
-            return url + '/compare/' + $scope.edition.masterBranch + '...' + hash;
+            return url + '/compare/' + hash + '...' + $scope.edition.masterBranch;
         } else {
-            return url + '/compare/' + type + '...' + hash;
+            return url + '/compare/' + hash + '...' + type;
         }
     }
 

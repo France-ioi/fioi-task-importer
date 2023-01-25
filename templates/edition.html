@@ -17,6 +17,7 @@
                 <span class="fas fa-upload"></span> Merge
                 <span ng-show="edition.history.masterAdditional">({{ edition.history.masterAdditional }} behind production)</span>
             </button>
+            <button class="btn btn-warning" ng-click="editionRevert()"><span class="fas fa-clock-rotate-left"></span> Revert</button>
             <button class="btn btn-default" ng-click="editionHistory()"><span class="fas fa-clock"></span> History</button>
         </div>
     </div>
@@ -170,7 +171,11 @@
             </div>
             <p>
                 <input type="radio" id="edition-publish-type-mpr" ng-model="edition.publishType" value="mpr" />
-                <label for="edition-publish-type-mpr">Let me create the pull request</label>
+                <label for="edition-publish-type-mpr">
+                    Let me create the pull request with
+                    <span ng-show="edition.isGitlab">GitLab</span>
+                    <span ng-show="!edition.isGitlab">GitHub</span>
+                </label>
                 <br>
                 <i>You will need your own credentials. This will allow you to create the pull request in your own name, and customize it.</i>
             </p>
