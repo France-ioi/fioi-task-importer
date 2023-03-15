@@ -86,7 +86,7 @@ if ($request['action'] == 'checkoutSvn' || $request['action'] == 'checkoutGit' |
     }
     echo(json_encode(deleteDirectory($request['ID'])));
 } elseif ($request['action'] == 'checkoutEdition') {
-    echo(json_encode(updateGit($request['gitUrl'], isset($request['gitUsername']) ? $request['gitUsername'] : '', isset($request['gitPassword']) ? $request['gitPassword'] : '')));
+    echo(json_encode(updateGit($request['gitUrl'], $request['gitPath'], isset($request['gitUsername']) ? $request['gitUsername'] : '', isset($request['gitPassword']) ? $request['gitPassword'] : '')));
 } elseif ($request['action'] == 'prepareEdition') {
     echo(json_encode(prepareEdition($request['gitUrl'], $request['gitPath'])));
 } elseif ($request['action'] == 'historyEdition') {

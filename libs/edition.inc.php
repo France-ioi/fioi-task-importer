@@ -16,6 +16,9 @@ function getGitFolder($repo, $branch = null) {
     return $repoDir;
 }
 
+function getGitBranchForFolder($repo, $repoDir) {
+    return 'editor-' . substr(md5($repoDir), 0, 8);
+}
 
 function checkRepositoryAllowed($repo) {
     global $config;
@@ -33,7 +36,7 @@ function setGitUser($repo, $username, $password) {
     return unparse_url($repoParse);
 }
 
-function setGitBackendUser($repo, $username, $password) {
+function setGitBackendUser($repo, $username = null, $password = null) {
     global $config;
     if(isGitlab($repo)) {
         return setGitUser($repo, $config->git->gitlabUser ? $config->git->gitlabUser : $username, $config->git->gitlabPassword ? $config->git->gitlabPassword : $password);
@@ -59,7 +62,7 @@ function getGitMainBranch($repo) {
 }
 
 
-function updateGit($repo, $username, $password) {
+function updateGit($repo, $subdir, $username, $password) {
     global $config, $db, $workingDir;
 
     if(!checkRepositoryAllowed($repo)) {
@@ -67,20 +70,22 @@ function updateGit($repo, $username, $password) {
     }
 
     $repoDir = getGitFolder($repo);
-
     $repoUrl = setGitBackendUser($repo, $username, $password);
+    $repoBranch = getGitBranchForFolder($repo, $subdir);
 
     // If it exists, update
     try {
         if(is_dir($repoDir)) {
-            exec("cd " . $repoDir . " && git branch editor");
-            exec("cd " . $repoDir . " && git checkout editor");
+            exec("cd " . $repoDir . " && git checkout " . getGitMainBranch($repo));
+            exec("cd " . $repoDir . " && git pull");
+            exec("cd " . $repoDir . " && git branch " . $repoBranch);
+            exec("cd " . $repoDir . " && git checkout " . $repoBranch);
         } else {
             // Otherwise, clone
             exec("git clone " . $repoUrl . " " . $repoDir, $output, $retval);
             if($retval != 0) { return ['success' => false, 'error' => 'Failed to clone repository']; }
-            exec("cd " . $repoDir . " && git branch editor");
-            exec("cd " . $repoDir . " && git checkout editor");            
+            exec("cd " . $repoDir . " && git branch " . $repoBranch);
+            exec("cd " . $repoDir . " && git checkout " . $repoBranch);            
         }
     } catch (Exception $e) {
         return ['success' => false, 'error' => $e->getMessage()];
@@ -106,9 +111,9 @@ function prepareEdition($repo, $subdir) {
     $repoDir = getGitFolder($repo);
     $subdir = trim($subdir);
     $subdir = trim($subdir, '/');
-    $subdir = pathJoin($repoDir, $subdir) . '/';
+    $localSubdir = pathJoin($repoDir, $subdir) . '/';
     @mkdir($sessionDir, 0777, true);
-    dirCopy($subdir, $sessionDir);
+    dirCopy($localSubdir, $sessionDir);
 
     $historyInfo = getHistory($repo, $subdir);
 
@@ -119,7 +124,7 @@ function prepareEdition($repo, $subdir) {
         'masterSynced' => $historyInfo['masterAdditional'] == 0,
         'editorSynced' => $historyInfo['editorAdditional'] == 0,
         'masterBranch' => getGitMainBranch($repo),
-        'taskEditor' => file_exists(pathJoin($subdir, 'task_editor.json'))
+        'taskEditor' => file_exists(pathJoin($localSubdir, 'task_editor.json'))
     ];
 
 }
@@ -137,8 +142,11 @@ function commitEdition($repo, $subdir, $sessionId, $commitMsg, $username, $passw
     $repoDir = getGitFolder($repo);
     $subdir = trim($subdir);
     $subdir = trim($subdir, '/');
-    $subdir = pathJoin($repoDir, $subdir) . '/';
-    dirCopy($sessionDir, $subdir);
+    $localSubdir = pathJoin($repoDir, $subdir) . '/';
+
+    exec("cd " . $repoDir . " && git checkout " . getGitBranchForFolder($repo, $subdir));
+
+    dirCopy($sessionDir, $localSubdir);
 
     $repoUrl = setGitBackendUser($repo);
 
@@ -180,7 +188,7 @@ function getHistory($repo, $subdir) {
     }
 
     $historyMaster = getBranchHistory($repo, $subdir, getGitMainBranch($repo));
-    $historyEditor = getBranchHistory($repo, $subdir, 'editor');
+    $historyEditor = getBranchHistory($repo, $subdir, getGitBranchForFolder($repo, $subdir));
     $editorAdditional = 0;
     foreach($historyEditor as &$editorLog) {
         $found = false;
@@ -248,7 +256,7 @@ function getLastCommits($repo, $subdir, $username, $password) {
     $output = [];
     exec("cd " . $repoDir . " && git log --pretty=format:'%H' -n 1 $masterBranch -- " . $subdir, $output);
     $master = $output[0];
-    exec("cd " . $repoDir . " && git log --pretty=format:'%H' -n 1 editor -- " . $subdir, $output);
+    exec("cd " . $repoDir . " && git log --pretty=format:'%H' -n 1 " . getGitBranchForFolder($repo, $subdir) . " -- " . $subdir, $output);
     $editor = $output[0];
     return ['success' => !!($master && $editor), 'master' => $master, 'editor' => $editor];
 }
@@ -267,12 +275,14 @@ function publishEdition($repo, $subdir, $type, $title, $body, $username, $passwo
     $repoDir = getGitFolder($repo);
     $subdir = trim($subdir);
     $subdir = trim($subdir, '/');
-    $subdir = pathJoin($repoDir, $subdir) . '/';
     
     $masterBranch = getGitMainBranch($repo);
 
+    exec("cd " . $repoDir . " && git checkout $masterBranch");
+    exec("cd " . $repoDir . " && git pull");
+    exec("cd " . $repoDir . " && git checkout " . getGitBranchForFolder($repo, $subdir));
+
     if($type == 'merge') {
-        exec("cd " . $repoDir . " && git checkout editor");
         exec("cd " . $repoDir . " && git merge $masterBranch");
         $repoUrl = setGitUser($repo, $username, $password);
         exec("cd " . $repoDir . " && git push " . $repoUrl, $output, $retval);
@@ -288,11 +298,14 @@ function publishEdition($repo, $subdir, $type, $title, $body, $username, $passwo
 
     if($type == 'prod') {
         // Push directly to production
-        exec("cd " . $repoDir . " && git merge $masterBranch");
+        exec("cd " . $repoDir . " && git merge $masterBranch", $output, $retval);
+        if($retval != 0) { return ['success' => false, 'error' => 'Unable to merge.']; }
+        exec("cd " . $repoDir . " && git checkout $masterBranch");
+        exec("cd " . $repoDir . " && git merge $branchId");
 
         $repoUrl = setGitUser($repo, $username, $password);
 
-        exec("cd " . $repoDir . " && git push " . $repoUrl . " +$branchId:$masterBranch", $output, $retval);
+        exec("cd " . $repoDir . " && git push " . $repoUrl, $output, $retval);
         if($retval != 0) { return ['success' => false, 'error' => 'Failed to push, are the username/password correct?']; }
 
         return ['success' => true, 'prod' => true];
@@ -355,19 +368,20 @@ function publishEdition($repo, $subdir, $type, $title, $body, $username, $passwo
             curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
             curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_USERPWD, $username . ':' . $password);
             curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0 PHP/script');
+            $pw = $config->git->githubPassword ? $config->git->githubPassword : $password;
             curl_setopt($ch, CURLOPT_HTTPHEADER, array(
                 'Content-Type: application/json',
-                'Content-Length: ' . strlen($data_string))
-            );
+                'Content-Length: ' . strlen($data_string),
+                'Authorization: Bearer ' . $pw
+            ));
             $result = curl_exec($ch);
             // if curl failed
             if($result === false) {
                 return ['success' => false, 'error' => curl_error($ch)];
             }
             if(curl_getinfo($ch, CURLINFO_HTTP_CODE) != 201) {
-                return ['success' => false, 'error' => $result];
+                return ['success' => false, 'error' => $result, 'path' => 'https://api.github.com/repos' . $repoParse['path'] . '/pulls'];
             }
             try {
                 $result = json_decode($result, true);
