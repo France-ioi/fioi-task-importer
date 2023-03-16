@@ -48,6 +48,23 @@ var jschannel = window.parent !== window ? Channel.build({
     }) : null;
 
 
+function localStorageGetItem() {
+    try {
+        return localStorage.getItem.apply(localStorage, arguments);
+    } catch (e) {
+        return;
+    }
+}
+
+function localStorageSetItem() {
+    try {
+        return localStorage.setItem.apply(localStorage, argument);
+    } catch (e) {
+        return;
+    }
+}
+
+
 var app = angular.module('svnImport', ['jm.i18next']);
 
 app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '$sce', '$interval', function ($scope, $http, $timeout, $i18next, $sce, $interval) {
@@ -86,7 +103,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
 
     $scope.changeLang = function() {
         $i18next.changeLanguage($scope.options.lang);
-        localStorage.setItem('lang', $scope.options.lang);
+        localStorageSetItem('lang', $scope.options.lang);
     };
 
     $scope.toggleOldLogs = function() {
@@ -95,7 +112,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
 
     $scope.switchType = function(newType) {
         $scope.repoType = newType;
-        localStorage.setItem('repoType', newType);
+        localStorageSetItem('repoType', newType);
     };
 
     $scope.saveParams = function() {
@@ -106,7 +123,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             localeEn: $scope.params.localeEn,
             theme: $scope.params.theme
             };
-        localStorage.setItem('defaultParams', JSON.stringify($scope.defaultParams));
+        localStorageSetItem('defaultParams', JSON.stringify($scope.defaultParams));
     };
 
     $scope.removeToken = function() {
@@ -249,8 +266,8 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
 
         // Save credentials
         if($scope.params.remember && !$scope.params.token) {
-            localStorage.setItem('username', $scope.params.username);
-            localStorage.setItem('password', $scope.params.password);
+            localStorageSetItem('username', $scope.params.username);
+            localStorageSetItem('password', $scope.params.password);
         }
 
         // Filter path for double slashes
@@ -311,11 +328,11 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         // Allows to check we're still in the same import request
         var ready = $scope.ready;
 
-        localStorage.setItem('gitUrl', $scope.params.gitUrl);
+        localStorageSetItem('gitUrl', $scope.params.gitUrl);
 
         if($scope.params.gitRemember) {
-            localStorage.setItem('gitUsername', $scope.params.gitUsername);
-            localStorage.setItem('gitPassword', $scope.params.gitPassword);
+            localStorageSetItem('gitUsername', $scope.params.gitUsername);
+            localStorageSetItem('gitPassword', $scope.params.gitPassword);
         }
 
         // Filter paths for double slashes
@@ -610,35 +627,36 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         $scope.template = 'templates/full.html';
     };
 
+
     $scope.initParams = function() {
         // Restore saved parameters, handle GET arguments
-        if(localStorage.getItem('lang')) {
-            $scope.options.lang = localStorage.getItem('lang');
+        if (localStorageGetItem('lang')) {
+            $scope.options.lang = localStorageGetItem('lang');
             $scope.changeLang();
         }
 
-        if(localStorage.getItem('repoType')) { $scope.repoType = localStorage.getItem('repoType'); }
-        if(localStorage.getItem('gitUrl')) { $scope.params.gitUrl = localStorage.getItem('gitUrl'); }
+        if (localStorageGetItem('repoType')) { $scope.repoType = localStorageGetItem('repoType'); }
+        if (localStorageGetItem('gitUrl')) { $scope.params.gitUrl = localStorageGetItem('gitUrl'); }
 
-        if(localStorage.getItem('defaultParams')) {
-            $scope.defaultParams = JSON.parse(localStorage.getItem('defaultParams'));
+        if (localStorageGetItem('defaultParams')) {
+            $scope.defaultParams = JSON.parse(localStorageGetItem('defaultParams'));
             for(var opt in $scope.defaultParams) {
                 $scope.params[opt] = $scope.defaultParams[opt];
             }
         }
 
-        if(localStorage.getItem('username')) {
-            $scope.params.username = localStorage.getItem('username');
-            if(localStorage.getItem('password')) {
-                $scope.params.password = localStorage.getItem('password');
+        if (localStorageGetItem('username')) {
+            $scope.params.username = localStorageGetItem('username');
+            if (localStorageGetItem('password')) {
+                $scope.params.password = localStorageGetItem('password');
             }
             $scope.params.remember = true;
         }
 
-        if(localStorage.getItem('gitUsername')) {
-            $scope.params.gitUsername = localStorage.getItem('gitUsername');
-            if(localStorage.getItem('gitPassword')) {
-                $scope.params.gitPassword = localStorage.getItem('gitPassword');
+        if (localStorageGetItem('gitUsername')) {
+            $scope.params.gitUsername = localStorageGetItem('gitUsername');
+            if (localStorageGetItem('gitPassword')) {
+                $scope.params.gitPassword = localStorageGetItem('gitPassword');
             }
             $scope.params.gitRemember = true;
         }
@@ -687,11 +705,11 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         //$scope.edition.ready = false;
         $scope.checkoutState = 'Checking out Git repository...';
         $scope.showLogin = false;
-        localStorage.setItem('gitUrl', $scope.params.gitUrl);
+        localStorageSetItem('gitUrl', $scope.params.gitUrl);
 
         if ($scope.params.gitRemember) {
-            localStorage.setItem('gitUsername', $scope.params.gitUsername);
-            localStorage.setItem('gitPassword', $scope.params.gitPassword);
+            localStorageSetItem('gitUsername', $scope.params.gitUsername);
+            localStorageSetItem('gitPassword', $scope.params.gitPassword);
         }
 
         // Filter paths for double slashes
