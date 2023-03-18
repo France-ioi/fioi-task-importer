@@ -252,7 +252,9 @@ function getLastCommits($repo, $subdir, $username, $password) {
 
     $masterBranch = getGitMainBranch($repo);
 
-    exec("cd " . $repoDir . " && git fetch " . $repoUrl);
+    exec("cd " . $repoDir . " && git checkout $masterBranch");
+    exec("cd " . $repoDir . " && git pull");
+    exec("cd " . $repoDir . " && git checkout " . getGitBranchForFolder($repo, $subdir));
     $output = [];
     exec("cd " . $repoDir . " && git log --pretty=format:'%H' -n 1 $masterBranch -- " . $subdir, $output);
     $master = $output[0];
@@ -395,3 +397,25 @@ function publishEdition($repo, $subdir, $type, $title, $body, $username, $passwo
 }
 
 
+function diffEdition($repo, $subdir, $hash, $target) {
+    if(!checkRepositoryAllowed($repo)) {
+        return ['success' => false, 'error' => 'Repository not allowed'];
+    }
+
+    $repoDir = getGitFolder($repo);
+    $masterBranch = getGitMainBranch($repo);
+
+    exec("cd " . $repoDir . " && git checkout $masterBranch");
+    exec("cd " . $repoDir . " && git pull");
+    exec("cd " . $repoDir . " && git checkout " . getGitBranchForFolder($repo, $subdir));
+   
+    if($target == 'master') {
+        $target = $masterBranch;
+    } elseif($target == 'editor') {
+        $target = getGitBranchForFolder($repo, $subdir);
+    }
+
+    $output = [];
+    exec("cd " . $repoDir . " && git diff $hash $target -- " . $subdir, $output);
+    return ['success' => true, 'diff' => implode("\n", $output)];
+}

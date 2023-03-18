@@ -35,8 +35,8 @@
                 <button class="btn" ng-click="editionHistoryRestore()" ng-class="edition.history.selected != edition.history.editedHash && 'btn-primary' || 'btn-default'" ng-disabled="edition.history.selected == edition.history.editedHash"><span class="fas fa-pen"></span> Edit selected version</button>
                 <button class="btn" ng-click="editionHistoryRestore(true)" ng-class="edition.oldVersion && 'btn-primary' || 'btn-default'" ng-disabled="!edition.oldVersion"><span class="fas fa-clock-rotate-left"></span> Return to latest version</button>
                 <a class="btn" ng-class="edition.oldVersion && 'btn-primary' || 'btn-default'" href="{{ makeDiffUrl(edition.history.selected, 'commit') }}" target="_blank"><span class="fas fa-magnifying-glass"></span> View selected commit</a>
-                <a class="btn" ng-class="edition.oldVersion && 'btn-primary' || 'btn-default'" href="{{ makeDiffUrl(edition.history.selected, 'master') }}" target="_blank"><span class="fas fa-code-compare"></span> View diff with production version</a>
-                <a class="btn" ng-class="edition.oldVersion && 'btn-primary' || 'btn-default'" href="{{ makeDiffUrl(edition.history.selected, 'editor') }}" target="_blank"><span class="fas fa-code-compare"></span> View diff with edition version</a>
+                <button class="btn" ng-class="edition.oldVersion && 'btn-primary' || 'btn-default'" ng-click="makeDiffUI(edition.history.selected, 'master')"><span class="fas fa-code-compare"></span> View diff with production version</button>
+                <button class="btn" ng-class="edition.oldVersion && 'btn-primary' || 'btn-default'" ng-click="makeDiffUI(edition.history.selected, 'editor')"><span class="fas fa-code-compare"></span> View diff with edition version</button>
             </p>
             <p ng-show="edition.historyAdditional">
                 <b>Note : Production version has {{ edition.history.masterAdditional }} more commits than the edition branch.</b>
@@ -44,6 +44,23 @@
             <p ng-show="edition.history.loading">
                 <span class="fas fa-spinner fa-spin"></span> Loading history...
             </p>
+            <hr ng-show="edition.history.fetchDiffStatus">
+            <p ng-show="edition.history.fetchDiffStatus">
+                <span class="fas fa-code-compare"></span> Differences between <b>{{ edition.history.fetchDiffSelected }}</b> and <b>{{ edition.history.fetchDiffTarget }}</b> :
+            </p>
+            <p ng-show="edition.history.fetchDiffStatus == 'loading'">
+                <span class="fas fa-spinner fa-spin"></span> Loading git diff...
+            </p>
+            <p ng-show="edition.history.fetchDiffStatus == 'error'">
+                <span class="fas fa-triangle-exclamation"></span> Error loading git diff.
+            </p>
+            <p ng-show="edition.history.fetchDiffStatus == 'none'">
+                <span class="fas fa-circle-info"></span> There are no differences between these two versions.
+            </p>
+            <button class="btn" ng-show="edition.history.fetchDiffStatus && edition.history.fetchDiffStatus != 'loading'" ng-click="closeDiffUI()"><span class="fas fa-xmark"></span> Close diff</button>
+            <div ng-show="edition.history.fetchDiffStatus == 'success'" id="diff2html"></div>
+            <button class="btn" ng-show="edition.history.fetchDiffStatus == 'success'" ng-click="closeDiffUI()"><span class="fas fa-xmark"></span> Close diff</button>
+            <hr ng-show="edition.history.fetchDiffStatus">
             <table class="edition-history-table" ng-hide="edition.history.loading">
                 <tbody>
                     <tr class="edition-history-log" ng-repeat="log in edition.history.allCommits" ng-class="edition.history.editedHash == log.hash ? 'edition-history-log-current' : ''">

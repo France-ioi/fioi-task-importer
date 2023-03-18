@@ -99,6 +99,8 @@ if ($request['action'] == 'checkoutSvn' || $request['action'] == 'checkoutGit' |
     echo(json_encode(commitEdition($request['gitUrl'], $request['gitPath'], $request['session'], $request['commitMsg'], isset($request['gitUsername']) ? $request['gitUsername'] : '', isset($request['gitPassword']) ? $request['gitPassword'] : '')));
 } elseif ($request['action'] == 'publishEdition') {
     echo(json_encode(publishEdition($request['gitUrl'], $request['gitPath'], $request['type'], $request['prTitle'], $request['prBody'], isset($request['gitUsername']) ? $request['gitUsername'] : '', isset($request['gitPassword']) ? $request['gitPassword'] : '')));
+} elseif ($request['action'] == 'diffEdition') {
+    echo(json_encode(diffEdition($request['gitUrl'], $request['gitPath'], $request['hash'], $request['target'])));
 } else {
     echo(json_encode(['success' => false, 'error' => 'error_action']));
 }

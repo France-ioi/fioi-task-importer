@@ -1183,6 +1183,53 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         }
     }
 
+    $scope.makeDiffUI = function (hash, target) {
+        $scope.edition.history.fetchDiffStatus = null;
+        $scope.edition.history.fetchDiffSelected = hash;
+        for (var i = 0; i < $scope.edition.history.commits.length; i++) {
+            if ($scope.edition.history.commits[i].hash == hash) {
+                var selectedCommit = $scope.edition.history.commits[i];
+                $scope.edition.history.fetchDiffSelected = selectedCommit.date + ' - ' + selectedCommit.message;
+                break;
+            }
+        }
+        $scope.edition.history.fetchDiffTarget = target == 'master' ? 'production' : 'edition';
+        var container = document.getElementById('diff2html');
+        container.innerHTML = '';
+
+        var params2 = Object.assign({}, $scope.params);
+        params2.action = 'diffEdition';
+        params2.hash = hash;
+        params2.target = target;
+
+        function onFail() {
+            $scope.edition.history.fetchDiffStatus = 'error';
+        };
+
+        $scope.edition.history.fetchDiffStatus = 'loading';
+        $http.post('savesvn.php', params2, { responseType: 'json' }).then(function (res) {
+            if (!res.data.success) {
+                onFail(res);
+                return;
+            }
+            $scope.edition.history.fetchDiffStatus = 'success';
+
+            if (!res.data.diff) {
+                $scope.edition.history.fetchDiffStatus = 'none';
+                return;
+            }
+
+            var cfg = { drawFileList: true, matching: 'lines' };
+            var d2hu = new Diff2HtmlUI(container, res.data.diff, cfg);
+            d2hu.draw();
+            d2hu.highlightCode();
+        }, onFail);
+    }
+
+    $scope.closeDiffUI = function () {
+        $scope.edition.history.fetchDiffStatus = null;
+    }
+
     $scope.closeEditionPopup = function () {
         $scope.edition.fileManager = null;
         if ($scope.edition.history) {
