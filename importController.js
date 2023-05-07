@@ -363,7 +363,13 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
                 $scope.tasksRemaining = res.data.tasks;
                 $scope.curRev = res.data.revision;
                 $scope.disableBtn = false;
-                $scope.recImportWhenReady('checkout', ready);
+                $http.get(res.data.baseTarget + 'variables.json').then(function (res) {
+                    $scope.markdownVariables = res.data;
+                    $scope.recImportWhenReady('checkout', ready);
+                }, function () {
+                    $scope.markdownVariables = null;
+                    $scope.recImportWhenReady('checkout', ready);
+                });
             } else {
                 onFail(res);
             }}, onRequestFail);
@@ -603,7 +609,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         var log = $scope.logList[0];
         $http.get(url).then(function (res) {
             var markdown = mdcompiler.parseHeader(res.data);
-            var html = mdcompiler.compileMarkdown(markdown.body);
+            var html = mdcompiler.compileMarkdown(markdown.body, $scope.markdownVariables);
             $scope.curLog.state = 'file_done';
             log.state = 'task_sending';
             $http.post('savesvn.php', {

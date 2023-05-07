@@ -115,6 +115,11 @@ function prepareEdition($repo, $subdir) {
     @mkdir($sessionDir, 0777, true);
     dirCopy($localSubdir, $sessionDir);
 
+    // Copy variables.json
+    if(file_exists(pathJoin($repoDir, 'variables.json'))) {
+        copy(pathJoin($repoDir, 'variables.json'), pathJoin($sessionDir, 'variables.json'));
+    }
+
     $historyInfo = getHistory($repo, $subdir);
 
     return [
@@ -146,6 +151,10 @@ function commitEdition($repo, $subdir, $sessionId, $commitMsg, $username, $passw
 
     exec("cd " . $repoDir . " && git checkout " . getGitBranchForFolder($repo, $subdir));
 
+    // Remove variables.json
+    if(file_exists(pathJoin($sessionDir, 'variables.json'))) {
+        unlink(pathJoin($sessionDir, 'variables.json'));
+    }
     dirCopy($sessionDir, $localSubdir);
 
     $repoUrl = setGitBackendUser($repo);
