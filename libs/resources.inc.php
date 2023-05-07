@@ -93,7 +93,7 @@ function saveStrings($taskId, $resources, $metadata, $dirPath) {
     }
     $imagesRes = [];
     foreach ($resources['solution'] as $i => $resource) {
-        if ($resource['type'] == 'html') {
+        if ($resource['type'] == 'html' && isset($resource['content'])) {
             $solution = $resource['content'];
         } else if ($resource['type'] == 'image' && isset($resource['url'])) {
             $imagesRes[] = $resource;
