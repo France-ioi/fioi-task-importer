@@ -82,10 +82,8 @@ function saveMarkdown($html, $headers, $checkoutPath, $gitRepo, $gitPath, $filen
     $fullHtml .= '<meta charset="utf-8">';
     $fullHtml .= '<meta http-equiv="X-UA-Compatible" content="IE=edge">';
     $fullHtml .= '<title>' . $title . '</title>';
-    $fullHtml .= '<script src="/files/checkouts/_common/modules/ext/jquery/1.7/jquery.min.js"></script>
-                  <script src="/files/checkouts/_common/modules/ext/jschannel/jschannel.js"></script>
+    $fullHtml .= '<script src="/files/checkouts/_common/modules/ext/jschannel/jschannel.js"></script>
                   <script src="/files/checkouts/_common/modules/integrationAPI.01/official/platform-pr.js"></script>
-                  <script src="/files/checkouts/_common/modules/integrationAPI.01/installationAPI.01/pemFioi/installation.js"></script>
                   <script src="/files/checkouts/_common/modules/pemFioi/static-task.js"></script>
                   ';
     $fullHtml .= '<script type="text/javascript">
