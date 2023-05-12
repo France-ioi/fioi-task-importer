@@ -72,9 +72,9 @@ function saveMarkdown($html, $headers, $checkoutPath, $gitRepo, $gitPath, $filen
             $html = str_replace('href="' . $url . '"', 'title="Go to &quot;' . $targetUrl . '&quot;" onclick="platformOpenUrl({itemId: \'' . $localIds[$targetUrl] . '\'});"', $html);
         } elseif(isset($localIds[$uslug])) {
             $html = str_replace('href="' . $url . '"', 'title="Go to &quot;' . $uslug . '&quot;" onclick="platformOpenUrl({itemId: \'' . $localIds[$uslug] . '\'});"', $html);
-        } else {
-            // for debug
-            // $html = str_replace('href="' . $url . '"', 'onclick="platformOpenUrl({not_found: \'' . $url . '\', not_found_slug: \'' . $uslug . '\'});"', $html);
+        } elseif(count($localIds) > 0) {
+            // ID not found, log
+            file_put_contents(__DIR__.'/../logs/markdown_ids.log', date('Y-m-d H:i:s') . ' - repo=' . $gitRepo . ' / targetUrl=' . $targetUrl . ' / uslug=' . $uslug . "\n", FILE_APPEND);
         }
     }
 
