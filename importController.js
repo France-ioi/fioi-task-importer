@@ -58,7 +58,7 @@ function localStorageGetItem() {
 
 function localStorageSetItem() {
     try {
-        return localStorage.setItem.apply(localStorage, argument);
+        return localStorage.setItem.apply(localStorage, arguments);
     } catch (e) {
         return;
     }
