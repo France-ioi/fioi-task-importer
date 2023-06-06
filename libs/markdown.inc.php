@@ -94,6 +94,8 @@ function saveMarkdown($html, $headers, $checkoutPath, $gitRepo, $gitPath, $filen
     $fullHtml .= '</head><body>';
     $fullHtml .= '<h1>' . $title . '</h1>';
     $fullHtml .= $html;
+    $fullHtml .= '<script src="/files/checkouts/_common/modules/ext/jquery/1.7/jquery.min.js"></script>
+                  <script src="/files/checkouts/_common/modules/integrationAPI.01/installationAPI.01/pemFioi/installation.js"></script>';
     $fullHtml .= '</body></html>';
 
     file_put_contents($localFilePath, $fullHtml);
