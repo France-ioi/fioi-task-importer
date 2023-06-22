@@ -40,6 +40,8 @@ function saveMarkdown($html, $headers, $checkoutPath, $gitRepo, $gitPath, $filen
                 mkdir($imgDir, 0777, true);
             }
             copy($imgPath, pathJoin('files/checkouts/', $dirPath, $img));
+            // Enable lazy loading
+            $html = str_replace('src="' . $img . '"', 'lazysrc="' . $img . '"', $html);
         }
     }
 
