@@ -332,11 +332,25 @@ function saveResources($data, $sTaskPath, $subdir, $revision, $dirPath, $acceptM
         }
     }
 
+    // Check whether it's a Codecast task
+    $codecast = false;
+    foreach($resources['task'] as $resource) {
+        if($resource['type'] == 'javascript' && isset($resource['id']) && substr($resource['id'], 0, 8) == 'codecast') {
+            $codecast = true;
+            break;
+        }
+    }
+
+    $normalUrl = $config->normalUrl.$taskId;
+    if($codecast) {
+        $normalUrl = $config->codecastUrl.$taskId;
+    }
+
     echo(json_encode([
         'success' => true,
         'ID' => $taskId,
-        'normalUrl' => $config->normalUrl.$taskId,
-        'tokenUrl' => addToken($config->normalUrl.$taskId),
+        'normalUrl' => $normalUrl,
+        'tokenUrl' => addToken($normalUrl),
         'ltiUrl' => $config->ltiUrl.$taskId
         ]));
 }
