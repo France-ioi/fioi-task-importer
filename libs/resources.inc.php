@@ -342,8 +342,10 @@ function saveResources($data, $sTaskPath, $subdir, $revision, $dirPath, $acceptM
     }
 
     $normalUrl = $config->normalUrl.$taskId;
+    $ltiUrl = $config->ltiUrl.$taskId;
     if($codecast) {
         $normalUrl = $config->codecastUrl.$taskId;
+        $ltiUrl = $config->codecastLtiUrl.$taskId;
     }
 
     echo(json_encode([
@@ -351,6 +353,6 @@ function saveResources($data, $sTaskPath, $subdir, $revision, $dirPath, $acceptM
         'ID' => $taskId,
         'normalUrl' => $normalUrl,
         'tokenUrl' => addToken($normalUrl),
-        'ltiUrl' => $config->ltiUrl.$taskId
+        'ltiUrl' => $ltiUrl,
         ]));
 }
