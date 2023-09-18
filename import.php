@@ -43,7 +43,7 @@ if($config->localCssUrl) {
   </script>
 </head>
 <body ng-app="svnImport" ng-controller="importController">
-  <div class="container-fluid" ng-include="template">
+  <div class="container-fluid" ng-class="mainDivClass" ng-include="template">
   </div>
 </body>
 </html>

@@ -1,3 +1,7 @@
+div.container-iframe {
+    padding: 0px !important;
+    margin: 0px !important;
+}
 .form-group.form-group-full,
 .form-group.form-group-full .input-group,
 .form-group.form-group-full .form-control {

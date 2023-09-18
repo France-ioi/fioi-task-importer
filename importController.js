@@ -40,12 +40,16 @@ var QueryString = function () {
   return query_string;
 }();
 
-// Create channel with parent
-var jschannel = window.parent !== window ? Channel.build({
-    window: window.parent,
-    origin: '*',
-    scope: 'importer'
-    }) : null;
+var jschannel = null;
+var isInIframe = window.parent !== window;
+if (isInIframe) {
+    // Create channel with parent
+    jschannel = Channel.build({
+        window: window.parent,
+        origin: '*',
+        scope: 'importer'
+    });
+}
 
 
 function localStorageGetItem() {
@@ -69,6 +73,11 @@ var app = angular.module('svnImport', ['jm.i18next']);
 
 app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '$sce', '$interval', function ($scope, $http, $timeout, $i18next, $sce, $interval) {
     $scope.template = 'templates/full.html';
+    $scope.mainDivClass = '';
+
+    if (isInIframe) {
+        $scope.mainDivClass = "container-iframe"
+    }
 
     $scope.options = {lang: $i18next.options.lng};
     $scope.defaultParams = null;
