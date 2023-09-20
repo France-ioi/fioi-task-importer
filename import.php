@@ -21,6 +21,14 @@ if($config->localCssUrl) {
   echo '  <link href="' . $config->localCssUrl . '" type="text/css" rel="stylesheet">';
 }
 ?>
+  <script type="text/javascript">
+    var config = <?=json_encode([
+      'svnBaseUrl' => $config->svnBaseUrl,
+      'svnExampleUrl' => $config->svnExampleUrl,
+      'urlArgs' => $config->urlArgs,
+      'editors' => $config->editors
+      ]) ?>
+  </script>
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/diff2html/bundles/js/diff2html-ui.min.js"></script>
   <script type="text/javascript" src="bower_components/angular/angular.min.js<?=$config->urlArgs ?>"></script>
   <script type="text/javascript" src="bower_components/angular-sanitize/angular-sanitize.min.js<?=$config->urlArgs ?>"></script>
@@ -33,14 +41,6 @@ if($config->localCssUrl) {
   <script type="text/javascript" src="/markdown/dist/markdown-bundle.js<?=$config->urlArgs ?>"></script>
   <script type="text/javascript" src="editApi.js<?=$config->urlArgs ?>"></script>
   <script type="text/javascript" src="importController.js<?=$config->urlArgs ?>"></script>
-  <script type="text/javascript">
-    var config = <?=json_encode([
-      'svnBaseUrl' => $config->svnBaseUrl,
-      'svnExampleUrl' => $config->svnExampleUrl,
-      'urlArgs' => $config->urlArgs,
-      'editors' => $config->editors
-      ]) ?>
-  </script>
 </head>
 <body ng-app="svnImport" ng-controller="importController">
   <div class="container-fluid" ng-class="mainDivClass" ng-include="template">
