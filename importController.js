@@ -856,11 +856,14 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         $scope.template = 'templates/edition.html';
         $scope.edition.ready = true;
         $scope.edition.isGitlab = $scope.params.gitUrl.indexOf('gitlab.com') != -1;
+        $scope.edition.filename = $scope.params.filename || '';
 
         if ($scope.edition.taskEditor) {
             var url = config.editors.taskEditor;
+            $scope.edition.target = 'task';
         } else {
             var url = config.editors.markdownEditor;
+            $scope.edition.target = $scope.edition.filename;
         }
         url += '?session=' + $scope.edition.session;
         url += '&token=' + $scope.edition.token
@@ -871,8 +874,8 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             depth--;
         }
         url += '&depth=' + depth;
-        if ($scope.params.filename) {
-            url += '&filename=' + encodeURIComponent($scope.params.filename);
+        if ($scope.edition.filename) {
+            url += '&filename=' + encodeURIComponent($scope.edition.filename);
         }
         $scope.edition.editorUrl = $sce.trustAsResourceUrl(url);
 
@@ -912,6 +915,10 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         });
     }
 
+    $scope.editionInfo = function () {
+        $scope.edition.infoShow = true;
+    }
+
     $scope.editionEditorSave = function () {
         if (!$scope.edition.saveInfo || $scope.edition.saveInfo.editorSaving) {
             return;
@@ -938,6 +945,9 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             commitMessage: '',
             masterCommits: $scope.getHistoryUntilSplit($scope.edition.history.masterCommits)
         }
+        $timeout(function () {
+            document.getElementById('edition-save-message').focus();
+        });
         $scope.editionEditorSave();
     }
 
@@ -947,8 +957,8 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         }
         if (!$scope.edition.publishInfo) {
             $scope.edition.publishInfo = {
-                prTitle: 'Pull request for editor changes',
-                prBody: 'Pull request for changes made from the editor',
+                prTitle: 'Submission for editor changes',
+                prBody: 'Submission for changes made from the editor',
                 commits: $scope.getHistoryUntilSplit($scope.edition.history.commits)
             };
         }
@@ -1246,6 +1256,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
     }
 
     $scope.closeEditionPopup = function () {
+        $scope.edition.infoShow = false;
         $scope.edition.fileManager = null;
         if ($scope.edition.history) {
             $scope.edition.history.show = false;

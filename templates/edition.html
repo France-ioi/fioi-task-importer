@@ -1,45 +1,80 @@
 <div class="edition-div">
-    <div class="edition-header">
+    <div class="edition-header-actions">
         <div class="edition-header-left">
-            <span class="fas fa-folder-open"></span> Editing {{ edition.path }}
-            <span class="edition-old-version" ng-show="edition.oldVersion">(editing previous version {{ edition.oldVersion }})</span>
+            <!--<span class="fas fa-folder-open"></span> Editing {{ edition.path }}-->
+            Contribute to the next version of this content
+            <div class="simple-button" ng-click="editionInfo()"><span class="fas fa-circle-info"></span></div>
         </div>
         <div class="edition-header-right">
-            <button class="btn btn-default" ng-click="editionFileManager()"><span class="fas fa-folder-tree"></span> File manager</button>
-            <button class="btn" ng-disabled="edition.saving" ng-click="editionSave()" ng-class="edition.lastCommits.curEditor != edition.lastCommits.origEditor ? 'btn-warning' : 'btn-primary'">
-                <span class="fas fa-floppy-disk"></span> Save
+            <button class="pseudo-prime-button ppb-basic" ng-click="editionHistory()">History <span class="fas fa-clock"></span></button>
+            <button class="pseudo-prime-button ppb-basic" ng-disabled="edition.saving" ng-click="editionPublish()">Submit <span class="fas fa-code-pull-request"></span></button>
+            <button class="pseudo-prime-button ppb-basic" ng-disabled="edition.saving" ng-click="editionMerge()">
+                Publish
+                <span ng-show="edition.history.masterAdditional">({{ edition.history.masterAdditional }} behind production)</span>
+                <span class="fas fa-code-merge"></span>
+            </button>
+            <a class="pseudo-prime-button ppb-basic" href="{{ params.gitUrl }}" target="_blank">
+                View on
+                <span ng-show="edition.isGitlab">GitLab</span>
+                <span ng-show="!edition.isGitlab">GitHub</span>
+                <span class="fas fa-arrow-up-right-from-square"></span>
+            </a>
+            <!--<button class="pseudo-prime-button ppb-basic" ng-click="editionFileManager()"><span class="fas fa-folder-tree"></span> File manager</button>-->
+        </div>
+    </div>
+    <div class="edition-header-editing">
+        <div class="edition-header-left">
+            <span class="fas fa-pen"></span>
+            Editing {{ edition.target }}
+            <span class="edition-old-version" ng-show="edition.oldVersion">(editing previous version {{ edition.oldVersion }})</span>
+            <div class="pseudo-prime-button ppb-basic" ng-click="editionFileManager()">Files <span class="fas fa-folder-tree"></span></div>
+        </div>
+        <div class="edition-header-right">
+            <button class="pseudo-prime-button" ng-disabled="edition.saving" ng-click="editionSave()" ng-class="edition.lastCommits.curEditor != edition.lastCommits.origEditor ? 'ppb-warning' : 'ppb-primary'">
+                Save
                 <span ng-show="edition.lastCommits.curEditor != edition.lastCommits.origEditor">
                     (<span class="fas fa-exclamation-triangle"></span> out of sync)
                 </span>
+                <span class="fas fa-floppy-disk"></span> 
             </button>
-            <button class="btn btn-primary" ng-disabled="edition.saving" ng-click="editionPublish()"><span class="fas fa-code-pull-request"></span> Pull request</button>
-            <button class="btn btn-primary" ng-disabled="edition.saving" ng-click="editionMerge()">
-                <span class="fas fa-upload"></span> Merge
-                <span ng-show="edition.history.masterAdditional">({{ edition.history.masterAdditional }} behind production)</span>
-            </button>
-            <button class="btn btn-warning" ng-click="editionRevert()"><span class="fas fa-clock-rotate-left"></span> Revert</button>
-            <button class="btn btn-default" ng-click="editionHistory()"><span class="fas fa-clock"></span> History</button>
+            <button class="pseudo-prime-button ppb-warning" ng-click="editionRevert()">Cancel <span class="fas fa-clock-rotate-left"></span></button>
         </div>
     </div>
     <div ng-show="edition.ready" class="edition-iframe-div">
         <iframe id="edition-iframe" class="edition-iframe" src="{{ edition.editorUrl }}"></iframe>
     </div>
-    <div class="edition-overlay" ng-show="edition.history.show || edition.fileManager || edition.saveInfo.show || edition.publishInfo.show || edition.mergeInfo.show">
+    <div class="edition-overlay" ng-show="edition.infoShow || edition.history.show || edition.fileManager || edition.saveInfo.show || edition.publishInfo.show || edition.mergeInfo.show">
+        <div class="edition-save" ng-show="edition.infoShow">
+            <div class="edition-overlay-close" ng-click="closeEditionPopup()">
+                <span class="fas fa-xmark"></span>
+            </div>
+            <h3><span class="fas fa-circle-info"></span> Contributing</h3>
+            <hr>
+            <p>
+                This interface allows you to contribute to the next version of this content. Through this interface, you can edit the content and submit your changes for review.
+            </p>
+            <p>
+                When editing, your changes are saved separately into an "edition version", separate from the production version. When you're done, submit your changes, so they can be approved by an administrator.
+            </p>
+            <p>
+                If you are an administrator, you may publish directly your changes to production.
+            </p>
+        </div>
         <div class="edition-history" ng-show="edition.history.show">
             <div class="edition-overlay-close" ng-click="closeEditionPopup()">
                 <span class="fas fa-xmark"></span>
             </div>
-            <h3><span class="fas fa-clock"></span> History for {{ edition.path }}</h3>
+            <h3><span class="fas fa-clock"></span> History</h3>
             <p>
-                <button class="btn btn-warning" ng-click="closeEditionPopup()"><span class="fas fa-xmark"></span> Close</button>
-                <button class="btn" ng-click="editionHistoryRestore()" ng-class="edition.history.selected != edition.history.editedHash && 'btn-primary' || 'btn-default'" ng-disabled="edition.history.selected == edition.history.editedHash"><span class="fas fa-pen"></span> Edit selected version</button>
-                <button class="btn" ng-click="editionHistoryRestore(true)" ng-class="edition.oldVersion && 'btn-primary' || 'btn-default'" ng-disabled="!edition.oldVersion"><span class="fas fa-clock-rotate-left"></span> Return to latest version</button>
-                <a class="btn" ng-class="edition.oldVersion && 'btn-primary' || 'btn-default'" href="{{ makeDiffUrl(edition.history.selected, 'commit') }}" target="_blank"><span class="fas fa-magnifying-glass"></span> View selected commit</a>
-                <button class="btn" ng-class="edition.oldVersion && 'btn-primary' || 'btn-default'" ng-click="makeDiffUI(edition.history.selected, 'master')"><span class="fas fa-code-compare"></span> View diff with production version</button>
-                <button class="btn" ng-class="edition.oldVersion && 'btn-primary' || 'btn-default'" ng-click="makeDiffUI(edition.history.selected, 'editor')"><span class="fas fa-code-compare"></span> View diff with edition version</button>
+                <button class="pseudo-prime-button ppb-warning" ng-click="closeEditionPopup()">Cancel <span class="fas fa-xmark"></span></button>
+                <button class="pseudo-prime-button" ng-click="editionHistoryRestore()" ng-class="edition.history.selected != edition.history.editedHash && 'ppb-primary' || 'ppb-basic'" ng-disabled="edition.history.selected == edition.history.editedHash">Edit selected version <span class="fas fa-pen"></span></button>
+                <button class="pseudo-prime-button" ng-click="editionHistoryRestore(true)" ng-class="edition.oldVersion && 'ppb-primary' || 'ppb-basic'" ng-disabled="!edition.oldVersion">Return to latest version <span class="fas fa-clock-rotate-left"></span></button>
+                <a class="pseudo-prime-button ppb-basic" href="{{ makeDiffUrl(edition.history.selected, 'commit') }}" target="_blank">View selected commit <span class="fas fa-magnifying-glass"></span></a>
+                <button class="pseudo-prime-button ppb-basic" ng-click="makeDiffUI(edition.history.selected, 'master')">View diff with published version <span class="fas fa-code-compare"></span></button>
+                <button class="pseudo-prime-button ppb-basic" ng-click="makeDiffUI(edition.history.selected, 'editor')">View diff with edition version <span class="fas fa-code-compare"></span></button>
             </p>
             <p ng-show="edition.historyAdditional">
-                <b>Note : Production version has {{ edition.history.masterAdditional }} more commits than the edition branch.</b>
+                <b>Note : Published version has {{ edition.history.masterAdditional }} more commits than the edition branch.</b>
             </p>
             <p ng-show="edition.history.loading">
                 <span class="fas fa-spinner fa-spin"></span> Loading history...
@@ -57,9 +92,9 @@
             <p ng-show="edition.history.fetchDiffStatus == 'none'">
                 <span class="fas fa-circle-info"></span> There are no differences between these two versions.
             </p>
-            <button class="btn" ng-show="edition.history.fetchDiffStatus && edition.history.fetchDiffStatus != 'loading'" ng-click="closeDiffUI()"><span class="fas fa-xmark"></span> Close diff</button>
+            <button class="pseudo-prime-button" ng-show="edition.history.fetchDiffStatus && edition.history.fetchDiffStatus != 'loading'" ng-click="closeDiffUI()"><span class="fas fa-xmark"></span> Close diff</button>
             <div ng-show="edition.history.fetchDiffStatus == 'success'" id="diff2html"></div>
-            <button class="btn" ng-show="edition.history.fetchDiffStatus == 'success'" ng-click="closeDiffUI()"><span class="fas fa-xmark"></span> Close diff</button>
+            <button class="pseudo-prime-button" ng-show="edition.history.fetchDiffStatus == 'success'" ng-click="closeDiffUI()"><span class="fas fa-xmark"></span> Close diff</button>
             <hr ng-show="edition.history.fetchDiffStatus">
             <table class="edition-history-table" ng-hide="edition.history.loading">
                 <tbody>
@@ -71,7 +106,7 @@
                         </td>
                         <td>
                             <div ng-show="log.fromMaster" class="edition-history-master">only in production</div>
-                            <div ng-show="log.master" class="edition-history-master">production version</div>
+                            <div ng-show="log.master" class="edition-history-master">published version</div>
                         </td>
                         <td>
                             {{ log.date }}
@@ -91,7 +126,7 @@
             <div class="edition-fm-header">
                 <h3><span class="fas fa-folder-tree"></span> Files of {{ edition.path }}</h3>
                 <p>
-                    <button class="btn btn-warning" ng-click="closeEditionPopup()"><span class="fas fa-xmark"></span> Close</button>
+                    <button class="pseudo-prime-button ppb-warning" ng-click="closeEditionPopup()"><span class="fas fa-xmark"></span> Close</button>
                 </p>
             </div>
             <div class="edition-fm-files">
@@ -104,15 +139,15 @@
                             Add file :
                             <input type="text" ng-model="edition.fileManager.newFile" ng-change="editionFmFilenameChange()" placeholder="File path" />
                             <input type="file" id="edition-fm-newFileContent" />
-                            <button class="btn btn-default" ng-click="editionFmUpload()"><span class="fas fa-upload"></span> Upload</button>
+                            <button class="pseudo-prime-button ppb-basic" ng-click="editionFmUpload()"><span class="fas fa-upload"></span> Upload</button>
                             <span ng-show="edition.fileManager.uploadSuccessful"><span class="fas fa-check"></span> Upload successful!</span>
                         </p>
                         <hr>
                         <p>Selected : {{ edition.fileManager.selectedPath }}</p>
                         <p>
-                            <button class="btn btn-default" ng-click="editionFmDownload()"><span class="fas fa-download"></span> Download</button>
-                            <button class="btn btn-danger" ng-click="editionFmDelete()"><span class="fas fa-trash-can"></span> Delete</button>
-                            Rename : <input type="text" ng-model="edition.fileManager.renameFile" style="width: 400px;" /> <button class="btn btn-default" ng-click="editionFmRename()"><span class="fas fa-edit"></span> Rename</button>
+                            <button class="pseudo-prime-button ppb-basic" ng-click="editionFmDownload()"><span class="fas fa-download"></span> Download</button>
+                            <button class="pseudo-prime-button ppb-danger" ng-click="editionFmDelete()"><span class="fas fa-trash-can"></span> Delete</button>
+                            Rename : <input type="text" ng-model="edition.fileManager.renameFile" style="width: 400px;" /> <button class="pseudo-prime-button ppb-basic" ng-click="editionFmRename()"><span class="fas fa-edit"></span> Rename</button>
                         </p>
                     </div>
                     <div class="edition-fm-display" ng-if="editionFmSelectedIsImage(edition.fileManager.selected)">
@@ -125,16 +160,18 @@
             <div class="edition-overlay-close" ng-click="closeEditionPopup()">
                 <span class="fas fa-xmark"></span>
             </div>
-            <h3>Saving {{ edition.path }}</h3>
+            <h3><span class="fas fa-save"></span> Saving changes</h3>
             <hr>
             <div class="alert alert-warning" ng-show="edition.lastCommits.curEditor != edition.lastCommits.origEditor">
                 <b>Warning : modifications have been made in the editor version since you opened the editor. Please check the history and make sure you are not overwriting any changes, or they will be lost.</b>
             </div>
             <p>Please enter a short commit message describing your changes :</p>
-            <p><input type="text" ng-model="edition.saveInfo.commitMessage" placeholder="Message" style="width: 400px;" maxlength="160" ng-class="edition.saveInfo.commitMessage ? '' : 'edition-input-red'" /></p>
             <p>
-                <button class="btn btn-primary" ng-click="editionDoSave()"><span class="fas fa-save"></span> Save draft</button>
-                <button class="btn btn-warning" ng-click="closeEditionPopup()"><span class="fas fa-xmark"></span> Cancel</button>
+                <input type="text" class="form-control" id="edition-save-message" ng-model="edition.saveInfo.commitMessage" placeholder="Message" style="width: 400px;" maxlength="160" ng-class="edition.saveInfo.commitMessage ? '' : 'edition-input-red'" />
+            </p>
+            <p>
+                <button class="pseudo-prime-button ppb-primary" ng-click="editionDoSave()"><span class="fas fa-save"></span> Save draft</button>
+                <button class="pseudo-prime-button ppb-warning" ng-click="closeEditionPopup()"><span class="fas fa-xmark"></span> Cancel</button>
             </p>
             <p ng-show="edition.saveInfo.doSave && !edition.saveInfo.committed">
                 <span class="fas fa-spinner fa-spin"></span> Saving...
@@ -163,33 +200,32 @@
             <div class="edition-overlay-close" ng-click="closeEditionPopup()">
                 <span class="fas fa-xmark"></span>
             </div>
-            <h3>Creating a pull request for {{ edition.path }}</h3>
+            <h3><span class="fas fa-code-pull-request"></span> Submitting modifications</h3>
             <hr>
             <p>
-                <i>
-                    A pull request will send the modifications to administrators for review. They will need to validate them before publication.
-                </i>
+                Your modifications will be sent to administrators for review. They will need to validate them before publication.
             </p>
             <p>
                 <input type="radio" id="edition-publish-type-pr" ng-model="edition.publishType" value="pr" />
-                <label for="edition-publish-type-pr">Create a pull request for me</label>
+                <label for="edition-publish-type-pr">Create the submission for me</label>
                 <br>
                 <i>This will create a pull request on your behalf.</i>
             </p>
             <div ng-show="edition.publishType == 'pr'">
-                <p>
-                    <label for="edition-publish-pr-title">Title of the pull request</label><br>
-                    <input type="text" id="edition-publish-pr-title" ng-model="edition.publishInfo.prTitle" placeholder="Title" style="width: 400px;" maxlength="160" />
-                </p>
-                <p>
-                    <label for="edition-publish-pr-body">Description of the pull request</label><br>
-                    <textarea id="edition-publish-pr-body" ng-model="edition.publishInfo.prBody" placeholder="Description" style="width: 400px;" maxlength="160"></textarea>
-                </p>
+                <div class="form-group">
+                    <label for="edition-publish-pr-title">Title of the submission</label><br>
+                    <input type="text" class="form-control" id="edition-publish-pr-title" ng-model="edition.publishInfo.prTitle" placeholder="Title" maxlength="160" />
+                </div>
+                <div class="form-group">
+                    <label for="edition-publish-pr-body">Description of the submission</label><br>
+                    <textarea class="form-control" id="edition-publish-pr-body" ng-model="edition.publishInfo.prBody" placeholder="Description"></textarea>
+                </div>
             </div>
+            <p>&nbsp;</p>
             <p>
                 <input type="radio" id="edition-publish-type-mpr" ng-model="edition.publishType" value="mpr" />
                 <label for="edition-publish-type-mpr">
-                    Let me create the pull request with
+                    Advanced : Let me create the pull request myself with
                     <span ng-show="edition.isGitlab">GitLab</span>
                     <span ng-show="!edition.isGitlab">GitHub</span>
                 </label>
@@ -198,14 +234,14 @@
             </p>
             <hr>
             <p>
-                <button class="btn btn-primary" ng-click="editionDoPublish()"><span class="fas fa-code-pull-request"></span> Create pull request</button>
-                <button class="btn btn-warning" ng-click="closeEditionPopup()"><span class="fas fa-xmark"></span> Cancel</button>
+                <button class="pseudo-prime-button ppb-primary" ng-click="editionDoPublish()">Submit for review <span class="fas fa-code-pull-request"></span></button>
+                <button class="pseudo-prime-button ppb-warning" ng-click="closeEditionPopup()">Cancel <span class="fas fa-xmark"></span></button>
             </p>
             <p ng-show="edition.publishInfo.publishing">
-                <span class="fas fa-spinner fa-spin"></span> Creating pull request...
+                <span class="fas fa-spinner fa-spin"></span> Submitting...
             </p>
             <p ng-show="edition.publishInfo.done">
-                <b><span class="fas fa-check"></span> Published!</b>
+                <b><span class="fas fa-check"></span> Submitted!</b>
             </p>
             <p ng-show="edition.publishInfo.mprUrl">
                 Please create your pull request from this link : <a href="{{ edition.publishInfo.mprUrl }}" target="_blank">{{ edition.publishInfo.mprUrl }}</a>
@@ -218,7 +254,7 @@
             </p>
             <hr>
             <p ng-show="edition.publishInfo.commits.length">
-                <b>Publishing {{ edition.publishInfo.commits.length }} commits :</b>
+                <b>Submitting {{ edition.publishInfo.commits.length }} commits :</b>
             </p>
             <table class="edition-history-table" ng-show="edition.publishInfo.commits">
                 <tbody>
@@ -237,7 +273,11 @@
             <div class="edition-overlay-close" ng-click="closeEditionPopup()">
                 <span class="fas fa-xmark"></span>
             </div>
-            <h3>Merging {{ edition.path }}</h3>
+            <h3><span class="fas fa-code-merge"></span> Publishing {{ edition.path }}</h3>
+            <hr>
+            <p>
+                <b>You must have administrator rights over this content, and provide your credentials, to publish.</b>
+            </p>
             <hr>
             <p>
                 <input type="radio" id="edition-publish-type-prod" ng-model="edition.publishType" value="prod" />
@@ -264,8 +304,8 @@
             </div>        
             <hr>
             <p>
-                <button class="btn btn-primary" ng-click="editionDoMerge()"><span class="fas fa-upload"></span> Merge</button>
-                <button class="btn btn-warning" ng-click="closeEditionPopup()"><span class="fas fa-xmark"></span> Cancel</button>
+                <button class="pseudo-prime-button ppb-primary" ng-click="editionDoMerge()">Publish <span class="fas fa-upload"></span></button>
+                <button class="pseudo-prime-button ppb-warning" ng-click="closeEditionPopup()">Cancel <span class="fas fa-xmark"></span></button>
             </p>
             <p ng-show="edition.mergeInfo.merging">
                 <span class="fas fa-spinner fa-spin"></span> Merging...
@@ -278,7 +318,7 @@
             </p>
             <p ng-show="edition.mergeInfo.showImport">
                 You may now import the changes to production :
-                <button class="btn btn-primary" ng-click="editionDoImport()"><span class="fas fa-download"></span> Import</button>
+                <button class="pseudo-prime-button ppb-primary" ng-click="editionDoImport()">Import <span class="fas fa-download"></span></button>
             </p>
             <hr>
             <p ng-show="edition.mergeInfo.commits.length">

@@ -35,7 +35,8 @@ div.container-iframe {
     overflow: hidden;
 }
 
-.edition-header {
+.edition-header-actions,
+.edition-header-editing {
     flex: 0 0 auto;
     margin: 8px;
     display: flex;
@@ -49,6 +50,8 @@ div.container-iframe {
 .edition-header-left {
     flex-grow: 1;
     flex-shrink: 1;
+    line-height: 26px;
+        font-size: 16px;
 }
 
 .edition-header-right {
@@ -238,4 +241,71 @@ div.container-iframe {
     font-size: 1.5em;
     font-weight: bold;
     margin: 16px;
+}
+.pseudo-prime-button {
+    display: inline-block;
+    border-radius: 0.75em;
+    border: 0.0625em solid #ccc;
+    height: 1.8em;
+    padding: 0.2em 1em;
+    font-size: 16px;
+    background: none;
+    cursor: pointer;
+    transition: background-color 0.5s;
+}
+
+.pseudo-prime-button.ppb-basic {
+    border-color: rgb(238, 238, 238);
+    color: rgb(97, 111, 130);
+}
+
+.pseudo-prime-button.ppb-basic:hover {
+    background: rgb(238, 238, 238);
+}
+
+.pseudo-prime-button.ppb-primary {
+    border-color: rgb(15, 97, 255);
+    background: rgb(15, 97, 255);
+    color: white;
+}
+
+.pseudo-prime-button.ppb-primary:hover {
+    background: rgb(0, 71, 212);
+}
+
+.pseudo-prime-button.ppb-warning {
+    border-color: #ff6600;
+    background: #ff6600;
+    color: white;
+}
+
+.pseudo-prime-button.ppb-warning:hover {
+    background: #cc4400;
+    color: white;
+}
+
+.pseudo-prime-button .fas {
+    font-size: 0.9em;
+}
+
+.simple-button {
+    display: inline-block;
+    border-radius: 0.75em;
+}
+
+.pseudo-prime-button.ppb-basic .fas,
+.simple-button .fas {
+    color: rgb(15, 97, 255);
+}
+
+.simple-button {
+    width: 2em;
+    height: 2em;
+    text-align: center;
+    transition: color 0.5s, background-color 0.5s;
+}
+
+.simple-button:hover {
+    color: rgb(0, 71, 212);
+    background-color: #ddd;
 }
