@@ -133,6 +133,7 @@
         refreshFileList: refreshFileList,
         getImageContent: getImageContent,
         getFileContent: getFileContent,
-        getFileBlob: getFileBlob
+        getFileBlob: getFileBlob,
+        fileExists: fileExists
     }
 })();

@@ -1,13 +1,29 @@
 <div ng-repeat="item in node.folders">
-    <div class="treeview-item" ng-click="editionFmSelect(item.path)" ng-class="edition.fileManager.selectedPath == item.path ? 'treeview-selected' : ''">
-        <span class="fas fa-folder-open"></span> {{ item.name }}
+    <div class="treeview-item">
+        <div class="treeview-item-name">
+            <span class="fas fa-folder-open"></span> {{ item.name }}
+        </div>
+        <div class="treeview-item-buttons">
+        </div>
     </div>
     <div class="treeview-children">
         <treeview node="item"></treeview>
     </div>
 </div>
 <div ng-repeat="item in node.files">
-    <div class="treeview-item" ng-click="editionFmSelect(item.path)" ng-class="edition.fileManager.selectedPath == item.path ? 'treeview-selected' : ''">
-        <span ng-class="getClass(item.name)"></span> {{ item.name }}
+    <div class="treeview-item" ng-class="edition.fileManager.lastUploaded == item.path ? 'treeview-item-uploaded' : ''">
+        <div class="treeview-item-name" ng-show="edition.fileManager.renamingPath != item.path">
+            <span ng-class="getClass(item.name)"></span> {{ item.name }}
+        </div>
+        <div class="treeview-item-name" ng-hide="edition.fileManager.renamingPath != item.path">
+            <form ng-submit="editionFmRename(item.path)">
+                <input type="text" ng-model="edition.fileManager.newPath">
+            </form>
+        </div>
+        <div class="treeview-item-buttons">
+            <div class="simple-button" ng-click="editionFmDownload(item.path)"><span class="fas fa-download"></span></div>
+            <div class="simple-button" ng-click="editionFmRename(item.path)"><span class="fas fa-pen"></span></div>
+            <div class="simple-button simple-button-danger" ng-click="editionFmDelete(item.path)"><span class="fas fa-trash"></span></div>
+        </div>
     </div>
 </div>

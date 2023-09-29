@@ -1290,33 +1290,24 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
                 }
                 curTree.files.push({ name: pathSplit[pathSplit.length - 1], path: data[i] });
             }
+            $scope.edition.fileManager.filelist = data;
             $scope.edition.fileManager.root = tree;
             $scope.$apply(callback);
         });
     }
+    $scope.editionFmUpdate = editionFmUpdate;
 
     $scope.editionFileManager = function () {
+        if ($scope.edition.fileManager) {
+            $scope.edition.fileManager = null;
+            return;
+        }
         $scope.edition.fileManager = {};
         editionApi.setupEditionApi(window.location.origin + '/edition/', $scope.edition.token, $scope.edition.session);
         editionFmUpdate();
     }
 
     $scope.imageCache = {};
-    $scope.editionFmSelect = function (path) {
-        $scope.edition.fileManager.selectedPath = path;
-        $scope.edition.fileManager.renameFile = path;
-        if (!editionFmFilenameChanged) {
-            // Suggest current folder as base for filename
-            var pathSplit = path.split('/');
-            $scope.edition.fileManager.newFile = pathSplit.length > 1 ? pathSplit.slice(0, -1).join('/') + '/' : '';
-        }
-        if ($scope.editionFmSelectedIsImage() && !$scope.imageCache[path]) {
-            editionApi.getImageContent(path, function (data) {
-                $scope.imageCache[path] = data;
-                $scope.$apply();
-            });
-        }
-    }
 
     $scope.editionFmSelectedIsImage = function () {
         return $scope.edition.fileManager && $scope.edition.fileManager.selectedPath && /\.(gif|jpg|jpeg|tiff|png)$/i.test($scope.edition.fileManager.selectedPath);
@@ -1328,44 +1319,25 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         editionFmFilenameChanged = true;
     }
 
-    $scope.editionFmDownload = function () {
-        if (!$scope.edition.fileManager.selectedPath) { return; }
-        editionApi.getFileBlob($scope.edition.fileManager.selectedPath, function (blob) {
-            var link = document.createElement('a');
-            var filename = $scope.edition.fileManager.selectedPath.split('/');
-            filename = filename[filename.length - 1];
-            link.download = filename;
-            link.href = URL.createObjectURL(blob);
-            link.click();
-            URL.revokeObjectURL(link.href);
-        });
-    }
-
-    $scope.editionFmDelete = function () {
-        if (!$scope.edition.fileManager.selectedPath) { return; }
-        editionApi.deleteFile($scope.edition.fileManager.selectedPath, function () {
-            editionFmUpdate();
-        });
-    }
-
-    $scope.editionFmRename = function () {
-        if (!$scope.edition.fileManager.selectedPath) { return; }
-        editionApi.getFileBlob($scope.edition.fileManager.selectedPath, function (blob) {
-            editionApi.putFile($scope.edition.fileManager.renameFile, blob, function () {
-                editionApi.deleteFile($scope.edition.fileManager.selectedPath, function () {
-                    editionFmUpdate();
-                    $scope.edition.fileManager.selectedPath = $scope.edition.fileManager.renameFile;
-                });
-            });
-        });
+    $scope.editionFmAddFile = function () {
+        document.getElementById('edition-fm-add-input').click();
     }
 
     $scope.editionFmUpload = function () {
-        if (!$scope.edition.fileManager.newFile || !document.getElementById('edition-fm-newFileContent').files[0]) { return; }
-        editionApi.putFile($scope.edition.fileManager.newFile, document.getElementById('edition-fm-newFileContent').files[0], function () {
+        if (!document.getElementById('edition-fm-add-input').files[0]) { return; }
+        var filename = document.getElementById('edition-fm-add-input').files[0].name;
+        if (!filename) { return; }
+        while (editionApi.fileExists(filename)) {
+            filename = '_' + filename;
+        }
+
+        editionApi.putFile(filename, document.getElementById('edition-fm-add-input').files[0], function () {
             $scope.edition.fileManager.uploadSuccessful = true;
+            $scope.edition.fileManager.renamingPath = $scope.edition.fileManager.lastUploaded = $scope.edition.fileManager.newPath = filename;
             editionFmUpdate(function () {
-                $scope.editionFmSelect($scope.edition.fileManager.newFile);
+                setTimeout(function () {
+                    $('.edition-fm').scrollTop($('.treeview-item-uploaded')[0].offsetTop);
+                }, 100);
             });
         });
     }
@@ -1382,7 +1354,7 @@ app.directive('treeview', function () {
         templateUrl: 'templates/treeview.html',
         link: function (scope, element, attrs) {
             scope.edition = scope.$parent.edition;
-            scope.editionFmSelect = scope.$parent.editionFmSelect;
+            scope.editionFmUpdate = scope.$parent.editionFmUpdate;
             scope.getClass = function (name) {
                 if (/\.(gif|jpg|jpeg|tiff|png)$/i.test(name)) {
                     return 'fas fa-file-image';
@@ -1392,6 +1364,48 @@ app.directive('treeview', function () {
                 }
                 return 'fas fa-file';
             }
+
+            scope.editionFmDownload = function (itemPath) {
+                editionApi.getFileBlob(itemPath, function (blob) {
+                    var link = document.createElement('a');
+                    var filename = itemPath.split('/');
+                    filename = filename[filename.length - 1];
+                    link.download = filename;
+                    link.href = URL.createObjectURL(blob);
+                    link.click();
+                    URL.revokeObjectURL(link.href);
+                });
+            }
+
+            scope.editionFmDelete = function (itemPath) {
+                if (!confirm("Are you sure you want to delete " + itemPath + "?")) {
+                    return;
+                }
+                editionApi.deleteFile(itemPath, function () {
+                    scope.editionFmUpdate();
+                });
+            }
+
+            scope.editionFmRename = function (itemPath) {
+                scope.edition.fileManager.lastUploaded = null;
+                if (!scope.edition.fileManager.renamingPath || scope.edition.fileManager.renamingPath != itemPath) {
+                    scope.edition.fileManager.renamingPath = itemPath;
+                    scope.edition.fileManager.newPath = itemPath;
+                    return;
+                }
+                if (!scope.edition.fileManager.newPath || scope.edition.fileManager.newPath == scope.edition.fileManager.renamingPath) {
+                    scope.edition.fileManager.renamingPath = null;
+                    return;
+                }
+                editionApi.getFileBlob(scope.edition.fileManager.renamingPath, function (blob) {
+                    editionApi.putFile(scope.edition.fileManager.newPath, blob, function () {
+                        editionApi.deleteFile(scope.edition.fileManager.renamingPath, function () {
+                            scope.editionFmUpdate();
+                        });
+                    });
+                });
+            }
+
         }
     }
 });

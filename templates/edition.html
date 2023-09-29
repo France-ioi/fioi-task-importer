@@ -1,7 +1,6 @@
 <div class="edition-div">
     <div class="edition-header-actions">
         <div class="edition-header-left">
-            <!--<span class="fas fa-folder-open"></span> Editing {{ edition.path }}-->
             Contribute to the next version of this content
             <div class="simple-button" ng-click="editionInfo()"><span class="fas fa-circle-info"></span></div>
         </div>
@@ -19,15 +18,28 @@
                 <span ng-show="!edition.isGitlab">GitHub</span>
                 <span class="fas fa-arrow-up-right-from-square"></span>
             </a>
-            <!--<button class="pseudo-prime-button ppb-basic" ng-click="editionFileManager()"><span class="fas fa-folder-tree"></span> File manager</button>-->
         </div>
     </div>
     <div class="edition-header-editing">
         <div class="edition-header-left">
-            <span class="fas fa-pen"></span>
-            Editing {{ edition.target }}
-            <span class="edition-old-version" ng-show="edition.oldVersion">(editing previous version {{ edition.oldVersion }})</span>
-            <div class="pseudo-prime-button ppb-basic" ng-click="editionFileManager()">Files <span class="fas fa-folder-tree"></span></div>
+            <div>
+                <span class="fas fa-pen"></span>
+                Editing {{ edition.target }}
+                <span class="edition-old-version" ng-show="edition.oldVersion">(editing previous version {{ edition.oldVersion }})</span>
+                <div class="pseudo-prime-button" ng-class="edition.fileManager ? 'ppb-primary' : 'ppb-basic'" ng-click="editionFileManager()">
+                    Files
+                    <span class="fas" ng-class="edition.fileManager ? 'fa-square-caret-down' : 'fa-folder-tree'"></span>
+                </div>
+            </div>
+            <div class="edition-fm" ng-show="edition.fileManager">
+                <div class="edition-fm-add">
+                    <button class="pseudo-prime-button ppb-basic" ng-click="editionFmAddFile()"><span class="fas fa-plus"></span> Add file</button>
+                    <input type="file" id="edition-fm-add-input" onchange="angular.element(this).scope().editionFmUpload()" style="display: none;">
+                </div>
+                <div class="edition-fm-tree">
+                    <treeview node="edition.fileManager.root"></treeview>
+                </div>
+            </div>        
         </div>
         <div class="edition-header-right">
             <button class="pseudo-prime-button" ng-disabled="edition.saving" ng-click="editionSave()" ng-class="edition.lastCommits.curEditor != edition.lastCommits.origEditor ? 'ppb-warning' : 'ppb-primary'">
@@ -43,7 +55,7 @@
     <div ng-show="edition.ready" class="edition-iframe-div">
         <iframe id="edition-iframe" class="edition-iframe" src="{{ edition.editorUrl }}"></iframe>
     </div>
-    <div class="edition-overlay" ng-show="edition.infoShow || edition.history.show || edition.fileManager || edition.saveInfo.show || edition.publishInfo.show || edition.mergeInfo.show">
+    <div class="edition-overlay" ng-show="edition.infoShow || edition.history.show || edition.saveInfo.show || edition.publishInfo.show || edition.mergeInfo.show">
         <div class="edition-save" ng-show="edition.infoShow">
             <div class="edition-overlay-close" ng-click="closeEditionPopup()">
                 <span class="fas fa-xmark"></span>
@@ -118,43 +130,6 @@
                     </tr>
                 </tbody>
             </table>
-        </div>
-        <div class="edition-fm" ng-show="edition.fileManager">
-            <div class="edition-overlay-close" ng-click="closeEditionPopup()">
-                <span class="fas fa-xmark"></span>
-            </div>
-            <div class="edition-fm-header">
-                <h3><span class="fas fa-folder-tree"></span> Files of {{ edition.path }}</h3>
-                <p>
-                    <button class="pseudo-prime-button ppb-warning" ng-click="closeEditionPopup()"><span class="fas fa-xmark"></span> Close</button>
-                </p>
-            </div>
-            <div class="edition-fm-files">
-                <div class="edition-fm-tree">
-                    <treeview node="edition.fileManager.root"></treeview>
-                </div>
-                <div class="edition-fm-info">
-                    <div class="edition-fm-controls">
-                        <p>
-                            Add file :
-                            <input type="text" ng-model="edition.fileManager.newFile" ng-change="editionFmFilenameChange()" placeholder="File path" />
-                            <input type="file" id="edition-fm-newFileContent" />
-                            <button class="pseudo-prime-button ppb-basic" ng-click="editionFmUpload()"><span class="fas fa-upload"></span> Upload</button>
-                            <span ng-show="edition.fileManager.uploadSuccessful"><span class="fas fa-check"></span> Upload successful!</span>
-                        </p>
-                        <hr>
-                        <p>Selected : {{ edition.fileManager.selectedPath }}</p>
-                        <p>
-                            <button class="pseudo-prime-button ppb-basic" ng-click="editionFmDownload()"><span class="fas fa-download"></span> Download</button>
-                            <button class="pseudo-prime-button ppb-danger" ng-click="editionFmDelete()"><span class="fas fa-trash-can"></span> Delete</button>
-                            Rename : <input type="text" ng-model="edition.fileManager.renameFile" style="width: 400px;" /> <button class="pseudo-prime-button ppb-basic" ng-click="editionFmRename()"><span class="fas fa-edit"></span> Rename</button>
-                        </p>
-                    </div>
-                    <div class="edition-fm-display" ng-if="editionFmSelectedIsImage(edition.fileManager.selected)">
-                        <img ng-src="{{ imageCache[edition.fileManager.selectedPath] }}" />
-                    </div>
-                </div>
-            </div>
         </div>
         <div class="edition-save" ng-show="edition.saveInfo.show">
             <div class="edition-overlay-close" ng-click="closeEditionPopup()">
