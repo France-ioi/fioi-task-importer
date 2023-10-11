@@ -857,6 +857,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         $scope.edition.ready = true;
         $scope.edition.isGitlab = $scope.params.gitUrl.indexOf('gitlab.com') != -1;
         $scope.edition.filename = $scope.params.filename || '';
+        $scope.edition.externalUrl = $scope.params.gitUrl + '/' + ($scope.edition.isGitLab ? '-/' : '') + 'tree/' + $scope.edition.masterBranch + '/' + $scope.params.gitPath;
 
         if ($scope.edition.taskEditor) {
             var url = config.editors.taskEditor;

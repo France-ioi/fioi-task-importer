@@ -256,6 +256,7 @@ div.container-iframe {
     height: 1.8em;
     padding: 0.2em 1em;
     font-size: 16px;
+    line-height: 24px;
     background: none;
     cursor: pointer;
     user-select: none;
@@ -294,6 +295,10 @@ div.container-iframe {
 
 .pseudo-prime-button .fas {
     font-size: 0.9em;
+}
+
+.ppb-bar {
+    line-height: 36px;
 }
 
 .simple-button {

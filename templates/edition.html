@@ -4,7 +4,7 @@
             Contribute to the next version of this content
             <div class="simple-button" ng-click="editionInfo()"><span class="fas fa-circle-info"></span></div>
         </div>
-        <div class="edition-header-right">
+        <div class="edition-header-right ppb-bar">
             <button class="pseudo-prime-button ppb-basic" ng-click="editionHistory()">History <span class="fas fa-clock"></span></button>
             <button class="pseudo-prime-button ppb-basic" ng-disabled="edition.saving" ng-click="editionPublish()">Submit <span class="fas fa-code-pull-request"></span></button>
             <button class="pseudo-prime-button ppb-basic" ng-disabled="edition.saving" ng-click="editionMerge()">
@@ -12,7 +12,7 @@
                 <span ng-show="edition.history.masterAdditional">({{ edition.history.masterAdditional }} behind production)</span>
                 <span class="fas fa-code-merge"></span>
             </button>
-            <a class="pseudo-prime-button ppb-basic" href="{{ params.gitUrl }}" target="_blank">
+            <a class="pseudo-prime-button ppb-basic" href="{{ edition.externalUrl }}" target="_blank">
                 View on
                 <span ng-show="edition.isGitlab">GitLab</span>
                 <span ng-show="!edition.isGitlab">GitHub</span>
@@ -77,7 +77,7 @@
                 <span class="fas fa-xmark"></span>
             </div>
             <h3><span class="fas fa-clock"></span> History</h3>
-            <p>
+            <p class="ppb-bar">
                 <button class="pseudo-prime-button ppb-warning" ng-click="closeEditionPopup()">Cancel <span class="fas fa-xmark"></span></button>
                 <button class="pseudo-prime-button" ng-click="editionHistoryRestore()" ng-class="edition.history.selected != edition.history.editedHash && 'ppb-primary' || 'ppb-basic'" ng-disabled="edition.history.selected == edition.history.editedHash">Edit selected version <span class="fas fa-pen"></span></button>
                 <button class="pseudo-prime-button" ng-click="editionHistoryRestore(true)" ng-class="edition.oldVersion && 'ppb-primary' || 'ppb-basic'" ng-disabled="!edition.oldVersion">Return to latest version <span class="fas fa-clock-rotate-left"></span></button>
@@ -144,7 +144,7 @@
             <p>
                 <input type="text" class="form-control" id="edition-save-message" ng-model="edition.saveInfo.commitMessage" placeholder="Message" style="width: 400px;" maxlength="160" ng-class="edition.saveInfo.commitMessage ? '' : 'edition-input-red'" />
             </p>
-            <p>
+            <p class="ppb-bar">
                 <button class="pseudo-prime-button ppb-primary" ng-click="editionDoSave()"><span class="fas fa-save"></span> Save draft</button>
                 <button class="pseudo-prime-button ppb-warning" ng-click="closeEditionPopup()"><span class="fas fa-xmark"></span> Cancel</button>
             </p>
@@ -208,7 +208,7 @@
                 <i>You will need your own credentials. This will allow you to create the pull request in your own name, and customize it.</i>
             </p>
             <hr>
-            <p>
+            <p class="ppb-bar">
                 <button class="pseudo-prime-button ppb-primary" ng-click="editionDoPublish()">Submit for review <span class="fas fa-code-pull-request"></span></button>
                 <button class="pseudo-prime-button ppb-warning" ng-click="closeEditionPopup()">Cancel <span class="fas fa-xmark"></span></button>
             </p>
@@ -258,13 +258,24 @@
                 <input type="radio" id="edition-publish-type-prod" ng-model="edition.publishType" value="prod" />
                 <label for="edition-publish-type-prod">Publish directly to production</label>
                 <br>
-                <i>This will publish your changes directly to production, merging them. You will need to enter credentials with rights to push.</i>
+                <i>
+                    This will publish your changes directly to production, merging them. You will need to provide credentials with rights to push onto the repository.
+                    You can obtain credentials from
+                    <span ng-show="edition.isGitlab">
+                        <a href="https://gitlab.com/-/profile/personal_access_tokens" target="_blank">this page on GitLab</a>
+                    </span>
+                    <span ng-show="!edition.isGitlab">
+                        <a href="https://github.com/settings/tokens" target="_blank">this page on GitHub</a>
+                    </span>
+                    if you have an account on the website.
+                </i>
+
             </p>
             <p>
                 <input type="radio" id="edition-publish-type-merge" ng-model="edition.publishType" value="merge" />
-                <label for="edition-publish-type-merge">Only merge production</label>
+                <label for="edition-publish-type-merge">Fetch production changes</label>
                 <br>
-                <i>This will only merge the changes from production into the editor version.</i>
+                <i>This will only fetch the changes from the production version into the editor version, allowing you to resume edition from a version updated with the latest modifications put into production.</i>
             </p>
             <hr>
             <div>
@@ -278,7 +289,7 @@
                 </div>
             </div>        
             <hr>
-            <p>
+            <p class="ppb-bar">
                 <button class="pseudo-prime-button ppb-primary" ng-click="editionDoMerge()">Publish <span class="fas fa-upload"></span></button>
                 <button class="pseudo-prime-button ppb-warning" ng-click="closeEditionPopup()">Cancel <span class="fas fa-xmark"></span></button>
             </p>
