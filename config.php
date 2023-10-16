@@ -57,6 +57,8 @@ $config->git->gitlabUser = null;
 $config->git->gitlabPassword = null;
 
 $config->editors = [];
+$config->newEditionEndpoint = null;
+$config->newEditorApiEndpoint = null;
 
 if (is_readable(__DIR__.'/config_local.php')) {
    include_once __DIR__.'/config_local.php';

@@ -26,10 +26,12 @@ if($config->localCssUrl) {
       'svnBaseUrl' => $config->svnBaseUrl,
       'svnExampleUrl' => $config->svnExampleUrl,
       'urlArgs' => $config->urlArgs,
-      'editors' => $config->editors
+      'editors' => $config->editors,
+      'newEditionEndpoint' => $config->newEditionEndpoint,
+      'newEditorApiEndpoint' => $config->newEditorApiEndpoint
       ]) ?>
   </script>
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/diff2html/bundles/js/diff2html-ui.min.js"></script>
+  <script type="text/javascript" src="/diff2html-ui.min.js"></script>
   <script type="text/javascript" src="bower_components/angular/angular.min.js<?=$config->urlArgs ?>"></script>
   <script type="text/javascript" src="bower_components/angular-sanitize/angular-sanitize.min.js<?=$config->urlArgs ?>"></script>
   <script type="text/javascript" src="bower_components/i18next/i18next.min.js<?=$config->urlArgs ?>"></script>

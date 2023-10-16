@@ -714,6 +714,18 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
     };
     $scope.bindChannel();
 
+    function getEditionEndpoint(endpoint) {
+        if (config.newEditionEndpoint) {
+            return config.newEditionEndpoint + endpoint;
+        } else {
+            return 'savesvn.php';
+        }
+    }
+
+    function getEditorApiEndpoint() {
+        return config.newEditorApiEndpoint || window.location.origin + '/edition/';
+    }
+
     $scope.checkoutEdit = function () {
         $scope.edition.lastTemplate = $scope.template;
         //$scope.template = 'templates/edition.html';
@@ -753,7 +765,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         // Checkout the task and get data
         var params1 = Object.assign({}, $scope.params);
         params1.action = 'checkoutEdition';
-        $http.post('savesvn.php', params1, { responseType: 'json' }).then(function (res) {
+        $http.post(getEditionEndpoint('checkoutEdition'), params1, { responseType: 'json' }).then(function (res) {
             if (!res.data.success) {
                 onFail(res.data.error);
                 return;
@@ -784,7 +796,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         params1.action = 'commitEdition';
         params1.session = $scope.edition.session;
         params1.commitMsg = $scope.edition.saveInfo.commitMessage;
-        $http.post('savesvn.php', params1, { responseType: 'json' }).then(function (res) {
+        $http.post(getEditionEndpoint('commitEdition'), params1, { responseType: 'json' }).then(function (res) {
             if (!res.data.success) {
                 onFail(res.data.error);
                 return;
@@ -831,7 +843,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             $scope.showLogin = true;
         };
 
-        $http.post('savesvn.php', params2, { responseType: 'json' }).then(function (res) {
+        $http.post(getEditionEndpoint('prepareEdition'), params2, { responseType: 'json' }).then(function (res) {
             if (!res.data.success) {
                 onFail(res.data.error);
                 return;
@@ -868,7 +880,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         }
         url += '?session=' + $scope.edition.session;
         url += '&token=' + $scope.edition.token
-        url += '&api=' + encodeURIComponent(window.location.origin + '/edition/');
+        url += '&api=' + encodeURIComponent(getEditorApiEndpoint());
         var depthSplit = $scope.params.gitPath.split('/');
         var depth = depthSplit.length;
         if (depthSplit[depthSplit.length - 1] == '') {
@@ -898,7 +910,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         var params2 = Object.assign({}, $scope.params);
         params2.action = 'getLastCommits';
 
-        $http.post('savesvn.php', params2, { responseType: 'json' }).then(function (res) {
+        $http.post(getEditionEndpoint('getLastCommits'), params2, { responseType: 'json' }).then(function (res) {
             if (!res.data.success) {
                 return;
             }
@@ -1005,7 +1017,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         params2.prTitle = $scope.edition.publishInfo.prTitle;
         params2.prBody = $scope.edition.publishInfo.prBody;
 
-        $http.post('savesvn.php', params2, { responseType: 'json' }).then(function (res) {
+        $http.post(getEditionEndpoint('publishEdition'), params2, { responseType: 'json' }).then(function (res) {
             $scope.edition.publishInfo.publishing = false;
             if (!res.data.success) {
                 $scope.edition.publishInfo.error = true;
@@ -1036,7 +1048,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         params2.prTitle = '';
         params2.prBody = '';
 
-        $http.post('savesvn.php', params2, { responseType: 'json' }).then(function (res) {
+        $http.post(getEditionEndpoint('publishEdition'), params2, { responseType: 'json' }).then(function (res) {
             $scope.edition.mergeInfo.merging = false;
             if (!res.data.success) {
                 $scope.edition.mergeInfo.error = true;
@@ -1112,7 +1124,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             $scope.disableBtn = false;
         };
 
-        $http.post('savesvn.php', params2, { responseType: 'json' }).then(function (res) {
+        $http.post(getEditionEndpoint('historyEdition'), params2, { responseType: 'json' }).then(function (res) {
             if (!res.data.success) {
                 onFail(res);
                 return;
@@ -1172,7 +1184,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             $scope.disableBtn = false;
         };
 
-        $http.post('savesvn.php', params2, { responseType: 'json' }).then(function (res) {
+        $http.post(getEditionEndpoint('checkoutHashEdition'), params2, { responseType: 'json' }).then(function (res) {
             if (!res.data.success) {
                 onFail(res);
                 return;
@@ -1233,7 +1245,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         };
 
         $scope.edition.history.fetchDiffStatus = 'loading';
-        $http.post('savesvn.php', params2, { responseType: 'json' }).then(function (res) {
+        $http.post(getEditionEndpoint('diffEdition'), params2, { responseType: 'json' }).then(function (res) {
             if (!res.data.success) {
                 onFail(res);
                 return;
@@ -1304,7 +1316,10 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             return;
         }
         $scope.edition.fileManager = {};
-        editionApi.setupEditionApi(window.location.origin + '/edition/', $scope.edition.token, $scope.edition.session);
+        editionApi.setupEditionApi(
+            getEditorApiEndpoint(),
+            $scope.edition.token,
+            $scope.edition.session);
         editionFmUpdate();
     }
 
