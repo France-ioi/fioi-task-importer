@@ -297,6 +297,11 @@ div.container-iframe {
     font-size: 0.9em;
 }
 
+.pseudo-prime-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .ppb-bar {
     line-height: 36px;
 }
