@@ -1253,18 +1253,52 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
                 onFail(res);
                 return;
             }
-            $scope.edition.diff.status = 'success';
 
             if (!res.data.diff) {
                 $scope.edition.diff.status = 'none';
                 return;
             }
 
+            $scope.edition.diff.status = 'success';
+
+            // Extract modified files from git diff
+            $scope.edition.diff.modified = [];
+            var diffLines = res.data.diff.split('\n');
+            for (var i = 0; i < diffLines.length; i++) {
+                var line = diffLines[i];
+                if (line.indexOf('diff --git') == 0) {
+                    var file = line.split(' b/')[1];
+                    $scope.edition.diff.modified.push(file);
+                }
+            }
+
             var cfg = { drawFileList: true, matching: 'lines' };
             var d2hu = new Diff2HtmlUI(container, res.data.diff, cfg);
+
+            // Hack to make diff2html display the files summary by default
+            d2hu.getHashTag = function() { return 'files-summary-show'; };
+
             d2hu.draw();
             d2hu.highlightCode();
         }, onFail);
+    }
+
+    $scope.getDiffModifiedStr = function () {
+        if(!$scope.edition.diff || !$scope.edition.diff.modified) { return ''; }
+        // If multiple files end in .md, display a warning
+        console.log($scope.edition.diff.modified);
+        $scope.edition.diff.modified = ['docs/intro.md', 'docs/abc.md', 'docs/def.md'];
+        var mdCount = 0;
+        for (var i = 0; i < $scope.edition.diff.modified.length; i++) {
+            if ($scope.edition.diff.modified[i].endsWith('.md')) {
+                mdCount++;
+            }
+        }
+        if (mdCount > 1) {
+            return 'Note: multiple Markdown files were changed in this set of modifications.';
+        }
+        return '';
+
     }
 
     $scope.closeDiffUI = function () {

@@ -177,6 +177,7 @@
             </div>
             <h3><span class="fas fa-code-pull-request"></span> Submitting modifications</h3>
             <hr>
+            <p ng-show="getDiffModifiedStr()"><b><span class="fas fa-circle-info"></span> {{ getDiffModifiedStr() }}</b></p>
             <p>
                 Your modifications will be sent to administrators for review. They will need to validate them before publication.
             </p>
@@ -252,6 +253,7 @@
             </div>
             <h3><span class="fas fa-code-merge"></span> Publishing {{ edition.path }}</h3>
             <hr>
+            <p ng-show="getDiffModifiedStr()"><b><span class="fas fa-circle-info"></span> {{ getDiffModifiedStr() }}</b></p>
             <p>
                 <b>You must have administrator rights over this content, and provide your credentials, to publish.</b>
             </p>
