@@ -853,6 +853,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             $scope.edition.path = params2.gitPath + ' (from ' + params2.gitUrl + ')';
             $scope.edition.masterBranch = res.data.masterBranch;
             $scope.edition.history = {};
+            $scope.edition.diff = {};
             $scope.edition.taskEditor = res.data.taskEditor;
             $scope.startEdition();
         }, onRequestFail);
@@ -978,6 +979,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         $scope.edition.publishInfo.show = true;
         $scope.edition.publishInfo.status = [];
         $scope.edition.publishInfo.doSave = false;
+        $scope.makeDiffUI($scope.edition.history.commits[0].hash, 'master', 'edition-publish-diff');
     }
 
     $scope.editionMerge = function () {
@@ -991,6 +993,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             };
         }
         $scope.edition.mergeInfo.show = true;
+        $scope.makeDiffUI($scope.edition.history.commits[0].hash, 'master', 'edition-merge-diff');
     }
 
     $scope.editionDoSave = function () {
@@ -1221,18 +1224,18 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         }
     }
 
-    $scope.makeDiffUI = function (hash, target) {
-        $scope.edition.history.fetchDiffStatus = null;
-        $scope.edition.history.fetchDiffSelected = hash;
+    $scope.makeDiffUI = function (hash, target, containerId) {
+        $scope.edition.diff.status = null;
+        $scope.edition.diff.selected = hash;
         for (var i = 0; i < $scope.edition.history.commits.length; i++) {
             if ($scope.edition.history.commits[i].hash == hash) {
                 var selectedCommit = $scope.edition.history.commits[i];
-                $scope.edition.history.fetchDiffSelected = selectedCommit.date + ' - ' + selectedCommit.message;
+                $scope.edition.diff.selected = selectedCommit.date + ' - ' + selectedCommit.message;
                 break;
             }
         }
-        $scope.edition.history.fetchDiffTarget = target == 'master' ? 'production' : 'edition';
-        var container = document.getElementById('diff2html');
+        $scope.edition.diff.target = target == 'master' ? 'production' : 'edition';
+        var container = document.getElementById(containerId);
         container.innerHTML = '';
 
         var params2 = Object.assign({}, $scope.params);
@@ -1241,19 +1244,19 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         params2.target = target;
 
         function onFail() {
-            $scope.edition.history.fetchDiffStatus = 'error';
+            $scope.edition.diff.status = 'error';
         };
 
-        $scope.edition.history.fetchDiffStatus = 'loading';
+        $scope.edition.diff.status = 'loading';
         $http.post(getEditionEndpoint('diffEdition'), params2, { responseType: 'json' }).then(function (res) {
             if (!res.data.success) {
                 onFail(res);
                 return;
             }
-            $scope.edition.history.fetchDiffStatus = 'success';
+            $scope.edition.diff.status = 'success';
 
             if (!res.data.diff) {
-                $scope.edition.history.fetchDiffStatus = 'none';
+                $scope.edition.diff.status = 'none';
                 return;
             }
 
@@ -1265,7 +1268,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
     }
 
     $scope.closeDiffUI = function () {
-        $scope.edition.history.fetchDiffStatus = null;
+        $scope.edition.diff = {};
     }
 
     $scope.closeEditionPopup = function () {

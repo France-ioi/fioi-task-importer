@@ -82,8 +82,8 @@
                 <button class="pseudo-prime-button" ng-click="editionHistoryRestore()" ng-class="edition.history.selected != edition.history.editedHash && 'ppb-primary' || 'ppb-basic'" ng-disabled="edition.history.selected == edition.history.editedHash">Edit selected version <span class="fas fa-pen"></span></button>
                 <button class="pseudo-prime-button" ng-click="editionHistoryRestore(true)" ng-class="edition.oldVersion && 'ppb-primary' || 'ppb-basic'" ng-disabled="!edition.oldVersion">Return to latest version <span class="fas fa-clock-rotate-left"></span></button>
                 <a class="pseudo-prime-button ppb-basic" href="{{ makeDiffUrl(edition.history.selected, 'commit') }}" target="_blank">View selected commit <span class="fas fa-magnifying-glass"></span></a>
-                <button class="pseudo-prime-button ppb-basic" ng-click="makeDiffUI(edition.history.selected, 'master')">View diff with published version <span class="fas fa-code-compare"></span></button>
-                <button class="pseudo-prime-button ppb-basic" ng-click="makeDiffUI(edition.history.selected, 'editor')">View diff with edition version <span class="fas fa-code-compare"></span></button>
+                <button class="pseudo-prime-button ppb-basic" ng-click="makeDiffUI(edition.history.selected, 'master', 'edition-history-diff')">View diff with published version <span class="fas fa-code-compare"></span></button>
+                <button class="pseudo-prime-button ppb-basic" ng-click="makeDiffUI(edition.history.selected, 'editor', 'edition-history-diff')">View diff with edition version <span class="fas fa-code-compare"></span></button>
             </p>
             <p ng-show="edition.historyAdditional">
                 <b>Note : Published version has {{ edition.history.masterAdditional }} more commits than the edition branch.</b>
@@ -91,23 +91,23 @@
             <p ng-show="edition.history.loading">
                 <span class="fas fa-spinner fa-spin"></span> Loading history...
             </p>
-            <hr ng-show="edition.history.fetchDiffStatus">
-            <p ng-show="edition.history.fetchDiffStatus">
-                <span class="fas fa-code-compare"></span> Differences between <b>{{ edition.history.fetchDiffSelected }}</b> and <b>{{ edition.history.fetchDiffTarget }}</b> :
+            <hr ng-show="edition.diff.status">
+            <p ng-show="edition.diff.status">
+                <span class="fas fa-code-compare"></span> Differences between <b>{{ edition.diff.selected }}</b> and <b>{{ edition.diff.target }}</b> :
             </p>
-            <p ng-show="edition.history.fetchDiffStatus == 'loading'">
+            <p ng-show="edition.diff.status == 'loading'">
                 <span class="fas fa-spinner fa-spin"></span> Loading git diff...
             </p>
-            <p ng-show="edition.history.fetchDiffStatus == 'error'">
+            <p ng-show="edition.diff.status == 'error'">
                 <span class="fas fa-triangle-exclamation"></span> Error loading git diff.
             </p>
-            <p ng-show="edition.history.fetchDiffStatus == 'none'">
+            <p ng-show="edition.diff.status == 'none'">
                 <span class="fas fa-circle-info"></span> There are no differences between these two versions.
             </p>
-            <button class="pseudo-prime-button" ng-show="edition.history.fetchDiffStatus && edition.history.fetchDiffStatus != 'loading'" ng-click="closeDiffUI()"><span class="fas fa-xmark"></span> Close diff</button>
-            <div ng-show="edition.history.fetchDiffStatus == 'success'" id="diff2html"></div>
-            <button class="pseudo-prime-button" ng-show="edition.history.fetchDiffStatus == 'success'" ng-click="closeDiffUI()"><span class="fas fa-xmark"></span> Close diff</button>
-            <hr ng-show="edition.history.fetchDiffStatus">
+            <button class="pseudo-prime-button" ng-show="edition.diff.status && edition.diff.status != 'loading'" ng-click="closeDiffUI()"><span class="fas fa-xmark"></span> Close diff</button>
+            <div ng-show="edition.diff.status == 'success'" id="edition-history-diff"></div>
+            <button class="pseudo-prime-button" ng-show="edition.diff.status == 'success'" ng-click="closeDiffUI()"><span class="fas fa-xmark"></span> Close diff</button>
+            <hr ng-show="edition.diff.status">
             <table class="edition-history-table" ng-hide="edition.history.loading">
                 <tbody>
                     <tr class="edition-history-log" ng-repeat="log in edition.history.allCommits" ng-class="edition.history.editedHash == log.hash ? 'edition-history-log-current' : ''">
@@ -243,6 +243,8 @@
                     </tr>
                 </tbody>
             </table>
+            <hr>
+            <div id="edition-publish-diff"></div>
         </div>
         <div class="edition-merge" ng-show="edition.mergeInfo.show">
             <div class="edition-overlay-close" ng-click="closeEditionPopup()">
@@ -307,12 +309,12 @@
                 <button class="pseudo-prime-button ppb-primary" ng-click="editionDoImport()">Import <span class="fas fa-download"></span></button>
             </p>
             <hr>
-            <p ng-show="edition.mergeInfo.commits.length">
-                <b>Publishing {{ edition.mergeInfo.commits.length }} commits :</b>
+            <p ng-show="edition.mergeInfo.editorCommits.length">
+                <b>Publishing {{ edition.mergeInfo.editorCommits.length }} commits :</b>
             </p>
-            <table class="edition-history-table" ng-show="edition.mergeInfo.commits">
+            <table class="edition-history-table" ng-show="edition.mergeInfo.editorCommits">
                 <tbody>
-                    <tr class="edition-history-log" ng-repeat="log in edition.mergeInfo.commits">
+                    <tr class="edition-history-log" ng-repeat="log in edition.mergeInfo.editorCommits">
                         <td>
                             {{ log.date }}
                         </td>
@@ -322,7 +324,7 @@
                     </tr>
                 </tbody>
             </table>
-            <hr>
+            <hr ng-show="edition.mergeInfo.commitsMaster.length">
             <p ng-show="edition.mergeInfo.commitsMaster.length">
                 <b>Production has {{ edition.mergeInfo.commitsMaster.length }} additional commits :</b>
             </p>
@@ -338,6 +340,8 @@
                     </tr>
                 </tbody>
             </table>
+            <hr>
+            <div id="edition-merge-diff"></div>
         </div>
     </div>
 </div>
