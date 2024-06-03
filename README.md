@@ -19,3 +19,32 @@ You must have a database in the same format as the one of (TaskPlatform)[https:/
 ## Installation
 
 Clone this repository and run `composer install` then `bower install`.
+
+
+Install PHP 5.6:
+
+```
+sudo apt-add-repository -y ppa:ondrej/php
+sudo apt update
+sudo apt install php5.6 php5.6-fpm php5.6-xml php5.6-mbstring php5.6-curl php5.6-mysql
+
+```
+
+Install PHP svn extension:
+
+/!\ This extension does not work with PHP >= 7. You have
+to ensure that you use PHP 5.
+
+```
+sudo apt-get install subversion php-dev
+sudo pecl install svn
+```
+
+You may have to configure PECL to use the PHP 5 configuration and executables.
+Use the following commands and change the parameters to fit your settings:
+
+```
+sudo pecl config-set php_ini /etc/php.ini
+sudo pecl config-set php_bin /usr/bin/php5
+sudo pear config-set php_suffix 5
+```
