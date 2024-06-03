@@ -68,6 +68,15 @@ function localStorageSetItem() {
     }
 }
 
+function taskGraderLangToCodecastLang(baseLang) {
+    baseLang = baseLang.toLocaleLowerCase();
+    if (baseLang == 'python3') {
+        return 'python';
+    }
+
+    return baseLang;
+}
+
 
 var app = angular.module('svnImport', ['jm.i18next']);
 
@@ -491,7 +500,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             curLog.state = 'file_loading';
             curLog.warnPaths = curFile.warnPaths;
             curLog.commonRewritten = curFile.commonRewritten;
-            $scope.curTaskUrl = curTask.baseUrl + curFile.filename;
+            $scope.curTaskUrl = curTask.baseUrl + curFile.filename + '?xd=true';
             $timeout($scope.fetchResources, 2000);
         }
     };
@@ -517,6 +526,23 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         }, 20000);
 
         // Fetch resources from task
+        $scope.importTask(thisID, function (task) {
+            task.getMetaData(function(metadata) {
+                if(thisID != $scope.curID) { return; }
+                task.getResources(function(resources) {
+                    if(thisID != $scope.curID) { return; }
+
+                    $scope.curID = null;
+                    $scope.curLog.state = 'file_done';
+                    $scope.curData.push({filename: $scope.curLog.name, resources: resources, metadata: metadata});
+                    $timeout.cancel(getInfosTimeout);
+                    $scope.$apply($scope.recTaskImport);
+                }, throwError);
+            }, throwError);
+        }, throwError)
+    };
+
+    $scope.importTask = function (thisID, success, error) {
         TaskProxyManager.getTaskProxy('taskIframe', function(task) {
             if(thisID != $scope.curID) { return; }
             window.task = task;
@@ -527,22 +553,95 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             TaskProxyManager.setPlatform(task, platform);
             task.load({metadata: true, grader: true, solution: true, hints: true, editor: true, resources: true}, function() {
                 if(thisID != $scope.curID) { return; }
-                task.getMetaData(function(metadata) {
-                    if(thisID != $scope.curID) { return; }
-                    task.getResources(function(resources) {
-                        if(thisID != $scope.curID) { return; }
-
-                        // Success!
-                        $scope.curID = null;
-                        $scope.curLog.state = 'file_done';
-                        $scope.curData.push({filename: $scope.curLog.name, resources: resources, metadata: metadata});
-                        $timeout.cancel(getInfosTimeout);
-                        $scope.$apply($scope.recTaskImport);
-                    }, throwError);
-                }, throwError);
-            }, throwError);
+                success(task);
+            }, error);
         }, true);
+    }
 
+    $scope.checkCorrectSolutions = function(codecastUrl, files, log, callback) {
+        var resources = files[0].resources;
+        if (!resources.correct_solutions || 0 === resources.correct_solutions.length) {
+            callback();
+            return;
+        }
+
+        log.correctSolutionsStatus = 'loading';
+        log.correctSolutionsResults = [];
+
+        window.Platform.prototype.getTaskParams = function(key, defaultValue, success, error) {
+            var res = {minScore: 0, maxScore: 100, randomSeed: 0, noScore: 0, readOnly: false, options: {}};
+            if (key) {
+                if (key !== 'options' && key in res) {
+                    res = res[key];
+                } else if (res.options && key in res.options) {
+                    res = res.options[key];
+                } else {
+                    res = (typeof defaultValue !== 'undefined') ? defaultValue : null;
+                }
+            }
+            success(res);
+        };
+
+        $scope.curTaskUrl = $sce.trustAsResourceUrl(codecastUrl);
+
+        $timeout(function () {
+            // Allow 20 seconds to import the task
+            var thisID = Math.random() * 1000000000 + 0;
+            $scope.curID = thisID + 0;
+
+            function throwError() {
+                if(thisID != $scope.curID) { return; }
+                $timeout.cancel(getInfosTimeout);
+                callback();
+            }
+
+            // Allow 20 seconds to import the task
+            var getInfosTimeout = $timeout(function () {
+                if(thisID != $scope.curID) { return; }
+                $scope.curID = null;
+                callback();
+            }, 20000);
+
+            $scope.importTask(thisID, function () {
+                log.correctSolutionsStatus = 'loaded';
+                log.correctSolutionsToCheck = resources.correct_solutions;
+                log.correctSolutionsCurrent = 0;
+                $scope.$applyAsync();
+                $scope.checkNextSolution(log, callback);
+            }, throwError);
+        }, 2000);
+    };
+
+    $scope.checkNextSolution = function (log, callback) {
+        var correctSolution = log.correctSolutionsToCheck[log.correctSolutionsCurrent];
+        var solutionCode = correctSolution.solution;
+        var solutionLanguage = correctSolution.language;
+        var fileName = correctSolution.id.replace(/\$TASK_PATH\//g, '');
+        log.correctSolutionsResults[log.correctSolutionsCurrent] = {status: 'loading', fileName: fileName};
+
+        var constructedAnswer = JSON.stringify({
+            platform: taskGraderLangToCodecastLang(solutionLanguage),
+            document: {
+                lines: solutionCode.split("\n"),
+                type: 'text',
+            },
+            fileName: fileName,
+            version: '7.4.0', // Must be a Codecast version compatible with this answer format
+        });
+
+        window.task.gradeAnswer(constructedAnswer, null, function (score) {
+            log.correctSolutionsResults[log.correctSolutionsCurrent].status = score === correctSolution.grade ? 'success' : 'failed';
+            log.correctSolutionsCurrent++;
+            $scope.$applyAsync();
+            if (log.correctSolutionsToCheck.length - 1 >= log.correctSolutionsCurrent) {
+                $scope.checkNextSolution(log, callback);
+            } else {
+                callback();
+            }
+        }, function (e) {
+            console.error("Error encountered during answer evaluation", e);
+            log.correctSolutionsResults[log.correctSolutionsCurrent].status = 'errored';
+        })
     };
 
     $scope.endTaskImport = function() {
@@ -592,18 +691,21 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
                     log.ltiUrl = res.data.ltiUrl;
                     log.tokenUrl = res.data.tokenUrl;
 
-                    // Notify parent of link
-                    $scope.notifyLink({
-                        url: res.data.normalUrl,
-                        ltiUrl: res.data.ltiUrl,
-                        testUrl: res.data.tokenUrl,
-                        task: log.url
+                    $scope.checkCorrectSolutions(res.data.normalUrl, $scope.curData, log, function () {
+                        // Notify parent of link
+                        $scope.notifyLink({
+                            url: res.data.normalUrl,
+                            ltiUrl: res.data.ltiUrl,
+                            testUrl: res.data.tokenUrl,
+                            task: log.url
                         });
+                        $scope.recImport();
+                    });
                 } else {
                     log.state = 'task_save_error';
                     log.error = res.data.error;
+                    $scope.recImport();
                 }
-                $scope.recImport();
             }, function() {
                 // Error
                 log.state = 'task_save_error';

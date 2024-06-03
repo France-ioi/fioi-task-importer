@@ -74,6 +74,13 @@
     "file_done": "File resources loaded.",
     "file_cancelled": "Import cancelled.",
 
+    "check_correct_solution_status": "Evaluating reference solutions:",
+    "check_correct_solution_status_loading": "Loading the task...",
+    "check_correct_solution_file_loading": "evaluating solution...",
+    "check_correct_solution_file_success": "solution passed",
+    "check_correct_solution_file_failed": "solution failed",
+    "check_correct_solution_file_errored": "error while evaluating the solution",
+
     "display_tasks_left": "tasks remaining after",
     "display_static": "Static file imported at",
     "display_warnpaths": "Warning: possible error in _common paths.",

@@ -39,7 +39,7 @@ if($config->localCssUrl) {
   <script type="text/javascript" src="bower_components/ng-i18next/dist/ng-i18next.min.js<?=$config->urlArgs ?>"></script>
   <script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js<?=$config->urlArgs ?>"></script>
   <script type="text/javascript" src="bower_components/jschannel/src/jschannel.js<?=$config->urlArgs ?>"></script>
-  <script type="text/javascript" src="bower_components/pem-platform/task-pr.js<?=$config->urlArgs ?>"></script>
+  <script type="text/javascript" src="bower_components/pem-platform/task-xd-pr.js<?=$config->urlArgs ?>"></script>
   <script type="text/javascript" src="/markdown/dist/markdown-bundle.js<?=$config->urlArgs ?>"></script>
   <script type="text/javascript" src="editApi.js<?=$config->urlArgs ?>"></script>
   <script type="text/javascript" src="importController.js<?=$config->urlArgs ?>"></script>

@@ -34,5 +34,22 @@
     <div ng-if="log.tokenUrl && !log.foundLangs">
       <p><a class="btn btn-default" ng-href="{{ makeUrl(log.tokenUrl, log.urlArgs) }}" target="_blank" ng-i18next="task_test"></a> <i ng-i18next="task_test_description"></i></p>
     </div>
+    <div ng-if="log.correctSolutionsStatus">
+      <hr/>
+
+      <div style="margin-bottom: 10px">
+        <span ng-i18next="check_correct_solution_status"></span>
+      </div>
+
+      <div ng-if="'loaded' !== log.correctSolutionsStatus" ng-i18next="{{ 'check_correct_solution_status_' + log.correctSolutionsStatus }}"></div>
+
+      <div ng-repeat="result in log.correctSolutionsResults">
+        <p ng-class="{'text-success': 'success' === result.status, 'text-danger': 'failed' === result.status}">
+          <code>{{ result.fileName }}</code>: <span ng-i18next="{{ 'check_correct_solution_file_' + result.status }}"></span>
+          <span class="glyphicon glyphicon-ok" ng-if="'success' === result.status"></span>
+          <span class="glyphicon glyphicon-remove" ng-if="'failed' === result.status"></span>
+        </p>
+      </div>
+    </div>
   </div>
 </div>

@@ -75,6 +75,13 @@
     "file_done": "Ressources chargées depuis ce fichier.",
     "file_cancelled": "Import annulé.",
 
+    "check_correct_solution_status": "Évaluation des solutions de référence :",
+    "check_correct_solution_status_loading": "Chargement de la tâche en cours...",
+    "check_correct_solution_file_loading": "évaluation de la solution en cours...",
+    "check_correct_solution_file_success": "solution validée",
+    "check_correct_solution_file_failed": "solution échouée",
+    "check_correct_solution_file_errored": "erreur au cours de l'évaluation",
+
     "display_tasks_left": "tâche(s) dans la file d'attente",
     "display_static": "Fichier statique importé à",
     "display_warnpaths": "Avertissement : erreur possible dans les chemins d'accès à _common.",
