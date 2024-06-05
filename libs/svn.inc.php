@@ -75,6 +75,17 @@ function checkStatic($path) {
     return true;
 }
 
+function hasSolutionsToCheck($path) {
+    $handle = fopen($path, 'r');
+    while(!feof($handle)) {
+        $line = fgets($handle);
+        if (strstr($line, 'correctSolutions')) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function checkCommon($path, $depth, $localCommonRewrite=null, $rewriteCommon=false) {
     // Checks the _common paths; returns false if everything is fine
     $handle = fopen($path, 'r');
@@ -137,6 +148,7 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon, $isGit=false) {
             continue;
         }
         $isStatic = false;
+        $hasSolutionsToCheck = hasSolutionsToCheck($filePath);
         if (!$isMarkdown && $isStatic = checkStatic($filePath)) {
             if(!$taskDirMoved) {
                 // Move task to a static location
@@ -164,8 +176,9 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon, $isGit=false) {
             'filename' => $filename,
             'isStatic' => $isStatic,
             'isMarkdown' => $isMarkdown,
+            'hasSolutionsToCheck' => $hasSolutionsToCheck,
             'depth' => $depth
-            ];
+        ];
 
         $localCommonDir = $workingDir.'/files/checkouts/local/'.$baseSvnFirst;
         $localCommonRewrite = is_dir($localCommonDir) ? '../local/'.$baseSvnFirst : null;

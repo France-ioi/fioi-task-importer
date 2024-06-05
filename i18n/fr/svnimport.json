@@ -69,6 +69,7 @@
     "task_doublelang": "Avertissement : certaines langues sont présentes dans plusieurs fichiers de cette tâche.",
 
     "file_static": "Fichier statique sauvegardé.",
+    "file_static_fetching_resources": "Fichier statique sauvegardé, récupération des ressources...",
     "file_loading": "Chargement du fichier...",
     "file_timeout": "Limite de temps pour charger les ressources dépassée.",
     "file_resources": "Tâche chargée, récupération des ressources...",

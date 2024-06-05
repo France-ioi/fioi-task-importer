@@ -479,18 +479,33 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         $scope.logList[0].files.push(curLog);
         if(curFile.isStatic) {
             // Static file, we display it then continue
-            curLog.state = 'file_static';
             curLog.url = curTask.staticUrl + curFile.filename;
             curLog.warnPaths = curFile.warnPaths;
             curLog.commonRewritten = curFile.commonRewritten;
             curLog.gitRepo = curTask.gitRepo;
             curLog.gitPath = curTask.gitPath;
 
-            $scope.notifyLink({
-                url: $scope.makeUrl(curLog.url, curTask.urlArgs),
-                task: curTask.svnUrl
+            if (curFile.hasSolutionsToCheck) {
+                $scope.curTaskUrl = curTask.staticUrl + curFile.filename + '?xd=true';
+                curLog.state = 'file_static_fetching_resources';
+                $timeout(() => $scope.fetchResources(function (metadata, resources) {
+                    curLog.state = 'file_static';
+                    $scope.checkCorrectSolutions(null, resources, $scope.logList[0], function () {
+                        $scope.notifyLink({
+                            url: $scope.makeUrl(curLog.url, curTask.urlArgs),
+                            task: curTask.svnUrl
+                        });
+                        $scope.recImport();
+                    });
+                }), 2000);
+            } else {
+                curLog.state = 'file_static';
+                $scope.notifyLink({
+                    url: $scope.makeUrl(curLog.url, curTask.urlArgs),
+                    task: curTask.svnUrl
                 });
-            $scope.recTaskImport();
+                $scope.recTaskImport();
+            }
         } else if (curFile.isMarkdown) {
             // Markdown file, we load and convert it
             curLog.state = 'file_loading';
@@ -501,11 +516,14 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             curLog.warnPaths = curFile.warnPaths;
             curLog.commonRewritten = curFile.commonRewritten;
             $scope.curTaskUrl = curTask.baseUrl + curFile.filename + '?xd=true';
-            $timeout($scope.fetchResources, 2000);
+            $timeout(() => $scope.fetchResources(function (metadata, resources) {
+                $scope.curLog.state = 'file_done';
+                $scope.curData.push({filename: $scope.curLog.name, resources: resources, metadata: metadata});
+            }), 2000);
         }
     };
 
-    $scope.fetchResources = function() {
+    $scope.fetchResources = function(callback) {
         // Import the informations from the task contained in the iframe
         var thisID = Math.random() * 1000000000 + 0;
         $scope.curID = thisID + 0;
@@ -531,10 +549,8 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
                 if(thisID != $scope.curID) { return; }
                 task.getResources(function(resources) {
                     if(thisID != $scope.curID) { return; }
-
                     $scope.curID = null;
-                    $scope.curLog.state = 'file_done';
-                    $scope.curData.push({filename: $scope.curLog.name, resources: resources, metadata: metadata});
+                    callback(metadata, resources);
                     $timeout.cancel(getInfosTimeout);
                     $scope.$apply($scope.recTaskImport);
                 }, throwError);
@@ -558,8 +574,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         }, true);
     }
 
-    $scope.checkCorrectSolutions = function(codecastUrl, files, log, callback) {
-        var resources = files[0].resources;
+    $scope.checkCorrectSolutions = function(codecastUrl, resources, log, callback) {
         if (!resources.correct_solutions || 0 === resources.correct_solutions.length) {
             callback();
             return;
@@ -582,8 +597,17 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             success(res);
         };
 
-        $scope.curTaskUrl = $sce.trustAsResourceUrl(codecastUrl);
+        if (null !== codecastUrl) {
+            $scope.curTaskUrl = $sce.trustAsResourceUrl(codecastUrl);
+            $scope.loadCorrectSolutionIframe(function () {
+                $scope.onCorrectSolutionsLoaded(log, resources, callback);
+            }, callback);
+        } else {
+            $scope.onCorrectSolutionsLoaded(log, resources, callback);
+        }
+    };
 
+    $scope.loadCorrectSolutionIframe = function (callback, cancel) {
         $timeout(function () {
             // Allow 20 seconds to import the task
             var thisID = Math.random() * 1000000000 + 0;
@@ -592,25 +616,27 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             function throwError() {
                 if(thisID != $scope.curID) { return; }
                 $timeout.cancel(getInfosTimeout);
-                callback();
+                cancel();
             }
 
             // Allow 20 seconds to import the task
             var getInfosTimeout = $timeout(function () {
                 if(thisID != $scope.curID) { return; }
                 $scope.curID = null;
-                callback();
+                cancel();
             }, 20000);
 
-            $scope.importTask(thisID, function () {
-                log.correctSolutionsStatus = 'loaded';
-                log.correctSolutionsToCheck = resources.correct_solutions;
-                log.correctSolutionsCurrent = 0;
-                $scope.$applyAsync();
-                $scope.checkNextSolution(log, callback);
-            }, throwError);
+            $scope.importTask(thisID, callback, throwError);
         }, 2000);
     };
+
+    $scope.onCorrectSolutionsLoaded = function (log, resources, callback) {
+        log.correctSolutionsStatus = 'loaded';
+        log.correctSolutionsToCheck = resources.correct_solutions;
+        log.correctSolutionsCurrent = 0;
+        $scope.$applyAsync();
+        $scope.checkNextSolution(log, callback);
+    }
 
     $scope.checkNextSolution = function (log, callback) {
         var correctSolution = log.correctSolutionsToCheck[log.correctSolutionsCurrent];
@@ -619,17 +645,37 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         var fileName = correctSolution.id.replace(/\$TASK_PATH\//g, '');
         log.correctSolutionsResults[log.correctSolutionsCurrent] = {status: 'loading', fileName: fileName};
 
-        var constructedAnswer = JSON.stringify({
-            platform: taskGraderLangToCodecastLang(solutionLanguage),
-            document: {
-                lines: solutionCode.split("\n"),
-                type: 'text',
+        var document = ('blockly' === solutionLanguage || 'scratch' === solutionLanguage) ? {
+            type: 'block',
+            content: {
+                blockly: solutionCode,
             },
+        } : {
+            type: 'text',
+            lines: solutionCode.split("\n"),
+        };
+
+        var answerObject = {
+            platform: taskGraderLangToCodecastLang(solutionLanguage),
+            document: document,
             fileName: fileName,
             version: '7.4.0', // Must be a Codecast version compatible with this answer format
-        });
+        };
+        if (correctSolution.level) {
+            answerObject = {[correctSolution.level]: answerObject};
+        }
+        var constructedAnswer = JSON.stringify(answerObject);
 
         window.task.gradeAnswer(constructedAnswer, null, function (score) {
+            var levelCoefficients = {
+                basic: 0.25,
+                easy: 0.5,
+                medium: 0.75,
+            };
+            if (correctSolution.level && correctSolution.level in levelCoefficients) {
+                score = score / levelCoefficients[correctSolution.level];
+            }
+
             log.correctSolutionsResults[log.correctSolutionsCurrent].status = score === correctSolution.grade ? 'success' : 'failed';
             log.correctSolutionsCurrent++;
             $scope.$applyAsync();
@@ -691,7 +737,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
                     log.ltiUrl = res.data.ltiUrl;
                     log.tokenUrl = res.data.tokenUrl;
 
-                    $scope.checkCorrectSolutions(res.data.normalUrl, $scope.curData, log, function () {
+                    $scope.checkCorrectSolutions(res.data.normalUrl, $scope.curData[0].resources, log, function () {
                         // Notify parent of link
                         $scope.notifyLink({
                             url: res.data.normalUrl,
