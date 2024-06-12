@@ -676,7 +676,18 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
                 score = score / levelCoefficients[correctSolution.level];
             }
 
-            log.correctSolutionsResults[log.correctSolutionsCurrent].status = score === correctSolution.grade ? 'success' : 'failed';
+            var status = 'failed';
+            if (Array.isArray(correctSolution.grade)) {
+                if (score >= correctSolution.grade[0] && score <= correctSolution.grade[1]) {
+                    status = 'success';
+                }
+            } else {
+                if (score === correctSolution.grade) {
+                    status = 'success';
+                }
+            }
+
+            log.correctSolutionsResults[log.correctSolutionsCurrent].status = status;
             log.correctSolutionsCurrent++;
             $scope.$applyAsync();
             if (log.correctSolutionsToCheck.length - 1 >= log.correctSolutionsCurrent) {
