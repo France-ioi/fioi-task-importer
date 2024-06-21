@@ -54,7 +54,7 @@ function saveTask($metadata, $sTaskPath, $subdir, $revision, $resources) {
         'revision' => $revision,
         'sEvalResultOutputScript' => $sEvalResultOutputScript,
         'sScriptAnimation' => $sScriptAnimation,
-        'bHasSubtasks' => $bHasSubtasks
+        'bHasSubtasks' => $bHasSubtasks ? 1 : 0,
         ]);
     $stmt = $db->prepare('select ID from tm_tasks where sTaskPath = :sTaskPath and sRevision = :revision');
     $stmt->execute(['sTaskPath' => $sTaskPath, 'revision' => $revision]);

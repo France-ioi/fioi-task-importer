@@ -60,6 +60,12 @@ if ($request['action'] == 'checkoutSvn' || $request['action'] == 'checkoutGit' |
         }
         checkoutGit($request['gitUrl'], $gitPath, $user, $password, isset($request['recursive']) && $request['recursive'], isset($request['noimport']) && $request['noimport'], isset($request['rewritecommon']) && $request['rewritecommon']);
     } elseif($request['action'] == 'updateCommon') {
+        $user = $request['username'] ? $request['username'] : $config->defaultSvnUser;
+        $password = $request['password'] ? $request['password'] : $config->defaultSvnPassword;
+        if($credentials !== false) {
+            $user = $credentials['username'];
+            $password = $credentials['password'];
+        }
         echo json_encode(updateCommon($user, $password));
     } elseif($request['action'] == 'updateLocalCommon') {
         $user = $request['username'] ? $request['username'] : $config->defaultSvnUser;

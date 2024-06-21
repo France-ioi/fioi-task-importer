@@ -68,11 +68,19 @@
     "task_doublelang": "Warning: some languages are present in multiple files of this task.",
 
     "file_static": "Static file saved.",
+    "file_static_fetching_resources": "Static file saved, fetching resources...",
     "file_loading": "Loading task file...",
     "file_timeout": "Timeout while fetching resources from this file.",
     "file_resources": "Task loaded, fetching resources...",
     "file_done": "File resources loaded.",
     "file_cancelled": "Import cancelled.",
+
+    "check_correct_solution_status": "Evaluating reference solutions:",
+    "check_correct_solution_status_loading": "Loading the task...",
+    "check_correct_solution_file_loading": "evaluating solution...",
+    "check_correct_solution_file_success": "solution passed",
+    "check_correct_solution_file_failed": "solution failed",
+    "check_correct_solution_file_errored": "error while evaluating the solution",
 
     "display_tasks_left": "tasks remaining after",
     "display_static": "Static file imported at",
