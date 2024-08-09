@@ -138,6 +138,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             recursive: !!$scope.params.recursive,
             noimport: !!$scope.params.noimport,
             rewritecommon: !!$scope.params.rewritecommon,
+            disableSolutionsEvaluation: !!$scope.params.disableSolutionsEvaluation,
             localeEn: $scope.params.localeEn,
             theme: $scope.params.theme
             };
@@ -485,7 +486,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             curLog.gitRepo = curTask.gitRepo;
             curLog.gitPath = curTask.gitPath;
 
-            if (curFile.hasSolutionsToCheck) {
+            if (curFile.hasSolutionsToCheck && !$scope.params.disableSolutionsEvaluation) {
                 $scope.curTaskUrl = $sce.trustAsResourceUrl(curTask.staticUrl + curFile.filename + '?xd=true');
                 curLog.state = 'file_static_fetching_resources';
                 $timeout(() => $scope.fetchResources(function (metadata, resources) {
@@ -575,7 +576,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
     }
 
     $scope.checkCorrectSolutions = function(codecastUrl, resources, log, callback) {
-        if (!resources.correct_solutions || 0 === resources.correct_solutions.length) {
+        if (!resources.correct_solutions || 0 === resources.correct_solutions.length || $scope.params.disableSolutionsEvaluation) {
             callback();
             return;
         }
@@ -854,6 +855,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         if(QueryString.recursive) { $scope.params.recursive = QueryString.recursive; }
         if(QueryString.noimport) { $scope.params.noimport = QueryString.noimport; }
         if(QueryString.rewritecommon) { $scope.params.rewritecommon = QueryString.rewritecommon; }
+        if(QueryString.disableSolutionsEvaluation) { $scope.params.disableSolutionsEvaluation = !!QueryString.disableSolutionsEvaluation; }
         if(QueryString.localeEn) { $scope.params.localeEn = QueryString.localeEn; }
         if(QueryString.theme) { $scope.params.theme = QueryString.theme; }
         if(QueryString.display == 'frame') { 

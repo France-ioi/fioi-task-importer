@@ -21,6 +21,7 @@
     "label_gitpath": "Path within the Git repository:",
     "label_recimport": "Import tasks recursively",
     "label_recimport_short": "Recursive import",
+    "label_disable_solutions_evaluation": "Disable solutions evaluation",
     "label_noimport": "Do not reimport tasks, only generate links to current version in production",
     "label_noimport_short": "No reimport",
     "label_rewritecommon": "Rewrite paths to _common if detected as wrong",

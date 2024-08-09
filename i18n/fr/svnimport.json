@@ -21,6 +21,7 @@
     "label_gitpath": "Chemin au sein du dépôt Git :",
     "label_recimport": "Importer les tâches récursivement",
     "label_recimport_short": "Import récursif",
+    "label_disable_solutions_evaluation": "Désactiver l'évaluation des solutions",
     "label_noimport": "Ne pas réimporter les tâches, générer seulement des liens vers la version actuellement en production",
     "label_noimport_short": "Aucun réimport",
     "label_rewritecommon": "Réécrire les chemins vers _common s'ils sont erronés",

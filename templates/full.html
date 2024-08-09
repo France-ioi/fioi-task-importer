@@ -84,16 +84,19 @@
         </div>
         <div class="panel-body">
           <div class="checkbox">
-            <input type="checkbox" name="recursive" ng-model="params.recursive"> <span ng-i18next="label_recimport"></span>
+            <input type="checkbox" id="recursive" name="recursive" ng-model="params.recursive"> <label ng-i18next="label_recimport" for="recursive"></label>
           </div><br>
           <div class="checkbox">
-            <input type="checkbox" name="noimport" ng-model="params.noimport"> <span ng-i18next="label_noimport"></span>
+            <input type="checkbox" id="noimport" name="noimport" ng-model="params.noimport"> <label ng-i18next="label_noimport" for="noimport"></label>
           </div><br>
           <div class="checkbox">
-            <input type="checkbox" name="rewritecommon" ng-model="params.rewritecommon"> <span ng-i18next="label_rewritecommon"></span>
+            <input type="checkbox" id="rewritecommon" name="rewritecommon" ng-model="params.rewritecommon"> <label ng-i18next="label_rewritecommon" for="rewritecommon"></label>
           </div><br>
           <div class="checkbox">
-            <input type="checkbox" name="acceptmovedtasks" ng-model="params.acceptMovedTasks"> <span ng-i18next="label_acceptmovedtasks"></span>
+            <input type="checkbox" id="acceptmovedtasks" name="acceptmovedtasks" ng-model="params.acceptMovedTasks"> <label ng-i18next="label_acceptmovedtasks" for="acceptmovedtasks"></label>
+          </div><br>
+          <div class="checkbox">
+            <input type="checkbox" id="disablesolutionsevaluation" name="disablesolutionsevaluation" ng-model="params.disableSolutionsEvaluation"> <label ng-i18next="label_disable_solutions_evaluation" for="disablesolutionsevaluation"></label>
           </div><br>
           <div class="form-group">
             <label for="optLocale" ng-i18next="label_locale_en"></label><br>
@@ -133,4 +136,4 @@
   <button ng-if="!hideOldLogs" class="btn btn-primary" ng-click="toggleOldLogs();" style="width: 100%;"><span ng-i18next="display_hideoldlogs"></span> <span class="glyphicon glyphicon-chevron-up"></span></button>
 </div>
 
-<iframe ng-if="curTaskUrl" style="width:1px; height:1px;" id="taskIframe" src="{{ curTaskUrl }}"></iframe>
+<iframe ng-if="curTaskUrl" style="width:100%; height:500px;" id="taskIframe" src="{{ curTaskUrl }}"></iframe>
