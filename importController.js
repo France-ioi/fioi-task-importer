@@ -486,7 +486,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             curLog.gitPath = curTask.gitPath;
 
             if (curFile.hasSolutionsToCheck) {
-                $scope.curTaskUrl = curTask.staticUrl + curFile.filename + '?xd=true';
+                $scope.curTaskUrl = $sce.trustAsResourceUrl(curTask.staticUrl + curFile.filename + '?xd=true');
                 curLog.state = 'file_static_fetching_resources';
                 $timeout(() => $scope.fetchResources(function (metadata, resources) {
                     curLog.state = 'file_static';
@@ -515,7 +515,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             curLog.state = 'file_loading';
             curLog.warnPaths = curFile.warnPaths;
             curLog.commonRewritten = curFile.commonRewritten;
-            $scope.curTaskUrl = curTask.baseUrl + curFile.filename + '?xd=true';
+            $scope.curTaskUrl = $sce.trustAsResourceUrl(curTask.baseUrl + curFile.filename + '?xd=true');
             $timeout(() => $scope.fetchResources(function (metadata, resources) {
                 $scope.curLog.state = 'file_done';
                 $scope.curData.push({filename: $scope.curLog.name, resources: resources, metadata: metadata});
@@ -688,6 +688,8 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             }
 
             log.correctSolutionsResults[log.correctSolutionsCurrent].status = status;
+            log.correctSolutionsResults[log.correctSolutionsCurrent].obtainedScore = score;
+            log.correctSolutionsResults[log.correctSolutionsCurrent].expectedScore = correctSolution.grade;
             log.correctSolutionsCurrent++;
             $scope.$applyAsync();
             if (log.correctSolutionsToCheck.length - 1 >= log.correctSolutionsCurrent) {
