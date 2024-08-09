@@ -41,13 +41,27 @@
         <span ng-i18next="check_correct_solution_status"></span>
       </div>
 
-      <div ng-if="'loaded' !== log.correctSolutionsStatus" ng-i18next="{{ 'check_correct_solution_status_' + log.correctSolutionsStatus }}"></div>
+      <div ng-if="'loading' == log.correctSolutionsStatus" ng-i18next="{{ 'check_correct_solution_status_' + log.correctSolutionsStatus }}"></div>
 
       <div ng-repeat="result in log.correctSolutionsResults">
         <p ng-class="{'text-success': 'success' === result.status, 'text-danger': 'failed' === result.status}">
-          <code>{{ result.fileName }}</code>: <span ng-i18next="{{ 'check_correct_solution_file_' + result.status }}"></span>
-          <span class="glyphicon glyphicon-ok" ng-if="'success' === result.status"></span>
-          <span class="glyphicon glyphicon-remove" ng-if="'failed' === result.status"></span>
+          <code>{{ result.fileName }}</code>:
+
+          <span ng-if="'loading' == result.status || 'errored' == result.status">
+            <span ng-i18next="{{ 'check_correct_solution_file_' + result.status }}"></span>
+          </span>
+          <span ng-if="'loading' != result.status && 'errored' != result.status">
+            <span ng-i18next="check_correct_solution_scored"></span>
+            {{ result.obtainedScore }}%,
+            <span ng-if="2 === result.expectedScore.length">
+              <span ng-i18next="check_correct_solution_expected"></span> {{ result.expectedScore[0] }}-{{ result.expectedScore[1] }}%
+            </span>
+            <span ng-if="2 !== result.expectedScore.length">
+              <span ng-i18next="check_correct_solution_expected"></span> {{ result.expectedScore }}%
+            </span>
+            <span class="glyphicon glyphicon-ok" ng-if="'success' === result.status"></span>
+            <span class="glyphicon glyphicon-remove" ng-if="'failed' === result.status"></span>
+          </span>
         </p>
       </div>
     </div>

@@ -90,7 +90,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
 
     $scope.options = {lang: $i18next.options.lng};
     $scope.defaultParams = null;
-    $scope.checkoutState = '';
+    $scope.checkoutState = null;
     $scope.logList = [];
     $scope.hideOldLogs = true;
     $scope.nbOldLogs = 0;
@@ -104,7 +104,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         theme: 'none',
         acceptMovedTasks: false,
         token: QueryString.token ? QueryString.token : null
-        };
+    };
 
     $scope.tasksRemaining = [];
     $scope.curRev = null;
@@ -113,6 +113,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
     $scope.curLog = null;
     $scope.curID = null;
     $scope.curData = [];
+    $scope.disableSolutionsEvaluationCount = 0;
 
     $scope.edition = {
         path: '',
@@ -138,6 +139,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             recursive: !!$scope.params.recursive,
             noimport: !!$scope.params.noimport,
             rewritecommon: !!$scope.params.rewritecommon,
+            disableSolutionsEvaluation: !!$scope.params.disableSolutionsEvaluation,
             localeEn: $scope.params.localeEn,
             theme: $scope.params.theme
             };
@@ -216,18 +218,30 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
 
     $scope.updateCommon = function() {
         // Update _common
-        $scope.checkoutState = 'checkout_common_update';
+        $scope.checkoutState = {
+            status: 'info',
+            message: 'checkout_common_update',
+        };
         $scope.checkoutMsg = '';
 
         var params = Object.assign({}, $scope.params);
         params.action = 'updateCommon';
         $http.post('savesvn.php', params, {responseType: 'json'}).then(function(res) {
             if (res.data.success) {
-                $scope.checkoutState = 'checkout_common_updated';
+                $scope.checkoutState = {
+                    status: 'success',
+                    message: 'checkout_common_updated',
+                };
             } else {
-                $scope.checkoutState = 'checkout_common_failed';
+                $scope.checkoutState = {
+                    status: 'danger',
+                    message: 'checkout_common_failed',
+                };
             }}, function() {
-                $scope.checkoutState = 'checkout_common_failed';
+                $scope.checkoutState = {
+                    status: 'danger',
+                    message: 'checkout_common_failed',
+                };
             });
 
     };
@@ -255,6 +269,20 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         }
     }
 
+    $scope.initCheckout = function () {
+        $scope.checkoutState = {
+            status: 'info',
+            message: 'checkout_inprogress',
+        };
+        $scope.checkoutMsg = '';
+        $scope.tasksRemaining = [];
+        $scope.curTaskUrl = '';
+        $scope.showLogin = false;
+        $scope.loginRequired = false;
+        $scope.disableBtn = true;
+        $scope.disableSolutionsEvaluationCount = 0;
+    }
+
     $scope.checkoutSvn = function() {
         // Checkout the SVN and get the list of tasks
 
@@ -265,13 +293,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             return;
         }
 
-        $scope.checkoutState = 'checkout_inprogress';
-        $scope.checkoutMsg = '';
-        $scope.tasksRemaining = [];
-        $scope.curTaskUrl = '';
-        $scope.showLogin = false;
-        $scope.loginRequired = false;
-        $scope.disableBtn = true;
+        $scope.initCheckout();
         $scope.ready = {checkout: false, local_common: false};
         // Allows to check we're still in the same import request
         var ready = $scope.ready;
@@ -295,18 +317,24 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         }
 
         function onFail(res) {
-            $scope.checkoutState = 'checkout_error';
+            $scope.checkoutState = {
+                status: 'danger',
+                message: 'checkout_error',
+            };
             $scope.checkoutMsg = res.data.error;
             $scope.showLogin = true;
             $scope.ready = null;
             $scope.disableBtn = false;
-        };
+        }
 
         function onRequestFail() {
-            $scope.checkoutState = 'checkout_request_failed';
+            $scope.checkoutState = {
+                status: 'danger',
+                message: 'checkout_request_failed',
+            };
             $scope.ready = null;
             $scope.disableBtn = false;
-        };
+        }
 
         // Checkout the task and get data
         var params1 = Object.assign({}, $scope.params);
@@ -335,13 +363,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
     $scope.checkoutGit = function() {
         // Checkout the git repository and get the list of tasks
 
-        $scope.checkoutState = 'checkout_inprogress';
-        $scope.checkoutMsg = '';
-        $scope.tasksRemaining = [];
-        $scope.curTaskUrl = '';
-        $scope.showLogin = false;
-        $scope.loginRequired = false;
-        $scope.disableBtn = true;
+        $scope.initCheckout();
         $scope.ready = {checkout: false};
         // Allows to check we're still in the same import request
         var ready = $scope.ready;
@@ -361,17 +383,23 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         }
 
         function onFail(res) {
-            $scope.checkoutState = 'checkout_error';
+            $scope.checkoutState = {
+                status: 'danger',
+                message: 'checkout_error',
+            };
             $scope.checkoutMsg = res.data.error;
             $scope.ready = null;
             $scope.disableBtn = false;
-        };
+        }
 
         function onRequestFail() {
-            $scope.checkoutState = 'checkout_request_failed';
+            $scope.checkoutState = {
+                status: 'danger',
+                message: 'checkout_request_failed',
+            };
             $scope.ready = null;
             $scope.disableBtn = false;
-        };
+        }
 
         // Checkout the task and get data
         var params1 = Object.assign({}, $scope.params);
@@ -409,7 +437,10 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         }
 
         // Everything is ready, proceed
-        $scope.checkoutState = 'checkout_import';
+        $scope.checkoutState = {
+            status: 'info',
+            message: 'checkout_import',
+        };
         $scope.recImport();
     };
 
@@ -417,7 +448,12 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         // Start import of one task
         var curTask = $scope.tasksRemaining.shift();
         if(!curTask) {
-            $scope.checkoutState = 'checkout_finished';
+            if (!$scope.checkoutState || 'info' === $scope.checkoutState.status) {
+                $scope.checkoutState = {
+                    status: 'success',
+                    message: 'checkout_finished',
+                };
+            }
             if(jschannel) { jschannel.notify({method: 'syncFinished'}); }
             return;
         }
@@ -485,8 +521,8 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             curLog.gitRepo = curTask.gitRepo;
             curLog.gitPath = curTask.gitPath;
 
-            if (curFile.hasSolutionsToCheck) {
-                $scope.curTaskUrl = curTask.staticUrl + curFile.filename + '?xd=true';
+            if (curFile.hasSolutionsToCheck && !$scope.params.disableSolutionsEvaluation) {
+                $scope.curTaskUrl = $sce.trustAsResourceUrl(curTask.staticUrl + curFile.filename + '?xd=true');
                 curLog.state = 'file_static_fetching_resources';
                 $timeout(() => $scope.fetchResources(function (metadata, resources) {
                     curLog.state = 'file_static';
@@ -515,7 +551,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             curLog.state = 'file_loading';
             curLog.warnPaths = curFile.warnPaths;
             curLog.commonRewritten = curFile.commonRewritten;
-            $scope.curTaskUrl = curTask.baseUrl + curFile.filename + '?xd=true';
+            $scope.curTaskUrl = $sce.trustAsResourceUrl(curTask.baseUrl + curFile.filename + '?xd=true');
             $timeout(() => $scope.fetchResources(function (metadata, resources) {
                 $scope.curLog.state = 'file_done';
                 $scope.curData.push({filename: $scope.curLog.name, resources: resources, metadata: metadata});
@@ -575,7 +611,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
     }
 
     $scope.checkCorrectSolutions = function(codecastUrl, resources, log, callback) {
-        if (!resources.correct_solutions || 0 === resources.correct_solutions.length) {
+        if (!resources.correct_solutions || 0 === resources.correct_solutions.length || $scope.params.disableSolutionsEvaluation) {
             callback();
             return;
         }
@@ -609,7 +645,6 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
 
     $scope.loadCorrectSolutionIframe = function (callback, cancel) {
         $timeout(function () {
-            // Allow 20 seconds to import the task
             var thisID = Math.random() * 1000000000 + 0;
             $scope.curID = thisID + 0;
 
@@ -626,7 +661,10 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
                 cancel();
             }, 20000);
 
-            $scope.importTask(thisID, callback, throwError);
+            $scope.importTask(thisID, function () {
+                $timeout.cancel(getInfosTimeout);
+                callback();
+            }, throwError);
         }, 2000);
     };
 
@@ -686,8 +724,17 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
                     status = 'success';
                 }
             }
+            if ('failed' === status) {
+                $scope.disableSolutionsEvaluationCount++;
+                $scope.checkoutState = {
+                    status: 'warning',
+                    message: $scope.disableSolutionsEvaluationCount + ' ' + $i18next.t('check_correct_solution_failed'),
+                };
+            }
 
             log.correctSolutionsResults[log.correctSolutionsCurrent].status = status;
+            log.correctSolutionsResults[log.correctSolutionsCurrent].obtainedScore = score;
+            log.correctSolutionsResults[log.correctSolutionsCurrent].expectedScore = correctSolution.grade;
             log.correctSolutionsCurrent++;
             $scope.$applyAsync();
             if (log.correctSolutionsToCheck.length - 1 >= log.correctSolutionsCurrent) {
@@ -852,6 +899,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         if(QueryString.recursive) { $scope.params.recursive = QueryString.recursive; }
         if(QueryString.noimport) { $scope.params.noimport = QueryString.noimport; }
         if(QueryString.rewritecommon) { $scope.params.rewritecommon = QueryString.rewritecommon; }
+        if(QueryString.disableSolutionsEvaluation) { $scope.params.disableSolutionsEvaluation = !!QueryString.disableSolutionsEvaluation; }
         if(QueryString.localeEn) { $scope.params.localeEn = QueryString.localeEn; }
         if(QueryString.theme) { $scope.params.theme = QueryString.theme; }
         if(QueryString.display == 'frame') { 
@@ -889,7 +937,10 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         $scope.edition.lastTemplate = $scope.template;
         //$scope.template = 'templates/edition.html';
         //$scope.edition.ready = false;
-        $scope.checkoutState = 'Checking out Git repository...';
+        $scope.checkoutState = {
+            status: 'info',
+            message: 'Checking out Git repository...',
+        };
         $scope.showLogin = false;
         localStorageSetItem('gitUrl', $scope.params.gitUrl);
 
@@ -907,15 +958,21 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         }
 
         function onFail(err) {
-            $scope.checkoutState = 'Error checking out';
-            if (err) { $scope.checkoutState += ': ' + err; }
+            $scope.checkoutState = {
+                status: 'danger',
+                message: 'Error checking out',
+            };
+            if (err) { $scope.checkoutState.message += ': ' + err; }
             $scope.ready = null;
             $scope.disableBtn = false;
             $scope.showLogin = true;
-        };
+        }
 
         function onRequestFail() {
-            $scope.checkoutState = 'Checkout request failed';
+            $scope.checkoutState = {
+                status: 'danger',
+                message: 'Checkout request failed',
+            };
             $scope.ready = null;
             $scope.disableBtn = false;
             $scope.showLogin = true;
@@ -936,19 +993,25 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
     $scope.editionCommit = function () {
         $scope.edition.saveInfo.committing = true;
         function onFail(err) {
-            $scope.checkoutState = 'Error pushing the commit';
-            if (err) { $scope.checkoutState += ': ' + err; }
+            $scope.checkoutState = {
+                status: 'danger',
+                message: 'Error pushing the commit',
+            };
+            if (err) { $scope.checkoutState.message += ': ' + err; }
             $scope.ready = null;
             $scope.disableBtn = false;
             $scope.showLogin = true;
-        };
+        }
 
         function onRequestFail() {
-            $scope.checkoutState = 'Checkout request failed';
+            $scope.checkoutState = {
+                status: 'danger',
+                message: 'Checkout request failed',
+            };
             $scope.ready = null;
             $scope.disableBtn = false;
             $scope.showLogin = true;
-        };
+        }
 
         // Checkout the task and get data
         var params1 = Object.assign({}, $scope.params);
@@ -983,24 +1046,33 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
     }
 
     $scope.prepareEdition = function () {
-        $scope.checkoutState = 'Preparing edition session...';
+        $scope.checkoutState = {
+            status: 'info',
+            message: 'Preparing edition session...',
+        };
         var params2 = Object.assign({}, $scope.params);
         params2.action = 'prepareEdition';
 
         function onFail(err) {
-            $scope.checkoutState = 'Error starting edition session';
-            if (err) { $scope.checkoutState += ': ' + err; }
+            $scope.checkoutState = {
+                status: 'danger',
+                message: 'Error starting edition session',
+            };
+            if (err) { $scope.checkoutState.message += ': ' + err; }
             $scope.ready = null;
             $scope.disableBtn = false;
             $scope.showLogin = true;
         };
 
         function onRequestFail() {
-            $scope.checkoutState = 'Prepare edition request failed';
+            $scope.checkoutState = {
+                status: 'danger',
+                message: 'Prepare edition request failed',
+            };
             $scope.ready = null;
             $scope.disableBtn = false;
             $scope.showLogin = true;
-        };
+        }
 
         $http.post(getEditionEndpoint('prepareEdition'), params2, { responseType: 'json' }).then(function (res) {
             if (!res.data.success) {
@@ -1281,10 +1353,13 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         };
 
         function onRequestFail() {
-            $scope.checkoutState = 'History request failed';
+            $scope.checkoutState = {
+                status: 'danger',
+                message: 'History request failed',
+            };
             $scope.ready = null;
             $scope.disableBtn = false;
-        };
+        }
 
         $http.post(getEditionEndpoint('historyEdition'), params2, { responseType: 'json' }).then(function (res) {
             if (!res.data.success) {
@@ -1341,10 +1416,13 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         };
 
         function onRequestFail() {
-            $scope.checkoutState = 'History request failed';
+            $scope.checkoutState = {
+                status: 'danger',
+                message: 'History request failed',
+            };
             $scope.ready = null;
             $scope.disableBtn = false;
-        };
+        }
 
         $http.post(getEditionEndpoint('checkoutHashEdition'), params2, { responseType: 'json' }).then(function (res) {
             if (!res.data.success) {
@@ -1445,7 +1523,6 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
     $scope.getDiffModifiedStr = function () {
         if(!$scope.edition.diff || !$scope.edition.diff.modified) { return ''; }
         // If multiple files end in .md, display a warning
-        console.log($scope.edition.diff.modified);
         $scope.edition.diff.modified = ['docs/intro.md', 'docs/abc.md', 'docs/def.md'];
         var mdCount = 0;
         for (var i = 0; i < $scope.edition.diff.modified.length; i++) {

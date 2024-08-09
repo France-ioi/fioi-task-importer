@@ -35,12 +35,14 @@
   <span ng-show="params.recursive"><span ng-i18next="label_recimport_short"></span> &bull;</span>
   <span ng-show="params.noimport"><span ng-i18next="label_noimport_short"></span> &bull;</span>
   <span ng-show="params.rewritecommon"><span ng-i18next="label_rewritecommon_short"></span> &bull;</span>
+  <span ng-show="params.disableSolutionsEvaluation"><span ng-i18next="label_disable_solutions_evaluation"></span> &bull;</span>
   <span ng-i18next="label_locale_en"></span> {{ params.localeEn }} &bull;
   <span ng-i18next="label_theme_lti"></span> {{ params.theme }}
   <button class="btn btn-default btn-xs" ng-click="displayFull();" ng-i18next="label_display_full"></button>
 </div>
-<div ng-if="checkoutState && checkoutState != 'checkout_finished'" class="alert alert-info">
-  <b><span ng-i18next="{{ checkoutState }}"></span> <span ng-if="checkoutMsg" ng-i18next="{{ checkoutMsg }}"></span></b>
+<div ng-if="checkoutState && checkoutState.message != 'checkout_finished'" class="alert" ng-class="'alert-' + checkoutState.status">
+  <h4 ng-if="checkoutState.status && 'info' != checkoutState.status" class="alert-heading" ng-i18next="{{ 'checkout_status_' + checkoutState.status }}"></h4>
+  <b><span ng-i18next="{{ checkoutState.message }}"></span> <span ng-if="checkoutMsg" ng-i18next="{{ checkoutMsg }}"></span></b>
   <span ng-if="tasksRemaining.length">
     <br />{{ tasksRemaining.length }} <span ng-i18next="display_tasks_left"></span>
   </span>

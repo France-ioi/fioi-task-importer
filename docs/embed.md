@@ -16,6 +16,7 @@ These other options are optional, if they are not specified they will default to
 * `revision=[string]` : SVN revision to import, empty to import HEAD
 * `recursive=1` : import tasks recursively
 * `noimport=1` : do not reimport tasks, only generate links to current version in production
+* `disableSolutionsEvaluation=1` : disable the evaluation of reference solutions
 * `localeEn=[string]` : english locale (either `default`, `gb` or `us`)
 * `theme=[string]` : LTI display theme (either `none` or `telecom`)
 * `display=[string]` : svnimport display mode (either `full` or `frame`, see below)

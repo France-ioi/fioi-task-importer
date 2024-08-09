@@ -21,6 +21,7 @@
     "label_gitpath": "Chemin au sein du dépôt Git :",
     "label_recimport": "Importer les tâches récursivement",
     "label_recimport_short": "Import récursif",
+    "label_disable_solutions_evaluation": "Désactiver l'évaluation des solutions",
     "label_noimport": "Ne pas réimporter les tâches, générer seulement des liens vers la version actuellement en production",
     "label_noimport_short": "Aucun réimport",
     "label_rewritecommon": "Réécrire les chemins vers _common s'ils sont erronés",
@@ -38,6 +39,10 @@
 
     "locale_gb": "Royaume-Uni",
     "locale_us": "États-Unis",
+
+    "checkout_status_success": "Succès",
+    "checkout_status_warning": "Avertissement",
+    "checkout_status_danger": "Erreur",
 
     "checkout_inprogress": "Récupération en cours...",
     "checkout_import": "Import des tâches...",
@@ -79,9 +84,10 @@
     "check_correct_solution_status": "Évaluation des solutions de référence :",
     "check_correct_solution_status_loading": "Chargement de la tâche en cours...",
     "check_correct_solution_file_loading": "évaluation de la solution en cours...",
-    "check_correct_solution_file_success": "solution validée",
-    "check_correct_solution_file_failed": "solution échouée",
     "check_correct_solution_file_errored": "erreur au cours de l'évaluation",
+    "check_correct_solution_failed": "tâche(s) ont été importée(s) mais n'obtiennent pas les scores attendus",
+    "check_correct_solution_scored": "score obtenu",
+    "check_correct_solution_expected": "score attendu",
 
     "display_tasks_left": "tâche(s) dans la file d'attente",
     "display_static": "Fichier statique importé à",

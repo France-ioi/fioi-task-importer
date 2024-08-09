@@ -21,6 +21,7 @@
     "label_gitpath": "Path within the Git repository:",
     "label_recimport": "Import tasks recursively",
     "label_recimport_short": "Recursive import",
+    "label_disable_solutions_evaluation": "Disable solutions evaluation",
     "label_noimport": "Do not reimport tasks, only generate links to current version in production",
     "label_noimport_short": "No reimport",
     "label_rewritecommon": "Rewrite paths to _common if detected as wrong",
@@ -38,6 +39,10 @@
 
     "locale_gb": "United Kingdom",
     "locale_us": "United States",
+
+    "checkout_status_success": "Success",
+    "checkout_status_warning": "Warning",
+    "checkout_status_danger": "Error",
 
     "checkout_inprogress": "Checkout in progress...",
     "checkout_import": "Importing tasks...",
@@ -78,9 +83,10 @@
     "check_correct_solution_status": "Evaluating reference solutions:",
     "check_correct_solution_status_loading": "Loading the task...",
     "check_correct_solution_file_loading": "evaluating solution...",
-    "check_correct_solution_file_success": "solution passed",
-    "check_correct_solution_file_failed": "solution failed",
     "check_correct_solution_file_errored": "error while evaluating the solution",
+    "check_correct_solution_failed": "task(s) were imported but gave unexpected grades",
+    "check_correct_solution_scored": "scored",
+    "check_correct_solution_expected": "expected",
 
     "display_tasks_left": "tasks remaining after",
     "display_static": "Static file imported at",

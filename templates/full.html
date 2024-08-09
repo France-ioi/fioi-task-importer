@@ -84,16 +84,19 @@
         </div>
         <div class="panel-body">
           <div class="checkbox">
-            <input type="checkbox" name="recursive" ng-model="params.recursive"> <span ng-i18next="label_recimport"></span>
+            <input type="checkbox" id="recursive" name="recursive" ng-model="params.recursive"> <label ng-i18next="label_recimport" for="recursive"></label>
           </div><br>
           <div class="checkbox">
-            <input type="checkbox" name="noimport" ng-model="params.noimport"> <span ng-i18next="label_noimport"></span>
+            <input type="checkbox" id="noimport" name="noimport" ng-model="params.noimport"> <label ng-i18next="label_noimport" for="noimport"></label>
           </div><br>
           <div class="checkbox">
-            <input type="checkbox" name="rewritecommon" ng-model="params.rewritecommon"> <span ng-i18next="label_rewritecommon"></span>
+            <input type="checkbox" id="rewritecommon" name="rewritecommon" ng-model="params.rewritecommon"> <label ng-i18next="label_rewritecommon" for="rewritecommon"></label>
           </div><br>
           <div class="checkbox">
-            <input type="checkbox" name="acceptmovedtasks" ng-model="params.acceptMovedTasks"> <span ng-i18next="label_acceptmovedtasks"></span>
+            <input type="checkbox" id="acceptmovedtasks" name="acceptmovedtasks" ng-model="params.acceptMovedTasks"> <label ng-i18next="label_acceptmovedtasks" for="acceptmovedtasks"></label>
+          </div><br>
+          <div class="checkbox">
+            <input type="checkbox" id="disablesolutionsevaluation" name="disablesolutionsevaluation" ng-model="params.disableSolutionsEvaluation"> <label ng-i18next="label_disable_solutions_evaluation" for="disablesolutionsevaluation"></label>
           </div><br>
           <div class="form-group">
             <label for="optLocale" ng-i18next="label_locale_en"></label><br>
@@ -120,8 +123,9 @@
   <input type="submit" class="btn btn-default" ng-click="updateCommon();" ng-disabled="disableBtn" ng-i18next="[value]label_update_common;[title]label_update_common_title"></input>
 </form>
 <hr />
-<div ng-if="checkoutState" class="alert alert-info">
-  <b><span ng-i18next="{{ checkoutState }}"></span> <span ng-if="checkoutMsg" ng-i18next="{{ checkoutMsg }}"></span></b>
+<div ng-if="checkoutState" class="alert" ng-class="'alert-' + checkoutState.status">
+  <h4 ng-if="checkoutState.status && 'info' != checkoutState.status" class="alert-heading" ng-i18next="{{ 'checkout_status_' + checkoutState.status }}"></h4>
+  <b><span ng-i18next="{{ checkoutState.message }}"></span> <span ng-if="checkoutMsg" ng-i18next="{{ checkoutMsg }}"></span></b>
   <span ng-if="tasksRemaining.length">
     <br />{{ tasksRemaining.length }} <span ng-i18next="display_tasks_left"></span>
   </span>
