@@ -40,6 +40,10 @@
     "locale_gb": "Royaume-Uni",
     "locale_us": "États-Unis",
 
+    "checkout_status_success": "Succès",
+    "checkout_status_warning": "Avertissement",
+    "checkout_status_danger": "Erreur",
+
     "checkout_inprogress": "Récupération en cours...",
     "checkout_import": "Import des tâches...",
     "checkout_error": "Erreur lors de de l'import :",
@@ -81,6 +85,9 @@
     "check_correct_solution_status_loading": "Chargement de la tâche en cours...",
     "check_correct_solution_file_loading": "évaluation de la solution en cours...",
     "check_correct_solution_file_errored": "erreur au cours de l'évaluation",
+    "check_correct_solution_failed": "tâches ont été importées mais n'obtiennent pas les scores attendus",
+    "check_correct_solution_scored": "score obtenu",
+    "check_correct_solution_expected": "score attendu",
 
     "display_tasks_left": "tâche(s) dans la file d'attente",
     "display_static": "Fichier statique importé à",

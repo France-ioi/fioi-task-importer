@@ -40,8 +40,9 @@
   <span ng-i18next="label_theme_lti"></span> {{ params.theme }}
   <button class="btn btn-default btn-xs" ng-click="displayFull();" ng-i18next="label_display_full"></button>
 </div>
-<div ng-if="checkoutState && checkoutState != 'checkout_finished'" class="alert alert-info">
-  <b><span ng-i18next="{{ checkoutState }}"></span> <span ng-if="checkoutMsg" ng-i18next="{{ checkoutMsg }}"></span></b>
+<div ng-if="checkoutState && checkoutState.message != 'checkout_finished'" class="alert" ng-class="'alert-' + checkoutState.status">
+  <h4 ng-if="checkoutState.status && 'info' != checkoutState.status" class="alert-heading" ng-i18next="{{ 'checkout_status_' + checkoutState.status }}"></h4>
+  <b><span ng-i18next="{{ checkoutState.message }}"></span> <span ng-if="checkoutMsg" ng-i18next="{{ checkoutMsg }}"></span></b>
   <span ng-if="tasksRemaining.length">
     <br />{{ tasksRemaining.length }} <span ng-i18next="display_tasks_left"></span>
   </span>

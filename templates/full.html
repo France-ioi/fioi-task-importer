@@ -123,8 +123,9 @@
   <input type="submit" class="btn btn-default" ng-click="updateCommon();" ng-disabled="disableBtn" ng-i18next="[value]label_update_common;[title]label_update_common_title"></input>
 </form>
 <hr />
-<div ng-if="checkoutState" class="alert alert-info">
-  <b><span ng-i18next="{{ checkoutState }}"></span> <span ng-if="checkoutMsg" ng-i18next="{{ checkoutMsg }}"></span></b>
+<div ng-if="checkoutState" class="alert" ng-class="'alert-' + checkoutState.status">
+  <h4 ng-if="checkoutState.status && 'info' != checkoutState.status" class="alert-heading" ng-i18next="{{ 'checkout_status_' + checkoutState.status }}"></h4>
+  <b><span ng-i18next="{{ checkoutState.message }}"></span> <span ng-if="checkoutMsg" ng-i18next="{{ checkoutMsg }}"></span></b>
   <span ng-if="tasksRemaining.length">
     <br />{{ tasksRemaining.length }} <span ng-i18next="display_tasks_left"></span>
   </span>

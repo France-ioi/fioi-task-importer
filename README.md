@@ -48,3 +48,9 @@ sudo pecl config-set php_ini /etc/php.ini
 sudo pecl config-set php_bin /usr/bin/php5
 sudo pear config-set php_suffix 5
 ```
+
+## Solution checks
+
+You can use these SVN paths to test the evaluation of correct solutions :
+- `Algorea/algorea_training_2/11_variable_08_sokoban` for client-side
+- `Tezos/testNewFormat` for server-side

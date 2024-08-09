@@ -40,6 +40,10 @@
     "locale_gb": "United Kingdom",
     "locale_us": "United States",
 
+    "checkout_status_success": "Success",
+    "checkout_status_warning": "Warning",
+    "checkout_status_danger": "Error",
+
     "checkout_inprogress": "Checkout in progress...",
     "checkout_import": "Importing tasks...",
     "checkout_error": "Error during the SVN checkout:",
@@ -80,6 +84,9 @@
     "check_correct_solution_status_loading": "Loading the task...",
     "check_correct_solution_file_loading": "evaluating solution...",
     "check_correct_solution_file_errored": "error while evaluating the solution",
+    "check_correct_solution_failed": "task(s) were imported but gave unexpected grades",
+    "check_correct_solution_scored": "scored",
+    "check_correct_solution_expected": "expected",
 
     "display_tasks_left": "tasks remaining after",
     "display_static": "Static file imported at",
