@@ -448,7 +448,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         // Start import of one task
         var curTask = $scope.tasksRemaining.shift();
         if(!curTask) {
-            if (!$scope.checkoutState || 'info' === $scope.checkoutState) {
+            if (!$scope.checkoutState || 'info' === $scope.checkoutState.status) {
                 $scope.checkoutState = {
                     status: 'success',
                     message: 'checkout_finished',
@@ -645,7 +645,6 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
 
     $scope.loadCorrectSolutionIframe = function (callback, cancel) {
         $timeout(function () {
-            // Allow 20 seconds to import the task
             var thisID = Math.random() * 1000000000 + 0;
             $scope.curID = thisID + 0;
 
@@ -662,7 +661,10 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
                 cancel();
             }, 20000);
 
-            $scope.importTask(thisID, callback, throwError);
+            $scope.importTask(thisID, function () {
+                $timeout.cancel(getInfosTimeout);
+                callback();
+            }, throwError);
         }, 2000);
     };
 
@@ -723,7 +725,6 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
                 }
             }
             if ('failed' === status) {
-                console.log('interface', $i18next.t('fdf'));
                 $scope.disableSolutionsEvaluationCount++;
                 $scope.checkoutState = {
                     status: 'warning',
@@ -1522,7 +1523,6 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
     $scope.getDiffModifiedStr = function () {
         if(!$scope.edition.diff || !$scope.edition.diff.modified) { return ''; }
         // If multiple files end in .md, display a warning
-        console.log($scope.edition.diff.modified);
         $scope.edition.diff.modified = ['docs/intro.md', 'docs/abc.md', 'docs/def.md'];
         var mdCount = 0;
         for (var i = 0; i < $scope.edition.diff.modified.length; i++) {
