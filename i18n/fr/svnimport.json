@@ -85,7 +85,7 @@
     "check_correct_solution_status_loading": "Chargement de la tâche en cours...",
     "check_correct_solution_file_loading": "évaluation de la solution en cours...",
     "check_correct_solution_file_errored": "erreur au cours de l'évaluation",
-    "check_correct_solution_failed": "tâches ont été importées mais n'obtiennent pas les scores attendus",
+    "check_correct_solution_failed": "tâche(s) ont été importée(s) mais n'obtiennent pas les scores attendus",
     "check_correct_solution_scored": "score obtenu",
     "check_correct_solution_expected": "score attendu",
 
