@@ -15,11 +15,11 @@
   },
   "homepage": "https://github.com/France-ioi/fioi-task-importer#readme",
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.6.0",
     "angular": "^1.8.3",
     "angular-sanitize": "^1.8.3",
     "bootstrap": "^3.4.1",
     "diff2html": "^3.4.48",
-    "fontawesome-free": "^1.0.4",
     "highlight.js": "^11.10.0",
     "i18next-xhr-backend": "^1.5.1",
     "jquery": "^2.2.4",

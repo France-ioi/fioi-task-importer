@@ -11,8 +11,8 @@ require_once 'config.php';
   <title ng-i18next="page_title">LTI SVN task importer</title>
   <link href="node_modules/bootstrap/dist/css/bootstrap.min.css" type="text/css" rel="stylesheet">
   <link href="style.css" type="text/css" rel="stylesheet">
-  <link rel="stylesheet" href="node_modules/fontawesome-free/css/fontawesome.min.css" />
-  <link rel="stylesheet" href="node_modules/fontawesome-free/css/solid.min.css" />
+  <link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/fontawesome.min.css" />
+  <link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/solid.min.css" />
   <link rel="stylesheet" href="node_modules/highlight.js/styles/github.min.css" />
   <link rel="stylesheet" type="text/css" href="node_modules/diff2html/bundles/css/diff2html.min.css" />
 
