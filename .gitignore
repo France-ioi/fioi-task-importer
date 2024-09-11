@@ -1,6 +1,7 @@
 config_local*.php
 vendor/
 bower_components/
+node_modules/
 checkouts/
 logs/
 files/

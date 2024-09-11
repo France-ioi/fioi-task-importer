@@ -1,0 +1,30 @@
+{
+  "name": "fioi-task-importer",
+  "version": "1.0.0",
+  "description": "FIOI task importer",
+  "main": "",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/France-ioi/fioi-task-importer.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/France-ioi/fioi-task-importer/issues"
+  },
+  "homepage": "https://github.com/France-ioi/fioi-task-importer#readme",
+  "dependencies": {
+    "angular": "^1.8.3",
+    "angular-sanitize": "^1.8.3",
+    "bootstrap": "^3.4.1",
+    "diff2html": "^3.4.48",
+    "fontawesome-free": "^1.0.4",
+    "highlight.js": "^11.10.0",
+    "i18next-xhr-backend": "^1.5.1",
+    "jquery": "^2.2.4",
+    "jschannel": "github:yochannah/jschannel#f2bcb86",
+    "ng-i18next": "^1.0.7",
+    "pem-platform": "github:France-ioi/pem-platform"
+  }
+}

@@ -18,7 +18,7 @@ You must have a database in the same format as the one of (TaskPlatform)[https:/
 
 ## Installation
 
-Clone this repository and run `composer install` then `bower install`.
+Clone this repository and run `composer install` then `npm install`.
 
 
 Install PHP 5.6:
