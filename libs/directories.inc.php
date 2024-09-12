@@ -53,3 +53,14 @@ function deleteDirectory($path) {
     return ['success' => true];
 }
 
+function checkFreeSpace($path) {
+    global $config;
+    
+    // Check the available space on the drive of $path
+    $free = @disk_free_space($path);
+    if($free === false) {
+        return true;
+    } else {
+        return $free > $config->minimumFreeSpace;
+    }
+}

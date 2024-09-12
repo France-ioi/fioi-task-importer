@@ -12,6 +12,8 @@ $config->svnExampleUrl = '';
 $config->localCssUrl = null;
 $config->urlArgs = '';
 
+$config->minimumFreeSpace = 0;
+
 $config->db = (object) array();
 $config->db->host = 'localhost';
 $config->db->database = 'castor';

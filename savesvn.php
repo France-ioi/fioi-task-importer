@@ -29,6 +29,10 @@ if (!isset($request) || !isset($request['action'])) {
     die(json_encode(['success' => false, 'error' => 'missing action']));
 }
 
+if (!checkFreeSpace($workingDir)) {
+    die(json_encode(['success' => false, 'error' => 'error_nospace']));
+}
+
 if ($request['action'] == 'checkoutSvn' || $request['action'] == 'checkoutGit' || $request['action'] == 'updateCommon' || $request['action'] == 'updateLocalCommon') {
     if (!isset($request['svnUrl'])) {
         // TODO :: skip if action is updateCommon

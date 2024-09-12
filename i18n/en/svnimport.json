@@ -100,5 +100,6 @@
     "error_checkout": "Error: unable to checkout (folder doesn't exist or invalid credentials).",
     "error_request": "Error: the request sent by your browser was invalid. Please refresh the page and try again.",
     "error_action": "Error: the action requested by your browser was invalid. Please refresh the page and try again.",
-    "error_notyetimported": "Error: this task hasn't been imported yet. Please uncheck the \"Do not reimport tasks\" option."
+    "error_notyetimported": "Error: this task hasn't been imported yet. Please uncheck the \"Do not reimport tasks\" option.",
+    "error_nospace": "Error: no space left on device. An administrator has been notified, please try again later."
 }

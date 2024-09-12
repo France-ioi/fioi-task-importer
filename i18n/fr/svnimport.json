@@ -101,5 +101,6 @@
     "error_checkout": "Erreur : checkout impossible (dossier inexistant ou identifiants invalides).",
     "error_request": "Erreur : la requête envoyée par votre navigateur est invalide. Veuillez rafraîchir la page et essayer de nouveau.",
     "error_action": "Erreur : l'action demandée par votre navigateur est invalide. Veuillez rafraîchir la page et essayer de nouveau.",
-    "error_notyetimported": "Erreur : La tâche n'a pas encore été importée. Veuillez décocher l'option \"Ne pas réimporter\"."
+    "error_notyetimported": "Erreur : La tâche n'a pas encore été importée. Veuillez décocher l'option \"Ne pas réimporter\".",
+    "error_nospace": "Erreur : l'espace de stockage est plein. Un administrateur a été prévenu, veuillez réessayer d'ici quelques minutes."
 }
