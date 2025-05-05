@@ -14,7 +14,7 @@ This repository provides a small tool to import a svn task into a database, thro
 
 ## Requirement
 
-You must have a database in the same format as the one of [TaskPlatform](https://github.com/France-ioi/TaskPlatform]). You must also set up two AWS S3 buckets.
+You must have a database in the same format as the one of [TaskPlatform](https://github.com/France-ioi/TaskPlatform). You must also set up two AWS S3 buckets.
 
 ## Docker installation (new)
 
