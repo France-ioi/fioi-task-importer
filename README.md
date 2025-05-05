@@ -14,9 +14,30 @@ This repository provides a small tool to import a svn task into a database, thro
 
 ## Requirement
 
-You must have a database in the same format as the one of (TaskPlatform)[https://github.com/France-ioi/TaskPlatform]. You must also set up two AWS S3 buckets. You also need [bower](http://bower.io/) and [composer](https://getcomposer.org/).
+You must have a database in the same format as the one of [TaskPlatform](https://github.com/France-ioi/TaskPlatform). You must also set up two AWS S3 buckets.
 
-## Installation
+## Docker installation (new)
+
+Install Docker and Docker-Compose on your computer.
+
+Then do:
+
+```
+docker-compose build --build-arg UID=$(id -u) --build-arg GID=$(id -g)
+docker-compose up -d
+```
+
+You can access the TaskImporter on http://localhost:8009/import.php
+
+Don't forget to create a `config_local.php` file from the `config.php`!
+The database must be outside Docker (for simplicity reasons, because
+this database must often be used by multiple different projects).
+Use `$config->db->host = 'host.docker.internal';` to connect your TaskImporter
+to your local machine MySQL database.
+
+## Vanilla installation (old)
+
+You need [bower](http://bower.io/) and [composer](https://getcomposer.org/).
 
 Clone this repository and run `composer install` then `npm install`.
 
