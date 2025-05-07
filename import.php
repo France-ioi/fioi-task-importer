@@ -40,7 +40,7 @@ if($config->localCssUrl) {
   <script type="text/javascript" src="node_modules/jquery/dist/jquery.min.js"></script>
   <script type="text/javascript" src="node_modules/jschannel/src/jschannel.js"></script>
   <script type="text/javascript" src="node_modules/pem-platform/task-xd-pr.js<?=$config->urlArgs ?>"></script>
-  <script type="text/javascript" src="/markdown/dist/markdown-bundle.js<?=$config->urlArgs ?>"></script>
+  <script type="text/javascript" src="markdown/dist/markdown-bundle.js<?=$config->urlArgs ?>"></script>
   <script type="text/javascript" src="editApi.js<?=$config->urlArgs ?>"></script>
   <script type="text/javascript" src="importController.js<?=$config->urlArgs ?>"></script>
 </head>
