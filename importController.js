@@ -8,7 +8,7 @@ var i18nextOpts = {
 i18nextOpts['backend'] = {
   'allowMultiLoading': false,
   'loadPath': function (lng, ns) {
-                  return '/i18n/'+lng+'/'+ns+'.json'+config.urlArgs;
+                  return 'i18n/'+lng+'/'+ns+'.json'+config.urlArgs;
                 }
   };
 window.i18next.init(i18nextOpts);
