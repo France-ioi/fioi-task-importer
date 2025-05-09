@@ -16,6 +16,8 @@ RUN apt-get install -y \
         php5.6 \
         libxml2-dev \
         libcurl4-openssl-dev \
+        libzip-dev \
+        zlib1g-dev \
         libssl-dev \
         pkg-config \
         libapr1-dev \
@@ -29,7 +31,8 @@ RUN docker-php-ext-install \
         mbstring \
         curl \
         mysql \
-        pdo_mysql
+        pdo_mysql \
+        zip
 
 RUN echo "date.timezone=UTC" > /usr/local/etc/php/conf.d/timezone.ini
 
