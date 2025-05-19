@@ -18,6 +18,7 @@ require_once 'libs/resources.inc.php';
 require_once 'libs/svn.inc.php';
 require_once 'libs/urls.inc.php';
 require_once 'libs/markdown.inc.php';
+require_once 'libs/mdquiz.inc.php';
 require_once 'libs/edition.inc.php';
 
 header('Access-Control-Allow-Origin: *');
@@ -89,7 +90,12 @@ if ($request['action'] == 'checkoutSvn' || $request['action'] == 'checkoutGit' |
     if (!isset($request['html']) || !isset($request['gitRepo']) || !isset($request['gitPath']) || !isset($request['filename'])) {
         die(json_encode(['success' => false, 'error' => 'error_request']));
     }
-    echo (json_encode(saveMarkdown($request['html'], $request['headers'], $request['dirPath'], $request['gitRepo'], $request['gitPath'], $request['filename'])));
+    if(isset($request['isQuiz']) && $request['isQuiz']) {
+        echo (json_encode(saveMarkdownQuiz($request['html'], $request['headers'], $request['dirPath'], $request['gitRepo'], $request['gitPath'], $request['filename'], $request['quizAnswers'])));
+    } else {
+        echo (json_encode(saveMarkdown($request['html'], $request['headers'], $request['dirPath'], $request['gitRepo'], $request['gitPath'], $request['filename'])));
+    }
+    
 } elseif ($request['action'] == 'deletedirectory') {
     if (!isset($request['ID'])) {
         die(json_encode(['success' => false, 'error' => 'error_request']));
