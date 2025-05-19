@@ -94,6 +94,7 @@
     "display_common_rewritten": "Corrected possible errors in _common paths.",
     "display_nboldlogs": "older imports",
     "display_hideoldlogs": "Hide older imports",
+    "display_notebook": "Notebook available at",
 
     "error_noindex": "Error: no index.html file found!",
     "error_recno_unsupported": "Error: cannot use recursive mode while not importing. Please uncheck one of the boxes.",
