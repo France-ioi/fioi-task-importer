@@ -95,6 +95,7 @@
     "display_common_rewritten": "Des erreurs possibles dans les chemins d'accès à _common ont été corrigées.",
     "display_nboldlogs": "anciens imports",
     "display_hideoldlogs": "Cacher les anciens imports",
+    "display_notebook": "Notebook disponible à",
 
     "error_noindex": "Erreur : aucun fichier index.html trouvé !",
     "error_recno_unsupported": "Erreur : impossible d'utiliser le mode récursif sans réimporter les tâches. Veuillez décocher une des options.",
