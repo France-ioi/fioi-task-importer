@@ -48,6 +48,11 @@ function listTaskDirs($dir, $recursive) {
                 $taskDirs[] = $dir;
             }
         }
+        if (preg_match('/^.*\.ipynb/', $filename) === 1 && file_exists(pathJoin($workingDir, 'files/checkouts/', $dir, $filename))) {
+            if (!in_array($dir, $taskDirs)) {
+                $taskDirs[] = $dir;
+            }
+        }
     }
 
     // No task file has been found
