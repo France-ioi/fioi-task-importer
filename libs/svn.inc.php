@@ -37,7 +37,7 @@ function setSvnParameters($user, $password) {
 function listTaskDirs($dir, $recursive) {
     global $workingDir;
 
-    $filenames = scandir(pathJoin($workingDir, 'files/checkouts/', $dir.'/'));
+    $filenames = scandir(pathJoin($workingDir, 'files/checkouts/', $dir));
     $taskDirs = array();
     foreach($filenames as $filename) {
         if(preg_match('/^index.*\.html/', $filename) === 1 && file_exists(pathJoin($workingDir, 'files/checkouts/', $dir, $filename))) {

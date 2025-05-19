@@ -818,19 +818,102 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             });
     };
 
+    $scope.convertQuiz = function(markdown) {
+        var answers = [];
+        var html = '';
+        var remainingText = markdown.body;
+
+        var questionRegex = /^(.*?\+\+\+.*?\+\+\+)(.*)$/s;
+        var statementRegex = /```{admonition} Question\n(.*?)```/s;
+        var solutionRegex = /\+\+\+ {"tags": \["solution"\]}\n(.*?)\+\+\+/s;
+            
+        var questionMatch;
+        while(questionMatch = questionRegex.exec(remainingText)) {
+            var questionText = questionMatch[1].trim();
+            var question = {
+                statement: '',
+                answers: [],
+                solution: '',
+                type: "single"
+            };
+            var fullStatement = statementRegex.exec(questionText)[1].trim();
+            var statementLines = fullStatement.split('\n');
+            var statement = '';
+            var inAnswer = false;
+            for(var i = 0; i < statementLines.length; i++) {
+                var line = statementLines[i];
+                if(line.match(/^- \S\)/)) {
+                    // This is an answer line
+                    inAnswer = true;
+                    var answer = line.substring(4).trim();
+                    question.answers.push(answer);
+                } else if(inAnswer && line.trim() == '') {
+                    inAnswer = false;
+                } else if(inAnswer) {
+                    // This is a continuation of the answer
+                    question.answers[question.answers.length - 1] += ' ' + line.trim();
+                } else if(line.trim() == '_Select all answers that apply_') {
+                    question.type = 'multiple';
+                } else if(line.trim() == '_Select a single answer_') {
+                    question.type = 'single';
+                } else {
+                    statement += line + '\n';
+                }
+            }
+            question.statement = "<statement>" + mdcompiler.compileMarkdown(statement, $scope.markdownVariables) + "</statement>";
+            for(var i = 0; i < question.answers.length; i++) {
+                question.statement += "<answer>" + mdcompiler.compileMarkdown(question.answers[i], $scope.markdownVariables) + "</answer>";
+            }
+
+            // Extract answers from the question text (assuming they are bullet points or similar)
+            var solutionLines = solutionRegex.exec(questionText)[1].trim().split('\n');
+            var solution = '';
+            for(var i = 0; i < solutionLines.length; i++) {
+                var line = solutionLines[i];
+                var solutionMatch = line.match(/^solution: (.*)$/);
+                if(solutionMatch) {
+                    var solution = solutionMatch[1].trim();
+                    question.solution = solution.match(/(\S)\)/g).map(function (sol) {
+                        return parseInt(sol.charCodeAt(0) - 97);
+                    });
+                } else {
+                    solution += line + '\n';
+                }
+            }
+            question.statement += "<solution>" + mdcompiler.compileMarkdown(solution, $scope.markdownVariables) + "</solution>";
+            question.statement = "<question type='" + question.type + "'>" + question.statement + "</question>";
+            html += question.statement;
+            answers.push(question.type == 'single' ? question.solution[0] : question.solution);
+
+            remainingText = questionMatch[2];
+        }
+
+        return {html: html, answers: answers};
+    }
+
     $scope.convertMarkdown = function (curTask, curFile) {
         // Convert a markdown file to HTML
         var url = curTask.baseUrl + curFile.filename;
         var log = $scope.logList[0];
         $http.get(url).then(function (res) {
             var markdown = mdcompiler.parseHeader(res.data);
-            var html = mdcompiler.compileMarkdown(markdown.body, $scope.markdownVariables);
+            var isQuiz = markdown.headers.type == 'quiz';
+            var quizAnswers = null;
+            if(isQuiz) {
+                var quiz = $scope.convertQuiz(markdown);
+                var html = quiz.html;
+                quizAnswers = quiz.answers;
+            } else {
+                var html = mdcompiler.compileMarkdown(markdown.body, $scope.markdownVariables);
+            }
             $scope.curLog.state = 'file_done';
             log.state = 'task_sending';
             $http.post('savesvn.php', {
                 action: 'saveMarkdown',
                 headers: markdown.headers,
                 html: html,
+                isQuiz: isQuiz,
+                quizAnswers: quizAnswers,
                 dirPath: curTask.dirPath,
                 gitRepo: curTask.gitRepo,
                 gitPath: curTask.gitPath,
