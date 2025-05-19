@@ -141,6 +141,19 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon, $isGit=false) {
     foreach($filenames as $filename) {
         $filePath = pathJoin($workingDir, 'files/checkouts/', $taskDir, $filename);
         $isMarkdown = preg_match('/.*\.md/', $filename) === 1;
+        $isNotebook = preg_match('/.*\.ipynb/', $filename) === 1;
+        if($isNotebook) {
+            $newIndex = [
+                'filename' => $filename,
+                'isNotebook' => true,
+                'isStatic' => false,
+                'isMarkdown' => false,
+                'hasSolutionsToCheck' => false,
+                'depth' => $depth
+            ];
+            $indexList[] = $newIndex;
+            continue;
+        }
         if (preg_match('/index.*\.html/', $filename) !== 1 && !$isMarkdown) {
             continue;
         }
@@ -174,6 +187,7 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon, $isGit=false) {
         }
         $newIndex = [
             'filename' => $filename,
+            'isNotebook' => false,
             'isStatic' => $isStatic,
             'isMarkdown' => $isMarkdown,
             'hasSolutionsToCheck' => $hasSolutionsToCheck,

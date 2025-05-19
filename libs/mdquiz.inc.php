@@ -14,7 +14,7 @@ function saveMarkdownQuiz($html, $headers, $checkoutPath, $gitRepo, $gitPath, $f
     $localFilePath = pathJoin($workingDir, 'files/checkouts/', $filePath);
 
     $title = isset($headers['title']) ? $headers['title'] : '';
-    $sideurl = isset($headers['notebook']) ? "https://static-items.algorea.org/jupyter/v0/notebooks/index.html?sPlatform=algorea_backend&channelId=task-724913812381300131&sLocale=en&path=" . urlencode($headers['notebook']) : '';
+    $sideurl = isset($headers['notebook']) ? "https://static-items.algorea.org/jupyter/v0/notebooks/index.html?sLocale=en&path=" . urlencode($headers['notebook']) : '';
 
     if(!isset($markdownIds)) {
         if(file_exists(__DIR__ . '/../markdown_textid_to_id.json')) {
@@ -49,7 +49,6 @@ function saveMarkdownQuiz($html, $headers, $checkoutPath, $gitRepo, $gitPath, $f
     $fullHtml = '<!DOCTYPE html><html><head>';
     $fullHtml .= '<meta charset="utf-8">';
     $fullHtml .= '<title>' . $title . '</title>';
-    $fullHtml .= '<script src="/markdown/dist/markdown-task.js"></script>';
     $fullHtml .= '<script type="text/javascript">
             var stringsLanguage = "en";
             var quiz_settings = {"graderUrl":"https://static-items.algorea.org/bsm/quiz","score_calculation_formula":"default","score_calculation":{"formula":"default"},"feedback_on_wrong_choices":"all","submit_single":true';

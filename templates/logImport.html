@@ -30,6 +30,7 @@
       <p ng-if="file.isStatic && log.hasLti"><b ng-i18next="task_ltiurl"></b>: <a href="{{ makeLtiUrl(file.url, log.urlArgs) }}">{{ makeLtiUrl(file.url, log.urlArgs) }}</a></p>
       <p ng-if="file.warnPaths" ng-i18next="display_warnpaths"></p>
       <p ng-if="file.commonRewritten" ng-i18next="display_common_rewritten"></p>
+      <p ng-if="file.isNotebook"><span ng-i18next="display_notebook"></span> <a href="{{ makeNotebookUrl(file.name) }}">{{ makeNotebookUrl(file.name) }}</a></p>
     </div>
     <div ng-if="log.tokenUrl && !log.foundLangs">
       <p><a class="btn btn-default" ng-href="{{ makeUrl(log.tokenUrl, log.urlArgs) }}" target="_blank" ng-i18next="task_test"></a> <i ng-i18next="task_test_description"></i></p>
