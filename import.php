@@ -28,7 +28,8 @@ if($config->localCssUrl) {
       'urlArgs' => $config->urlArgs,
       'editors' => $config->editors,
       'newEditionEndpoint' => $config->newEditionEndpoint,
-      'newEditorApiEndpoint' => $config->newEditorApiEndpoint
+      'newEditorApiEndpoint' => $config->newEditorApiEndpoint,
+      'notebookUrl' => $config->notebookUrl
       ]) ?>
   </script>
   <script type="text/javascript" src="node_modules/diff2html/bundles/js/diff2html-ui.min.js"></script>

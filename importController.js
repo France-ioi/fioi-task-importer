@@ -192,6 +192,10 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         return $scope.makeUrl("https://lti.algorea.org/", {taskUrl: taskUrl}, null, true);
     };
 
+    $scope.makeNotebookUrl = function (path) {
+        return config.notebookUrl + encodeURIComponent(path);
+    }
+
     $scope.getTemplate = function(log) {
         // Return template for each log type
         return 'templates/logImport.html';
@@ -509,7 +513,8 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         var curLog = {
             name: curFile.filename,
             isStatic: curFile.isStatic || curFile.isMarkdown,
-            isMarkdown: curFile.isMarkdown
+            isMarkdown: curFile.isMarkdown,
+            isNotebook: curFile.isNotebook
             };
         $scope.curLog = curLog;
         $scope.logList[0].files.push(curLog);
@@ -546,6 +551,12 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             // Markdown file, we load and convert it
             curLog.state = 'file_loading';
             $scope.convertMarkdown(curTask, curFile);
+        } else if (curFile.isNotebook) {
+            // Notebook file, we don't need to do anything
+            curLog.state = 'file_done';
+            curLog.url = "abc"; // .push({ filename: curFile.filename, isNotebook: true });
+            $scope.recTaskImport();
+            //$scope.curLog.url = res.data.url;
         } else {
             // TaskPlatform file, we fetch its resources
             curLog.state = 'file_loading';
