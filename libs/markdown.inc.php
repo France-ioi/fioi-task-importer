@@ -99,6 +99,7 @@ function saveMarkdown($html, $headers, $checkoutPath, $gitRepo, $gitPath, $filen
 
     return [
         'success' => true,
-        'url' => $config->staticUrl . $filePath
+        'url' => $config->staticUrl . $filePath,
+        'cfUrl' => $config->cfUrl . $filePath
     ];
 }

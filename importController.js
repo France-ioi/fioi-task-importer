@@ -85,9 +85,10 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
     $scope.mainDivClass = '';
 
     if (isInIframe) {
-        $scope.mainDivClass = "container-iframe"
+        $scope.mainDivClass = "container-iframe";
     }
 
+    $scope.config = window.config;
     $scope.options = {lang: $i18next.options.lng};
     $scope.defaultParams = null;
     $scope.checkoutState = null;
@@ -103,7 +104,8 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         localeEn: 'default',
         theme: 'none',
         acceptMovedTasks: false,
-        token: QueryString.token ? QueryString.token : null
+        token: QueryString.token ? QueryString.token : null,
+        recursive: true
     };
 
     $scope.tasksRemaining = [];
@@ -164,6 +166,8 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
     };
 
     $scope.makeUrl = function(url, urlArgs, lang, lti) {
+        if (!url) { url = ''; }
+        url = url.replace(/ /g, '%20');
         var args = [];
         for(var arg in urlArgs) {
             args.push(arg + '=' + encodeURIComponent(urlArgs[arg]));
@@ -554,7 +558,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         } else if (curFile.isNotebook) {
             // Notebook file, we don't need to do anything
             curLog.state = 'file_done';
-            curLog.url = "abc"; // .push({ filename: curFile.filename, isNotebook: true });
+            curLog.url = curTask.gitPath + '/' + curFile.filename;
             $scope.recTaskImport();
             //$scope.curLog.url = res.data.url;
         } else {
@@ -721,6 +725,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
                 easy: 0.5,
                 medium: 0.75,
             };
+            if (Array.isArray(score)) { score = score[0]; }
             if (correctSolution.level && correctSolution.level in levelCoefficients) {
                 score = score / levelCoefficients[correctSolution.level];
             }
@@ -834,8 +839,14 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         var html = '';
         var remainingText = markdown.body;
 
-        var questionRegex = /^(.*?\+\+\+.*?\+\+\+)(.*)$/s;
-        var statementRegex = /```{admonition} Question\n(.*?)```/s;
+        window.temp1 = remainingText;
+        var titleMatch = remainingText.match(/^\s#+\s+.*?\n/);
+        if (titleMatch) {
+            remainingText = remainingText.substring(titleMatch[0].length);
+        }
+
+        var questionRegex = /^(.*?\+\+\+ {"tags".*?\+\+\+)(.*)$/s;
+        var statementRegex = /^(.*?)```{admonition} Question\n(.*?)```/s;
         var solutionRegex = /\+\+\+ {"tags": \["solution"\]}\n(.*?)\+\+\+/s;
             
         var questionMatch;
@@ -847,7 +858,15 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
                 solution: '',
                 type: "single"
             };
-            var fullStatement = statementRegex.exec(questionText)[1].trim();
+
+            var statementMatch = statementRegex.exec(questionText);
+            var beforeStatement = statementMatch[1].trim();
+            if (beforeStatement) {
+                beforeStatement = beforeStatement.replace(/^\+\+\+\s*$/gm, '');
+                html += "<div class=\"intro\">" + mdcompiler.compileMarkdown(beforeStatement, $scope.markdownVariables) + "</div>";
+            }
+
+            var fullStatement = statementMatch[2].trim();
             var statementLines = fullStatement.split('\n');
             var statement = '';
             var inAnswer = false;
@@ -933,6 +952,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             }).then(function (res) {
                 log.state = 'task_success';
                 $scope.curLog.url = res.data.url;
+                $scope.curLog.cfUrl = res.data.cfUrl;
                 $scope.recTaskImport();
             })
         });
