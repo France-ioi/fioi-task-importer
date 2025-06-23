@@ -81,7 +81,7 @@ function taskGraderLangToCodecastLang(baseLang) {
 var app = angular.module('svnImport', ['jm.i18next']);
 
 app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '$sce', '$interval', function ($scope, $http, $timeout, $i18next, $sce, $interval) {
-    $scope.template = 'templates/full.html';
+    $scope.template = 'templates/full.html' + config.urlArgs;
     $scope.mainDivClass = '';
 
     if (isInIframe) {
@@ -202,7 +202,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
 
     $scope.getTemplate = function(log) {
         // Return template for each log type
-        return 'templates/logImport.html';
+        return 'templates/logImport.html' + config.urlArgs;
     };
 
     $scope.notifyLink = function(linkParams) {
@@ -959,7 +959,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
     }
 
     $scope.displayFull = function() {
-        $scope.template = 'templates/full.html';
+        $scope.template = 'templates/full.html' + config.urlArgs;
     };
 
 
@@ -1017,7 +1017,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         if(QueryString.localeEn) { $scope.params.localeEn = QueryString.localeEn; }
         if(QueryString.theme) { $scope.params.theme = QueryString.theme; }
         if(QueryString.display == 'frame') { 
-            $scope.template = 'templates/frame.html';
+            $scope.template = 'templates/frame.html' + config.urlArgs;
         }
 
         if(QueryString.autostart) {
@@ -1211,7 +1211,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             return;
         }
         $scope.checkoutState = null;
-        $scope.template = 'templates/edition.html';
+        $scope.template = 'templates/edition.html' + config.urlArgs;
         $scope.edition.ready = true;
         $scope.edition.isGitlab = $scope.params.gitUrl.indexOf('gitlab.com') != -1;
         $scope.edition.filename = $scope.params.filename || '';
@@ -1754,7 +1754,7 @@ app.directive('treeview', function () {
         scope: {
             node: '='
         },
-        templateUrl: 'templates/treeview.html',
+        templateUrl: 'templates/treeview.html' + config.urlArgs,
         link: function (scope, element, attrs) {
             scope.edition = scope.$parent.edition;
             scope.editionFmUpdate = scope.$parent.editionFmUpdate;
