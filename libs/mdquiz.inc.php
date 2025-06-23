@@ -46,16 +46,29 @@ function saveMarkdownQuiz($html, $headers, $checkoutPath, $gitRepo, $gitPath, $f
         }
     }
 
+    $options = [
+        "graderUrl" => "https://static-items.algorea.org/bsm/quiz",
+        "score_calculation_formula" => "default",
+        "score_calculation" => ["formula" => "default"],
+        "feedback_on_wrong_choices" => "all"
+    ];
+    try {
+        if(isset($headers['options'])) {
+            $options = array_merge($options, json_decode($headers['options'], true));
+        }
+    } catch (Exception $e) {}
+    if($sideurl) {
+        $options['sideUrl'] = $sideurl;
+    }
+
     $fullHtml = '<!DOCTYPE html><html><head>';
     $fullHtml .= '<meta charset="utf-8">';
     $fullHtml .= '<title>' . $title . '</title>';
     $fullHtml .= '<script type="text/javascript">
             var stringsLanguage = "en";
-            var quiz_settings = {"graderUrl":"https://static-items.algorea.org/bsm/quiz","score_calculation_formula":"default","score_calculation":{"formula":"default"},"feedback_on_wrong_choices":"all","submit_single":true';
-    if($sideurl) {
-        $fullHtml .= ', "sideurl":"' . $sideurl . '"';
-    }
-    $fullHtml .= '};';
+            var quiz_settings = ';
+    $fullHtml .= json_encode($options);
+    $fullHtml .= ';';
     $fullHtml .= 'var task_data_info = {"markdown":false};
             var quiz_question_types = {"single":true,"multiple":true};
                   </script>';
@@ -80,7 +93,9 @@ function saveMarkdownQuiz($html, $headers, $checkoutPath, $gitRepo, $gitPath, $f
     file_put_contents($localFilePath, $fullHtml);
 
     $graderData = 'window.Quiz.grader.data = ' . json_encode($quizAnswers) . ';';
-    $graderData .= 'window.Quiz.grader.feedback = function(score) {
+
+    if(isset($headers['feedback']) && $headers['feedback'] == 'probabl') {
+        $graderData .= 'window.Quiz.grader.feedback = function(score) {
   if(score < 50) {
     return "You lack some training on this topic.";
   } else if(score < 100) {
@@ -89,6 +104,7 @@ function saveMarkdownQuiz($html, $headers, $checkoutPath, $gitRepo, $gitPath, $f
     return "You are ready for certification!";
   }
 }';
+    }
     file_put_contents(str_replace('index.html', 'grader_data.js', $localFilePath), $graderData);
 
     return [

@@ -88,7 +88,12 @@ if ($request['action'] == 'checkoutSvn' || $request['action'] == 'checkoutGit' |
     saveResources($request['data'], $request['taskPath'], $request['svnUrl'], $request['svnRev'], $request['dirPath'], $request['acceptMovedTasks']);
 } elseif ($request['action'] == 'saveMarkdown') {
     if (!isset($request['html']) || !isset($request['gitRepo']) || !isset($request['gitPath']) || !isset($request['filename'])) {
-        die(json_encode(['success' => false, 'error' => 'error_request']));
+        if(isset($request['taskPath'])) {
+            $request['gitRepo'] = 'svn';
+            $request['gitPath'] = $request['taskPath'];
+        } else {
+            die(json_encode(['success' => false, 'error' => 'error_request']));
+        }
     }
     if(isset($request['isQuiz']) && $request['isQuiz']) {
         echo (json_encode(saveMarkdownQuiz($request['html'], $request['headers'], $request['dirPath'], $request['gitRepo'], $request['gitPath'], $request['filename'], $request['quizAnswers'])));

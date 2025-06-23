@@ -122,6 +122,9 @@ function saveStrings($taskId, $resources, $metadata, $dirPath) {
         $solution = str_replace('_local_common', '../local/'.$baseSvnFirst, $solution);
         $statement = str_replace('_local_common', '../local/'.$baseSvnFirst, $statement);
     }
+    if(!isset($metadata['title'])) {
+        $metadata['title'] = isset($resources['title']) ? $resources['title'] : "";
+    }
 
     $stmt = $db->prepare('insert into tm_tasks_strings (idTask, sLanguage, sTitle, sStatement, sSolution) values (:idTask, :sLanguage, :sTitle, :sStatement, :sSolution) on duplicate key update sTitle = values(sTitle), sStatement = values(sStatement), sSolution = values(sSolution);');
     $stmt->execute(['idTask' => $taskId, 'sLanguage' => $metadata['language'], 'sTitle' => $metadata['title'], 'sStatement' => $statement, 'sSolution' => $solution]);
