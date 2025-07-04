@@ -902,8 +902,9 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
                 var line = solutionLines[i];
                 var solutionMatch = line.match(/^solution: (.*)$/);
                 if(solutionMatch) {
-                    var solution = solutionMatch[1].trim();
-                    question.solution = solution.match(/(\S)\)/g).map(function (sol) {
+                    var solutionIds = solutionMatch[1].trim();
+
+                    question.solution = solutionIds.match(/(\S)\)/g).map(function (sol) {
                         return parseInt(sol.charCodeAt(0) - 97);
                     });
                 } else {
