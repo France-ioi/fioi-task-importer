@@ -1,5 +1,8 @@
 <?php
 
+class QuizServerException extends Exception {
+}
+
 class QuizServer {
 
     const JS_PREFIX_REGEXP = '/window.Quiz.grader.data\s*=\s*/';
@@ -32,14 +35,19 @@ class QuizServer {
 
     public function write($task_id, $grader_data_path) {
         if(!file_exists($grader_data_path)) {
-            return false;
+            throw new QuizServerException("No file found at $grader_data_path");
         }
         $res = $this->sendRequest([
             'action' => 'write',
             'task_id' => $task_id,
             'data' => $this->readCode($grader_data_path)
         ]);
-        return $res && $res['success'];
+        if (!$res) {
+            throw new QuizServerException("No response from the quiz server");
+        }
+        if (!$res['success']) {
+            throw new QuizServerException("Grading server returned error: ".$res['error']);
+        }
     }
 
 
