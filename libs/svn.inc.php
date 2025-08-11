@@ -339,7 +339,16 @@ function checkoutSvn($subdir, $user, $password, $userRevision, $recursive, $noim
     $tasks = array();
     $taskDirs = listTaskDirs($baseTargetDir, $recursive);
     foreach($taskDirs as $taskDir) {
-        $newTaskData = processDir($taskDir, $baseSvnFirst, $rewriteCommon, false);
+        try {
+            $newTaskData = processDir($taskDir, $baseSvnFirst, $rewriteCommon, false);
+        } catch (Exception $e) {
+            echo(json_encode([
+                'success' => false,
+                'error' => $e->getMessage(),
+            ]));
+            return;
+        }
+
         if(count($newTaskData['files']) > 0) {
             $tasks[] = $newTaskData;
         }
