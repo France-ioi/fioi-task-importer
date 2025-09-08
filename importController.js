@@ -335,6 +335,12 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             $scope.disableBtn = false;
         }
 
+        // If svnUrl is empty then do nothing
+        if ($scope.params.svnUrl.replace(/\//g, '').trim() == '') {
+            onFail({ data: { error: 'error_svn_root' } });
+            return;
+        }
+
         function onRequestFail() {
             $scope.checkoutState = {
                 status: 'danger',
