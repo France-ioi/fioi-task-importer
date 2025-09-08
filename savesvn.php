@@ -48,7 +48,7 @@ if ($request['action'] == 'checkoutSvn' || $request['action'] == 'checkoutGit' |
     }
 
     if($request['action'] == 'checkoutSvn') {
-        if(trim(str_replace($request['svnUrl'], '/', '')) == '') {
+        if(trim(str_replace('/', '', $request['svnUrl'])) == '') {
             die(json_encode(['success' => false, 'error' => 'error_request']));
         }
         $user = $request['username'] ? $request['username'] : $config->defaultSvnUser;
@@ -76,7 +76,7 @@ if ($request['action'] == 'checkoutSvn' || $request['action'] == 'checkoutGit' |
         }
         echo json_encode(updateCommon($user, $password));
     } elseif($request['action'] == 'updateLocalCommon') {
-        if(trim(str_replace($request['svnUrl'], '/', '')) == '') {
+        if(trim(str_replace('/', '', $request['svnUrl'])) == '') {
             die(json_encode(['success' => false, 'error' => 'error_request']));
         }
         $user = $request['username'] ? $request['username'] : $config->defaultSvnUser;
