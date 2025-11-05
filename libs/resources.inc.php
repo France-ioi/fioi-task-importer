@@ -27,8 +27,8 @@ function saveTask($metadata, $sTaskPath, $subdir, $revision, $resources) {
     $authors = (isset($metadata['authors']) && count($metadata['authors'])) ? join(',', $metadata['authors']) : '';
     $sSupportedLangProg = (isset($metadata['supportedLanguages']) && count($metadata['supportedLanguages'])) ? join(',', $metadata['supportedLanguages']) : '*';
     $sEvalTags = (isset($metadata['evaluationTags']) && count($metadata['evaluationTags'])) ? join(',', $metadata['evaluationTags']) : '';
-    $bUserTests = isset($metadata['hasUserTests']) ? ($metadata['hasUserTests'] == 'true' ? 1 : 0) : 0;
-    $bUseLatex = isset($metadata['useLatex']) ? ($metadata['useLatex'] == 'true' ? 1 : 0) : 0;
+    $bUserTests = isset($metadata['hasUserTests']) && $metadata['hasUserTests'] ? 1 : 0;
+    $bUseLatex = isset($metadata['useLatex']) && $metadata['useLatex'] ? 1 : 0;
     $sEvalResultOutputScript = isset($metadata['evalOutputScript']) ? $metadata['evalOutputScript'] : null;
     $sScriptAnimation = '';
     foreach ($resources['task'] as $i => $resource) {
