@@ -28,6 +28,7 @@ function saveTask($metadata, $sTaskPath, $subdir, $revision, $resources) {
     $sSupportedLangProg = (isset($metadata['supportedLanguages']) && count($metadata['supportedLanguages'])) ? join(',', $metadata['supportedLanguages']) : '*';
     $sEvalTags = (isset($metadata['evaluationTags']) && count($metadata['evaluationTags'])) ? join(',', $metadata['evaluationTags']) : '';
     $bUserTests = isset($metadata['hasUserTests']) ? ($metadata['hasUserTests'] == 'true' ? 1 : 0) : 0;
+    $bUseLatex = isset($metadata['useLatex']) ? ($metadata['useLatex'] == 'true' ? 1 : 0) : 0;
     $sEvalResultOutputScript = isset($metadata['evalOutputScript']) ? $metadata['evalOutputScript'] : null;
     $sScriptAnimation = '';
     foreach ($resources['task'] as $i => $resource) {
@@ -39,10 +40,10 @@ function saveTask($metadata, $sTaskPath, $subdir, $revision, $resources) {
     $bHasSubtasks = isset($metadata['subtasks']);
     $stmt = $db->prepare("
         INSERT INTO tm_tasks
-        (sTextId, sSupportedLangProg, sEvalTags, sAuthor, bUserTests, sTaskPath, sRevision, sEvalResultOutputScript, sScriptAnimation, bHasSubtasks)
-        VALUES (:id, :langprog, :evaltags, :authors, :bUserTests, :sTaskPath, :revision, :sEvalResultOutputScript, :sScriptAnimation, :bHasSubtasks)
+        (sTextId, sSupportedLangProg, sEvalTags, sAuthor, bUserTests, bUseLatex, sTaskPath, sRevision, sEvalResultOutputScript, sScriptAnimation, bHasSubtasks)
+        VALUES (:id, :langprog, :evaltags, :authors, :bUserTests, :bUseLatex, :sTaskPath, :revision, :sEvalResultOutputScript, :sScriptAnimation, :bHasSubtasks)
         ON DUPLICATE KEY UPDATE
-        sSupportedLangProg = VALUES(sSupportedLangProg), sAuthor = VALUES(sAuthor), bUserTests = VALUES(bUserTests), sTaskPath = VALUES(sTaskPath), sRevision = VALUES(sRevision), sEvalResultOutputScript = VALUES(sEvalResultOutputScript), sScriptAnimation = VALUES(sScriptAnimation), bHasSubtasks = VALUES(bHasSubtasks);
+        sSupportedLangProg = VALUES(sSupportedLangProg), sAuthor = VALUES(sAuthor), bUserTests = VALUES(bUserTests), bUseLatex = VALUES(bUseLatex), sTaskPath = VALUES(sTaskPath), sRevision = VALUES(sRevision), sEvalResultOutputScript = VALUES(sEvalResultOutputScript), sScriptAnimation = VALUES(sScriptAnimation), bHasSubtasks = VALUES(bHasSubtasks);
         ");
     $stmt->execute([
         'id' => $metadata['id'],
@@ -50,6 +51,7 @@ function saveTask($metadata, $sTaskPath, $subdir, $revision, $resources) {
         'evaltags' => $sEvalTags,
         'authors' => $authors,
         'bUserTests' => $bUserTests,
+        'bUseLatex' => $bUseLatex,
         'sTaskPath' => $sTaskPath,
         'revision' => $revision,
         'sEvalResultOutputScript' => $sEvalResultOutputScript,
