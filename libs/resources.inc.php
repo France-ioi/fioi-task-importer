@@ -117,7 +117,8 @@ function saveStrings($taskId, $resources, $metadata, $dirPath) {
       }
     }
     foreach($files as $f) {
-      $statement = str_replace($f, $config->staticUrl.$dirPath.'/'.$f, $statement);
+        $pattern = '/(?<![A-Za-z0-9])' . preg_quote($f, '/') . '/';
+        $statement = preg_replace($pattern, $config->staticUrl.$dirPath.'/'.$f, $statement);
     }
 
     if($localCommonExists) {
