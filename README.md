@@ -27,7 +27,16 @@ docker-compose build --build-arg UID=$(id -u) --build-arg GID=$(id -g)
 docker-compose up -d
 ```
 
-You can access the TaskImporter on http://localhost:8009/import.php
+Install mkcert and generate a SSL certificate (replace localhost by
+your custom local domain if you prefer):
+
+```
+mkcert -install
+mkcert -cert-file docker/certs/ssl.pem -key-file docker/certs/ssl-key.pem localhost
+```
+
+You can access the TaskImporter on https://localhost:8009/import.php (replace localhost by your local domain
+and add it to `/etc/hosts` if you wish to use one)
 
 Don't forget to create a `config_local.php` file from the `config.php`!
 The database must be outside Docker (for simplicity reasons, because
