@@ -817,7 +817,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
                     log.ltiUrl = res.data.ltiUrl;
                     log.tokenUrl = res.data.tokenUrl;
 
-                    $scope.checkCorrectSolutions(res.data.normalUrl, $scope.curData[0].resources, log, function () {
+                    $scope.checkCorrectSolutions(res.data.tokenUrl, $scope.curData[0].resources, log, function () {
                         // Notify parent of link
                         $scope.notifyLink({
                             url: res.data.normalUrl,

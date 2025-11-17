@@ -19,17 +19,22 @@ function unparse_url($parsed_url) {
 }
 
 function addToken($url, $token=null) {
+    global $config;
+
     if ($token == null) {
         $token = generateToken($url);
     }
     $parsed_url = parse_url($url);
+    $queryArgs = array();
     if (isset($parsed_url['query'])) {
         parse_str($parsed_url['query'], $queryArgs);
-        $queryArgs['sToken'] = $token;
-        $parsed_url['query'] = http_build_query($queryArgs);
-    } else {
-        $parsed_url['query'] = 'sToken=' . $token;
     }
+
+    $queryArgs['sToken'] = $token;
+    $queryArgs['sPlatform'] = $config->platform->name;
+
+    $parsed_url['query'] = http_build_query($queryArgs);
+
     return unparse_url($parsed_url);
 }
 
