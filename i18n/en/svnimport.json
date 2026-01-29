@@ -54,7 +54,7 @@
     "checkout_common_failed": "Error while updating _common.",
 
     "task_loading": "Task file loading...",
-    "task_import_error": "Task import finished (no resources to send).",
+    "task_import_allstatic": "Task import finished (all tasks are static / markdown).",
     "task_sending": "Saving resources into database...",
     "task_success": "Task import done.",
     "task_cancelled": "Task import cancelled.",

@@ -54,7 +54,7 @@
     "checkout_common_failed": "Erreur lors de la mise à jour de _common.",
 
     "task_loading": "Tâche en cours de chargement...",
-    "task_import_error": "Tâche importée (aucune ressource à envoyer).",
+    "task_import_allstatic": "Tâche importée (toutes les tâches sont statiques / markdown).",
     "task_sending": "Sauvegarde des ressources dans la base de données...",
     "task_success": "Tâche importée.",
     "task_cancelled": "Import annulé.",

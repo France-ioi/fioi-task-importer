@@ -774,7 +774,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         // Finish task import by sending resources (if any)
         var log = $scope.logList[0];
         if($scope.curData.length == 0) {
-            log.state = 'task_import_error';
+            log.state = 'task_import_allstatic';
             $scope.recImport();
             return;
         }
