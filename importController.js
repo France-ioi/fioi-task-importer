@@ -655,6 +655,10 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         };
 
         if (null !== codecastUrl) {
+            var u = new URL(codecastUrl);
+            u.searchParams.set("xd", "true");
+            codecastUrl = u.toString();
+
             $scope.curTaskUrl = $sce.trustAsResourceUrl(codecastUrl);
             $scope.loadCorrectSolutionIframe(function () {
                 $scope.onCorrectSolutionsLoaded(log, resources, callback);
