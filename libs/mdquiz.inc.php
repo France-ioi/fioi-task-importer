@@ -60,6 +60,12 @@ function saveMarkdownQuiz($html, $headers, $checkoutPath, $gitRepo, $gitPath, $f
     if($sideurl) {
         $options['sideUrl'] = $sideurl;
     }
+    if(isset($headers['weights'])) {
+        try {
+            // Split on any whitespace or comma then convert to numbers
+            $options['weights'] = array_map('floatval', preg_split('/[\s,]+/', $headers['weights']));
+        } catch (Exception $e) {}
+    }
 
     $fullHtml = '<!DOCTYPE html><html><head>';
     $fullHtml .= '<meta charset="utf-8">';
@@ -94,7 +100,45 @@ function saveMarkdownQuiz($html, $headers, $checkoutPath, $gitRepo, $gitPath, $f
 
     $graderData = 'window.Quiz.grader.data = ' . json_encode($quizAnswers) . ';';
 
-    if(isset($headers['feedback']) && $headers['feedback'] == 'probabl') {
+    // Collect feedback headers which are either feedback or feedback-0, feedback-10
+    $feedbackType = null;
+    $feedbacks = [];
+    foreach($headers as $key => $val) {
+        if(strpos($key, 'feedback') !== 0) {
+            continue;
+        } elseif($key == 'feedback') {
+            $feedbackType = $val;
+            continue;
+        }
+        $minFeedbackScore = substr($key, 9);
+        if(!is_numeric($minFeedbackScore)) {
+            continue;
+        }
+        if(!$feedbackType) {
+            $feedbackType = 'message';
+        }
+        try {
+            $val = json_decode($val, true);
+        } catch (Exception $e) {
+            continue;
+        }
+        $feedbacks[$minFeedbackScore] = $val;
+    }
+
+    if($feedbackType == 'message' || $feedbackType == 'popup') {
+        $graderData .= 'window.Quiz.grader.feedback = function(score) {';
+        $minScores = array_keys($feedbacks);
+        rsort($minScores);
+        foreach($minScores as $minScore) {
+            $feedback = $feedbacks[$minScore];
+            if($feedbackType == 'popup') {
+                $feedback['popup'] = true;
+            }
+            $graderData .= 'if(score >= ' . $minScore . ') { return ' . json_encode($feedback) . '; }';
+        }
+        $graderData .= 'return null;};';
+
+    } elseif($feedbackType == 'probabl') {
         $graderData .= 'window.Quiz.grader.feedback = function(score) {
   if(score < 50) {
     return "You lack some training on this topic.";
