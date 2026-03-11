@@ -25,7 +25,15 @@ RUN apt-get install -y --allow-unauthenticated \
         build-essential \
         apt-transport-https \
         lsb-release \
-        gnupg
+        gnupg \
+        locales
+
+RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen \
+    && locale-gen
+
+ENV LANG=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
+
 RUN docker-php-ext-install \
         xml \
         mbstring \
