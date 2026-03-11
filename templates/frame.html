@@ -49,4 +49,4 @@
 </div>
 <div ng-repeat="log in logList" ng-include="getTemplate(log)"></div>
 
-<iframe ng-if="curTaskUrl" style="width:1px; height:1px;" id="taskIframe" src="{{ curTaskUrl }}"></iframe>
+<iframe ng-if="curTaskUrl" style="display: none" id="taskIframe" src="{{ curTaskUrl }}"></iframe>

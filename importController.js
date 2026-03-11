@@ -515,6 +515,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
         // Start import of one file of the task
         var curTask = $scope.curTask;
         if(curTask.files.length == 0) {
+            $scope.$applyAsync();
             $scope.endTaskImport();
             return;
         }
@@ -536,19 +537,29 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             curLog.gitRepo = curTask.gitRepo;
             curLog.gitPath = curTask.gitPath;
 
-            if (curFile.hasSolutionsToCheck && !$scope.params.disableSolutionsEvaluation) {
+            if (!$scope.params.disableSolutionsEvaluation) {
+                // Try to fetch resources to check if the task loads and returns its resources correctly
                 $scope.curTaskUrl = $sce.trustAsResourceUrl(curTask.staticUrl + curFile.filename + '?xd=true');
                 curLog.state = 'file_static_fetching_resources';
                 $timeout(() => $scope.fetchResources(function (metadata, resources) {
                     curLog.state = 'file_static';
-                    $scope.checkCorrectSolutions(null, resources, $scope.logList[0], function () {
+
+                    if (curFile.hasSolutionsToCheck) {
+                        $scope.checkCorrectSolutions(null, resources, $scope.logList[0], function () {
+                            $scope.notifyLink({
+                                url: $scope.makeUrl(curLog.url, curTask.urlArgs),
+                                task: curTask.svnUrl
+                            });
+                            $scope.recTaskImport();
+                        });
+                    } else {
                         $scope.notifyLink({
                             url: $scope.makeUrl(curLog.url, curTask.urlArgs),
                             task: curTask.svnUrl
                         });
-                        $scope.recImport();
-                    });
-                }), 2000);
+                        $scope.recTaskImport();
+                    }
+                }));
             } else {
                 curLog.state = 'file_static';
                 $scope.notifyLink({
@@ -576,6 +587,7 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
             $timeout(() => $scope.fetchResources(function (metadata, resources) {
                 $scope.curLog.state = 'file_done';
                 $scope.curData.push({filename: $scope.curLog.name, resources: resources, metadata: metadata});
+                $scope.recTaskImport();
             }), 2000);
         }
     };
@@ -609,7 +621,6 @@ app.controller('importController', ['$scope', '$http', '$timeout', '$i18next', '
                     $scope.curID = null;
                     callback(metadata, resources);
                     $timeout.cancel(getInfosTimeout);
-                    $scope.$apply($scope.recTaskImport);
                 }, throwError);
             }, throwError);
         }, throwError)
