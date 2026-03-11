@@ -8,7 +8,7 @@ RUN sed -i 's/http:\/\/deb.debian.org\/debian/http:\/\/archive.debian.org\/debia
 
 # Install system dependencies and PHP extensions
 RUN apt-get update
-RUN apt-get install -y \
+RUN apt-get install -y --allow-unauthenticated \
         git \
         unzip \
         curl \
@@ -40,14 +40,16 @@ RUN echo "date.timezone=UTC" > /usr/local/etc/php/conf.d/timezone.ini
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Install Node.js
-RUN curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | gpg --dearmor | tee /usr/share/keyrings/nodesource.gpg >/dev/null \
-    && echo 'deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_14.x stretch main' > /etc/apt/sources.list.d/nodesource.list \
-    && echo 'deb-src [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_14.x stretch main' >> /etc/apt/sources.list.d/nodesource.list \
-    && apt-get update \
-    && apt-get install -y nodejs
+RUN rm -rf /var/lib/apt/lists/* \
+     && echo "Acquire::Check-Valid-Until false;" > /etc/apt/apt.conf.d/99no-check-valid \
+     && echo "Acquire::AllowInsecureRepositories true;" >> /etc/apt/apt.conf.d/99no-check-valid \
+     && curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - \
+     && echo "deb https://deb.nodesource.com/node_14.x stretch main" > /etc/apt/sources.list.d/nodesource.list \
+     && apt-get update \
+     && apt-get install -y --allow-unauthenticated nodejs
 
 # Install PHP-SVN extension
-RUN apt-get install libsvn-dev \
+RUN apt-get install -y --allow-unauthenticated libsvn-dev \
     && pecl install svn \
     && echo "extension=svn.so" > /usr/local/etc/php/conf.d/svn.ini \
     && apt-get clean \
