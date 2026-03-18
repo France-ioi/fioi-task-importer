@@ -32,14 +32,27 @@ function saveMarkdown($html, $headers, $checkoutPath, $gitRepo, $gitPath, $filen
     // Find all src=""
     $imagesFound = [];
     preg_match_all('/src="([^"]+)"/', $html, $imagesFound);
-    foreach($imagesFound[1] as $img) {
-        $imgPath = pathJoin('files/checkouts/', $checkoutPath, $img);
+    $imagesFound = $imagesFound[1];
+
+    // Add any icon*.png files in the same directory as the markdown file
+    $checkoutDir = pathJoin($workingDir, 'files/checkouts/', $checkoutPath);
+    if(file_exists($checkoutDir) && is_dir($checkoutDir)) {
+        foreach(scandir($checkoutDir) as $file) {
+            if (preg_match('/^icon.*\.png$/', $file)) {
+                $imagesFound[] = $file;
+            }
+        }
+    }
+
+    // Copy images
+    foreach($imagesFound as $img) {
+        $imgPath = pathJoin($workingDir, 'files/checkouts/', $checkoutPath, $img);
         if (file_exists($imgPath)) {
             $imgDir = pathJoin($workingDir, 'files/checkouts/', $dirPath, dirname($img));
             if (!file_exists($imgDir)) {
                 mkdir($imgDir, 0777, true);
             }
-            copy($imgPath, pathJoin('files/checkouts/', $dirPath, $img));
+            copy($imgPath, pathJoin($workingDir, 'files/checkouts/', $dirPath, $img));
             // Enable lazy loading
             $html = str_replace('src="' . $img . '"', 'lazysrc="' . $img . '"', $html);
         }
@@ -97,9 +110,13 @@ function saveMarkdown($html, $headers, $checkoutPath, $gitRepo, $gitPath, $filen
 
     file_put_contents($localFilePath, $fullHtml);
 
-    return [
+    $result = [
         'success' => true,
-        'url' => $config->staticUrl . $filePath,
-        'cfUrl' => $config->cfUrl . $filePath
+        'url' => $config->staticUrl . $filePath
     ];
+    if(isset($config->cfUrl)) {
+        $result['cfUrl'] = $config->cfUrl . $filePath;
+    }
+
+    return $result;
 }
