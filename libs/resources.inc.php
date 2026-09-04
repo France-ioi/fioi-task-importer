@@ -67,46 +67,57 @@ function saveTask($metadata, $sTaskPath, $subdir, $revision, $resources) {
     return $taskId;
 }
 
+function replaceFileUrls($html, $files, $dirPath) {
+    global $config;
+    if (!$html) {
+        return $html;
+    }
+    // Longest first, so that "img/pic.png" is replaced before "pic.png"
+    usort($files, function($a, $b) { return strlen($b) - strlen($a); });
+    foreach($files as $f) {
+        $pattern = '/(?<![A-Za-z0-9\/_.-])' . preg_quote($f, '/') . '/';
+        $html = preg_replace($pattern, $config->staticUrl.$dirPath.'/'.$f, $html);
+    }
+    return $html;
+}
+
 function saveStrings($taskId, $resources, $metadata, $dirPath) {
     global $config, $db, $workingDir;
     $statement = null;
     $solution = null;
     $css = null;
-    $imagesRes = [];
     $files = array();
 
     $baseSvnFirst = explode('/', $dirPath)[0];
     $localCommonDir = $workingDir.'/files/checkouts/local/'.$baseSvnFirst;
     $localCommonExists = is_dir($localCommonDir);
 
+    // Images can be declared in the statement resources only even if they are
+    // also used by the solution (they are deduplicated when resources are
+    // generated)
     foreach ($resources['task'] as $i => $resource) {
         if ($resource['type'] == 'html') {
             $statement = $resource['content'];
         } elseif ($resource['type'] == 'css' && isset($resource['content'])) {
             $css = $resource['content'];
         } else if ($resource['type'] == 'image' && isset($resource['url'])) {
-            $imagesRes[] = $resource;
+            if(!in_array($resource['url'], $files)) {
+                $files[] = $resource['url'];
+            }
         }
     }
-    foreach($imagesRes as $imageRes) {
-      if(!in_array($imageRes['url'], $files)) {
-        $files[] = $imageRes['url'];
-      }
-    }
-    $imagesRes = [];
-    foreach ($resources['solution'] as $i => $resource) {
+    foreach ((isset($resources['solution']) ? $resources['solution'] : []) as $i => $resource) {
         if ($resource['type'] == 'html' && isset($resource['content'])) {
             $solution = $resource['content'];
         } else if ($resource['type'] == 'image' && isset($resource['url'])) {
-            $imagesRes[] = $resource;
+            if(!in_array($resource['url'], $files)) {
+                $files[] = $resource['url'];
+            }
         }
-    }
-    foreach($imagesRes as $imageRes) {
-        $solution = str_replace ($imageRes['url'] , $config->staticUrl.$dirPath.'/'.$imageRes['url'], $solution);
     }
 
     // Save files
-    foreach($resources['files'] as $f) {
+    foreach((isset($resources['files']) ? $resources['files'] : []) as $f) {
       if(!in_array($f['url'], $files)) {
         $files[] = $f['url'];
       }
@@ -116,10 +127,8 @@ function saveStrings($taskId, $resources, $metadata, $dirPath) {
         $files[] = $f;
       }
     }
-    foreach($files as $f) {
-        $pattern = '/(?<![A-Za-z0-9])' . preg_quote($f, '/') . '/';
-        $statement = preg_replace($pattern, $config->staticUrl.$dirPath.'/'.$f, $statement);
-    }
+    $statement = replaceFileUrls($statement, $files, $dirPath);
+    $solution = replaceFileUrls($solution, $files, $dirPath);
 
     if($localCommonExists) {
         $solution = str_replace('_local_common', '../local/'.$baseSvnFirst, $solution);
