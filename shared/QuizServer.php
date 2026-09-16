@@ -33,14 +33,15 @@ class QuizServer {
     }
 
 
-    public function write($task_id, $grader_data_path) {
+    public function write($task_id, $grader_data_path, $taskDir) {
         if(!file_exists($grader_data_path)) {
             throw new QuizServerException("No file found at $grader_data_path");
         }
         $res = $this->sendRequest([
             'action' => 'write',
             'task_id' => $task_id,
-            'data' => $this->readCode($grader_data_path)
+            'data' => $this->readCode($grader_data_path),
+            'task_dir' => $taskDir,
         ]);
         if (!$res) {
             throw new QuizServerException("No response from the quiz server");
