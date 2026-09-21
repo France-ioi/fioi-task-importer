@@ -182,7 +182,7 @@ function processDir($taskDir, $baseSvnFirst, $rewriteCommon, $isGit=false) {
             if($quizServer && file_exists($graderFilePath)) {
                 // TODO :: fetch the ID from the task JSON
                 $quizId = 'quiz-' . $taskId;
-                $quizServer->write($quizId, $graderFilePath);
+                $quizServer->write($quizId, $graderFilePath, $taskSvnDir);
                 file_put_contents($graderFilePath, '// dummy content, data hidden by svnimport');
                 $urlArgs['taskID'] = $quizId;
                 $hasLti = true;
